@@ -1,0 +1,238 @@
+import '../../core/services/api_service.dart';
+import '../../core/constants/api_constants.dart';
+import '../models/delivery_boy_model.dart';
+import '../models/customer_model.dart';
+import '../models/area_model.dart';
+import '../models/stock_model.dart';
+
+class AdminRepository {
+  final ApiService _apiService;
+
+  AdminRepository(this._apiService);
+
+  // Dashboard
+  Future<Map<String, dynamic>> getDashboard() async {
+    return await _apiService.get(ApiConstants.adminDashboard);
+  }
+
+  // Delivery Boys
+  Future<List<DeliveryBoyModel>> getAllDeliveryBoys({
+    int? areaId,
+    int? subAreaId,
+    String? search,
+  }) async {
+    String endpoint = ApiConstants.deliveryBoys;
+    List<String> queryParams = [];
+
+    if (areaId != null) queryParams.add('area_id=$areaId');
+    if (subAreaId != null) queryParams.add('sub_area_id=$subAreaId');
+    if (search != null && search.isNotEmpty) queryParams.add('search=$search');
+
+    if (queryParams.isNotEmpty) {
+      endpoint += '?${queryParams.join('&')}';
+    }
+
+    final response = await _apiService.get(endpoint);
+    return (response as List)
+        .map((e) => DeliveryBoyModel.fromJson(e))
+        .toList();
+  }
+
+  Future<DeliveryBoyModel> createDeliveryBoy(Map<String, dynamic> data) async {
+    final response = await _apiService.post(ApiConstants.deliveryBoys, data);
+    return DeliveryBoyModel.fromJson(response);
+  }
+
+  Future<DeliveryBoyModel> updateDeliveryBoy(
+      int id, Map<String, dynamic> data) async {
+    final response =
+        await _apiService.put('${ApiConstants.deliveryBoys}/$id', data);
+    return DeliveryBoyModel.fromJson(response);
+  }
+
+  Future<void> deleteDeliveryBoy(int id) async {
+    await _apiService.delete('${ApiConstants.deliveryBoys}/$id');
+  }
+
+  Future<DeliveryBoyModel> toggleDeliveryBoyActive(int id) async {
+    final response = await _apiService.patch(
+        '${ApiConstants.deliveryBoys}/$id/toggle-active', {});
+    return DeliveryBoyModel.fromJson(response);
+  }
+
+  Future<void> assignSubAreas(int deliveryBoyId, List<int> subAreaIds) async {
+    await _apiService.post(ApiConstants.assignSubAreas, {
+      'delivery_boy_id': deliveryBoyId,
+      'sub_area_ids': subAreaIds,
+    });
+  }
+
+  // Customers
+  Future<List<CustomerModel>> getAllCustomers({
+    int? deliveryBoyId,
+    int? areaId,
+    int? subAreaId,
+    double? minPendingMoney,
+    int? minPendingBottles,
+    String? permanentQuantityOrder,
+    String? search,
+  }) async {
+    String endpoint = ApiConstants.adminCustomers;
+    List<String> queryParams = [];
+
+    if (deliveryBoyId != null) {
+      queryParams.add('delivery_boy_id=$deliveryBoyId');
+    }
+    if (areaId != null) queryParams.add('area_id=$areaId');
+    if (subAreaId != null) queryParams.add('sub_area_id=$subAreaId');
+    if (minPendingMoney != null) {
+      queryParams.add('min_pending_money=$minPendingMoney');
+    }
+    if (minPendingBottles != null) {
+      queryParams.add('min_pending_bottles=$minPendingBottles');
+    }
+    if (permanentQuantityOrder != null) {
+      queryParams.add('permanent_quantity_order=$permanentQuantityOrder');
+    }
+    if (search != null && search.isNotEmpty) {
+      queryParams.add('search=$search');
+    }
+
+    if (queryParams.isNotEmpty) {
+      endpoint += '?${queryParams.join('&')}';
+    }
+
+    final response = await _apiService.get(endpoint);
+    return (response as List).map((e) => CustomerModel.fromJson(e)).toList();
+  }
+
+  Future<List<CustomerModel>> getPendingApprovals() async {
+    final response = await _apiService.get(ApiConstants.pendingApprovals);
+    return (response as List).map((e) => CustomerModel.fromJson(e)).toList();
+  }
+
+  Future<CustomerModel> createCustomer(Map<String, dynamic> data) async {
+    final response = await _apiService.post(ApiConstants.adminCustomers, data);
+    return CustomerModel.fromJson(response);
+  }
+
+  Future<CustomerModel> updateCustomer(
+      int id, Map<String, dynamic> data) async {
+    final response =
+        await _apiService.put('${ApiConstants.adminCustomers}/$id', data);
+    return CustomerModel.fromJson(response);
+  }
+
+  Future<void> deleteCustomer(int id) async {
+    await _apiService.delete('${ApiConstants.adminCustomers}/$id');
+  }
+
+  Future<CustomerModel> approveCustomer(
+      int id, int subAreaId, int sortNumber) async {
+    final response =
+        await _apiService.post('${ApiConstants.adminCustomers}/$id/approve', {
+      'sub_area_id': subAreaId,
+      'sort_number': sortNumber,
+    });
+    return CustomerModel.fromJson(response);
+  }
+
+  // Areas
+  Future<List<AreaModel>> getAllAreas() async {
+    final response = await _apiService.get(ApiConstants.areas);
+    return (response as List).map((e) => AreaModel.fromJson(e)).toList();
+  }
+
+  Future<AreaModel> createArea(String name) async {
+    final response = await _apiService.post(ApiConstants.areas, {'name': name});
+    return AreaModel.fromJson(response);
+  }
+
+  Future<SubAreaModel> createSubArea(int areaId, String name) async {
+    final response = await _apiService.post(
+        ApiConstants.subAreas, {'area_id': areaId, 'name': name});
+    return SubAreaModel.fromJson(response);
+  }
+
+  Future<AreaModel> updateArea(int id, String name) async {
+    final response =
+        await _apiService.put('${ApiConstants.areas}/$id', {'name': name});
+    return AreaModel.fromJson(response);
+  }
+
+  Future<SubAreaModel> updateSubArea(int id, String name) async {
+    final response =
+        await _apiService.put('${ApiConstants.subAreas}/$id', {'name': name});
+    return SubAreaModel.fromJson(response);
+  }
+
+  Future<void> deleteArea(int id) async {
+    await _apiService.delete('${ApiConstants.areas}/$id');
+  }
+
+  Future<void> deleteSubArea(int id) async {
+    await _apiService.delete('${ApiConstants.subAreas}/$id');
+  }
+
+  // Reasons
+  Future<List<Map<String, dynamic>>> getAllReasons() async {
+    return await _apiService.get(ApiConstants.reasons) as List;
+  }
+
+  Future<Map<String, dynamic>> createReason(String reason) async {
+    return await _apiService.post(ApiConstants.reasons, {'reason': reason});
+  }
+
+  Future<Map<String, dynamic>> updateReason(int id, String reason) async {
+    return await _apiService.put(
+        '${ApiConstants.reasons}/$id', {'reason': reason});
+  }
+
+  Future<void> deleteReason(int id) async {
+    await _apiService.delete('${ApiConstants.reasons}/$id');
+  }
+
+  // Stock Entries
+  Future<List<StockModel>> getAllStockEntries({
+    int? deliveryBoyId,
+    String? startDate,
+    String? endDate,
+  }) async {
+    String endpoint = ApiConstants.stockEntries;
+    List<String> queryParams = [];
+
+    if (deliveryBoyId != null) {
+      queryParams.add('delivery_boy_id=$deliveryBoyId');
+    }
+    if (startDate != null) queryParams.add('start_date=$startDate');
+    if (endDate != null) queryParams.add('end_date=$endDate');
+
+    if (queryParams.isNotEmpty) {
+      endpoint += '?${queryParams.join('&')}';
+    }
+
+    final response = await _apiService.get(endpoint);
+    return (response as List).map((e) => StockModel.fromJson(e)).toList();
+  }
+
+  Future<StockModel> createStockEntry(Map<String, dynamic> data) async {
+    final response = await _apiService.post(ApiConstants.stockEntries, data);
+    return StockModel.fromJson(response);
+  }
+
+  Future<StockModel> updateStockEntry(
+      int id, Map<String, dynamic> data) async {
+    final response =
+        await _apiService.put('${ApiConstants.stockEntries}/$id', data);
+    return StockModel.fromJson(response);
+  }
+
+  Future<void> deleteStockEntry(int id) async {
+    await _apiService.delete('${ApiConstants.stockEntries}/$id');
+  }
+
+  // Entries
+  Future<void> deleteEntry(int id) async {
+    await _apiService.delete('${ApiConstants.adminEntries}/$id');
+  }
+}

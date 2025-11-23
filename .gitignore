@@ -1,0 +1,82 @@
+# ============================
+# Flutter / Dart
+# ============================
+# Flutter build output
+delivery_app/build/
+delivery_app/.dart_tool/
+delivery_app/.pub/
+delivery_app/.flutter-plugins
+delivery_app/.flutter-plugins-dependencies
+delivery_app/.packages
+delivery_app/.metadata
+
+# IntelliJ / Android Studio
+delivery_app/.idea/
+delivery_app/*.iml
+
+# VS Code
+delivery_app/.vscode/
+
+# Android
+delivery_app/android/.gradle/
+delivery_app/android/build/
+delivery_app/android/app/build/
+delivery_app/android/local.properties
+delivery_app/android/gradlew
+delivery_app/android/gradlew.bat
+delivery_app/android/gradle-wrapper.jar
+delivery_app/android/gradle-wrapper.properties
+
+# iOS
+delivery_app/ios/Pods/
+delivery_app/ios/Runner.xcworkspace/
+delivery_app/ios/build/
+delivery_app/ios/Flutter/Flutter.framework
+delivery_app/ios/Flutter/Flutter.podspec
+
+# macOS
+delivery_app/macos/Flutter/ephemeral/
+delivery_app/macos/Pods/
+delivery_app/macos/build/
+
+# Web
+delivery_app/.firebase/
+
+# Logs
+delivery_app/*.log
+
+# ============================
+# Node.js Backend
+# ============================
+backend/node_modules/
+backend/package-lock.json
+backend/npm-debug.log
+backend/yarn-debug.log
+backend/yarn-error.log
+
+# dotenv files
+backend/.env
+backend/.env.local
+backend/.env.development
+backend/.env.production
+backend/.env.test
+
+# PM2 logs
+backend/.pm2/logs/
+
+# Build output (if using TypeScript)
+backend/dist/
+backend/build/
+
+# Cache
+backend/.cache/
+backend/.turbo/
+
+# ============================
+# General OS / Editor Files
+# ============================
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.tmp
