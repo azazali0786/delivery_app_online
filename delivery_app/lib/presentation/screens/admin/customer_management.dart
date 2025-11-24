@@ -1,3 +1,4 @@
+import 'package:delivery_app/data/models/area_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/constants/app_colors.dart';
@@ -5,7 +6,6 @@ import '../../../core/utils/helpers.dart';
 import '../../../business_logic/cubits/admin/admin_cubit.dart';
 import '../../../business_logic/cubits/admin/admin_state.dart';
 import '../../../data/repositories/admin_repository.dart';
-import '../../../data/models/customer_model.dart';
 import '../../widgets/common/loading_widget.dart';
 import '../../widgets/common/empty_state_widget.dart';
 
@@ -15,8 +15,8 @@ class CustomerManagement extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => AdminCubit(context.read<AdminRepository>())
-        ..loadCustomers(),
+      create: (context) =>
+          AdminCubit(context.read<AdminRepository>())..loadCustomers(),
       child: const CustomerManagementView(),
     );
   }
@@ -87,7 +87,11 @@ class _CustomerManagementViewState extends State<CustomerManagementView> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.error_outline, size: 60, color: AppColors.error),
+                  const Icon(
+                    Icons.error_outline,
+                    size: 60,
+                    color: AppColors.error,
+                  ),
                   const SizedBox(height: 16),
                   Text(state.message, textAlign: TextAlign.center),
                   const SizedBox(height: 16),
@@ -145,9 +149,12 @@ class _CustomerManagementViewState extends State<CustomerManagementView> {
                         return Card(
                           margin: const EdgeInsets.only(bottom: 12),
                           child: ListTile(
-                            onLongPress: () => _showApproveDialog(context, customer),
+                            onLongPress: () =>
+                                _showApproveDialog(context, customer),
                             leading: CircleAvatar(
-                              backgroundColor: AppColors.primary.withOpacity(0.1),
+                              backgroundColor: AppColors.primary.withOpacity(
+                                0.1,
+                              ),
                               child: Text(
                                 customer.name[0].toUpperCase(),
                                 style: const TextStyle(
@@ -164,8 +171,12 @@ class _CustomerManagementViewState extends State<CustomerManagementView> {
                                 if (customer.totalPendingMoney != null)
                                   Text(
                                     'Pending: ${Helpers.formatCurrency(customer.totalPendingMoney!)}',
-                                    style: const TextStyle(color: AppColors.error),
+                                    style: const TextStyle(
+                                      color: AppColors.error,
+                                    ),
                                   ),
+                                SizedBox(height: 4),
+                                Text(customer.subAreaName.toString())
                               ],
                             ),
                             trailing: PopupMenuButton(
@@ -196,11 +207,15 @@ class _CustomerManagementViewState extends State<CustomerManagementView> {
                                         TextButton(
                                           onPressed: () {
                                             Navigator.pop(ctx);
-                                            context.read<AdminCubit>().deleteCustomer(customer.id);
+                                            context
+                                                .read<AdminCubit>()
+                                                .deleteCustomer(customer.id);
                                           },
                                           child: const Text(
                                             'Delete',
-                                            style: TextStyle(color: AppColors.error),
+                                            style: TextStyle(
+                                              color: AppColors.error,
+                                            ),
                                           ),
                                         ),
                                       ],
@@ -225,15 +240,17 @@ class _CustomerManagementViewState extends State<CustomerManagementView> {
     );
   }
 }
-
 void _showApproveDialog(BuildContext context, dynamic customer) {
-    final subAreaController = TextEditingController();
-    final sortNumberController = TextEditingController();
-    final formKey = GlobalKey<FormState>();
+  final sortNumberController = TextEditingController();
+  final formKey = GlobalKey<FormState>();
 
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
+  int? selectedAreaId;
+  int? selectedSubAreaId;
+
+  showDialog(
+    context: context,
+    builder: (ctx) => StatefulBuilder(
+      builder: (dialogContext, setDialogState) => AlertDialog(
         title: Text('Approve ${customer.name}'),
         content: Form(
           key: formKey,
@@ -241,27 +258,94 @@ void _showApproveDialog(BuildContext context, dynamic customer) {
             mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
-                'Please assign a Sub-Area and Sort Number to approve this customer.',
+                'Please assign Area, Sub-Area and Sort Number to approve this customer.',
                 style: TextStyle(fontSize: 13, color: Colors.grey),
               ),
+
               const SizedBox(height: 16),
-              // Sub Area ID Input
-              TextFormField(
-                controller: subAreaController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Sub Area ID',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.map),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) return 'Required';
-                  if (int.tryParse(value) == null) return 'Must be a number';
-                  return null;
+
+              // ------------------------ AREA DROPDOWN ------------------------
+              FutureBuilder<List<AreaModel>>(
+                future: context.read<AdminRepository>().getAllAreas(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return const CircularProgressIndicator();
+                  }
+
+                  final areas = snapshot.data!;
+
+                  return DropdownButtonFormField<int>(
+                    value: selectedAreaId,
+                    decoration: const InputDecoration(
+                      labelText: 'Select Area',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.public),
+                    ),
+                    items: areas.map((area) {
+                      return DropdownMenuItem<int>(
+                        value: area.id,
+                        child: Text(area.name),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setDialogState(() {
+                        selectedAreaId = value;
+                        selectedSubAreaId = null; // Reset sub-area
+                      });
+                    },
+                    validator: (value) =>
+                        value == null ? "Please select an Area" : null,
+                  );
                 },
               ),
+
               const SizedBox(height: 16),
-              // Sort Number Input
+
+              // ------------------------ SUB-AREA DROPDOWN ------------------------
+              if (selectedAreaId != null)
+                FutureBuilder<List<Map<String, dynamic>>>(
+                  future: _loadSubAreas(dialogContext),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
+                      return const CircularProgressIndicator();
+                    }
+
+                    final allSubAreas = snapshot.data!;
+                    final filtered = allSubAreas
+                        .where((s) => s['area_id'] == selectedAreaId)
+                        .toList();
+
+                    if (filtered.isEmpty) {
+                      return const Text("No Sub-Areas available for this Area");
+                    }
+
+                    return DropdownButtonFormField<int>(
+                      value: selectedSubAreaId,
+                      decoration: const InputDecoration(
+                        labelText: 'Select Sub-Area',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.map),
+                      ),
+                      items: filtered.map((sub) {
+                        return DropdownMenuItem<int>(
+                          value: sub['id'],
+                          child: Text(sub['name']),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setDialogState(() {
+                          selectedSubAreaId = value;
+                        });
+                      },
+                      validator: (value) =>
+                          value == null ? 'Please select a Sub-Area' : null,
+                    );
+                  },
+                ),
+
+              const SizedBox(height: 16),
+
+              // ------------------------ SORT NUMBER ------------------------
               TextFormField(
                 controller: sortNumberController,
                 keyboardType: TextInputType.number,
@@ -269,7 +353,6 @@ void _showApproveDialog(BuildContext context, dynamic customer) {
                   labelText: 'Sort Number',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.sort),
-                  helperText: 'Order in the delivery list',
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) return 'Required';
@@ -280,6 +363,8 @@ void _showApproveDialog(BuildContext context, dynamic customer) {
             ],
           ),
         ),
+
+        // ------------------------ ACTION BUTTONS ------------------------
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -292,13 +377,11 @@ void _showApproveDialog(BuildContext context, dynamic customer) {
             ),
             onPressed: () {
               if (formKey.currentState!.validate()) {
-                // Close the dialog
                 Navigator.pop(ctx);
-                
-                // Call the Cubit
+
                 context.read<AdminCubit>().approveCustomer(
                       customer.id,
-                      int.parse(subAreaController.text),
+                      selectedSubAreaId!,
                       int.parse(sortNumberController.text),
                     );
               }
@@ -307,5 +390,31 @@ void _showApproveDialog(BuildContext context, dynamic customer) {
           ),
         ],
       ),
-    );
+    ),
+  );
+}
+
+
+Future<List<Map<String, dynamic>>> _loadSubAreas(BuildContext context) async {
+  try {
+    final areas = await context.read<AdminRepository>().getAllAreas();
+    final allSubAreas = <Map<String, dynamic>>[];
+
+    for (final area in areas) {
+      if (area.subAreas != null) {
+        for (final subArea in area.subAreas!) {
+          allSubAreas.add({
+            'id': subArea.id,
+            'name': subArea.name,
+            'area_name': area.name,
+            'area_id': area.id, // IMPORTANT for filtering
+          });
+        }
+      }
+    }
+    return allSubAreas;
+  } catch (e) {
+    return [];
   }
+}
+

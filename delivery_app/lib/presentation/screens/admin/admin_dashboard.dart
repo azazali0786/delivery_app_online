@@ -12,6 +12,9 @@ import 'delivery_boy_management.dart';
 import 'customer_management.dart';
 import 'area_management.dart';
 import 'stock_management.dart';
+import 'reason_management.dart';
+import 'assign_stock_screen.dart';
+import 'invoice_share_dialog.dart';
 
 class AdminDashboard extends StatelessWidget {
   const AdminDashboard({Key? key}) : super(key: key);
@@ -19,8 +22,8 @@ class AdminDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => AdminCubit(context.read<AdminRepository>())
-        ..loadDashboard(),
+      create: (context) =>
+          AdminCubit(context.read<AdminRepository>())..loadDashboard(),
       child: const AdminDashboardView(),
     );
   }
@@ -148,7 +151,8 @@ class AdminDashboardView extends StatelessWidget {
                         StatCard(
                           title: 'Pending Money',
                           value: Helpers.formatCurrency(
-                              stats['total_pending_money']),
+                            stats['total_pending_money'],
+                          ),
                           icon: Icons.account_balance_wallet,
                           color: AppColors.error,
                         ),
@@ -176,8 +180,7 @@ class AdminDashboardView extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) =>
-                                const DeliveryBoyManagement(),
+                            builder: (context) => const DeliveryBoyManagement(),
                           ),
                         );
                       },
@@ -230,6 +233,70 @@ class AdminDashboardView extends StatelessWidget {
                         );
                       },
                     ),
+                    const SizedBox(height: 12),
+
+                    _ManagementCard(
+                      title: 'Reason Management',
+                      subtitle: 'Manage delivery reasons',
+                      icon: Icons.note,
+                      color: AppColors.secondary,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ReasonManagement(),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Quick Actions
+                    const Text(
+                      'Quick Actions',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const AssignStockScreen(),
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.inventory_2),
+                            label: const Text('Assign Stock'),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              backgroundColor: AppColors.warning,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () => _showInvoiceDialog(context),
+                            icon: const Icon(Icons.receipt),
+                            label: const Text('Share Invoice'),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              backgroundColor: AppColors.info,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -240,6 +307,21 @@ class AdminDashboardView extends StatelessWidget {
         },
       ),
     );
+  }
+
+  void _showInvoiceDialog(BuildContext context) async {
+    final adminRepository = context.read<AdminRepository>();
+    final customers = await adminRepository.getAllCustomers();
+    if (context.mounted) {
+      showDialog(
+        context: context,
+        builder: (ctx) => InvoiceShareDialog(
+          customers: customers
+              .map((c) => {'id': c.id, 'name': c.name})
+              .toList(),
+        ),
+      );
+    }
   }
 }
 
@@ -263,9 +345,7 @@ class _ManagementCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
@@ -279,11 +359,7 @@ class _ManagementCard extends StatelessWidget {
                   color: color.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(
-                  icon,
-                  color: color,
-                  size: 28,
-                ),
+                child: Icon(icon, color: color, size: 28),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -309,10 +385,7 @@ class _ManagementCard extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(
-                Icons.chevron_right,
-                color: AppColors.textTertiary,
-              ),
+              Icon(Icons.chevron_right, color: AppColors.textTertiary),
             ],
           ),
         ),

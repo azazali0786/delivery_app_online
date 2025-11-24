@@ -347,6 +347,65 @@ class AdminController {
       next(error);
     }
   }
+
+  // Invoice Generation
+  static async generateInvoice(req, res, next) {
+    try {
+      const { customer_id, start_date, end_date } = req.query;
+
+      if (!customer_id) {
+        return res.status(400).json({ error: 'Customer ID is required' });
+      }
+
+      // Get customer details
+      const customer = await CustomerModel.findById(customer_id);
+      if (!customer) {
+        return res.status(404).json({ error: 'Customer not found' });
+      }
+
+      // Get entries for the customer within date range
+      const entries = await EntryModel.getByCustomer(
+        customer_id,
+        start_date,
+        end_date
+      );
+
+      // Calculate totals
+      let totalMilk = 0;
+      let totalCollected = 0;
+      let totalPending = 0;
+
+      entries.forEach(entry => {
+        totalMilk += parseFloat(entry.milk_quantity || 0);
+        totalCollected += parseFloat(entry.collected_money || 0);
+        totalPending += parseFloat((entry.milk_quantity || 0) * (entry.rate || 0) - (entry.collected_money || 0));
+      });
+
+      const invoiceData = {
+        customer_name: customer.name,
+        customer_phone: customer.phone_number,
+        customer_address: customer.address,
+        period_start: start_date || 'N/A',
+        period_end: end_date || 'N/A',
+        entries: entries.map(e => ({
+          date: e.entry_date,
+          milk_quantity: e.milk_quantity,
+          rate: e.rate,
+          collected: e.collected_money,
+          payment_method: e.payment_method,
+          is_delivered: e.is_delivered
+        })),
+        total_milk: totalMilk,
+        total_collected: totalCollected,
+        total_pending: totalPending.toFixed(2),
+        generated_date: new Date().toISOString().split('T')[0]
+      };
+
+      res.json(invoiceData);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = AdminController;

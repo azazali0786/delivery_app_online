@@ -33,9 +33,7 @@ class AdminRepository {
     }
 
     final response = await _apiService.get(endpoint);
-    return (response as List)
-        .map((e) => DeliveryBoyModel.fromJson(e))
-        .toList();
+    return (response as List).map((e) => DeliveryBoyModel.fromJson(e)).toList();
   }
 
   Future<DeliveryBoyModel> createDeliveryBoy(Map<String, dynamic> data) async {
@@ -44,9 +42,13 @@ class AdminRepository {
   }
 
   Future<DeliveryBoyModel> updateDeliveryBoy(
-      int id, Map<String, dynamic> data) async {
-    final response =
-        await _apiService.put('${ApiConstants.deliveryBoys}/$id', data);
+    int id,
+    Map<String, dynamic> data,
+  ) async {
+    final response = await _apiService.put(
+      '${ApiConstants.deliveryBoys}/$id',
+      data,
+    );
     return DeliveryBoyModel.fromJson(response);
   }
 
@@ -56,7 +58,9 @@ class AdminRepository {
 
   Future<DeliveryBoyModel> toggleDeliveryBoyActive(int id) async {
     final response = await _apiService.patch(
-        '${ApiConstants.deliveryBoys}/$id/toggle-active', {});
+      '${ApiConstants.deliveryBoys}/$id/toggle-active',
+      {},
+    );
     return DeliveryBoyModel.fromJson(response);
   }
 
@@ -117,9 +121,13 @@ class AdminRepository {
   }
 
   Future<CustomerModel> updateCustomer(
-      int id, Map<String, dynamic> data) async {
-    final response =
-        await _apiService.put('${ApiConstants.adminCustomers}/$id', data);
+    int id,
+    Map<String, dynamic> data,
+  ) async {
+    final response = await _apiService.put(
+      '${ApiConstants.adminCustomers}/$id',
+      data,
+    );
     return CustomerModel.fromJson(response);
   }
 
@@ -128,12 +136,14 @@ class AdminRepository {
   }
 
   Future<CustomerModel> approveCustomer(
-      int id, int subAreaId, int sortNumber) async {
-    final response =
-        await _apiService.post('${ApiConstants.adminCustomers}/$id/approve', {
-      'sub_area_id': subAreaId,
-      'sort_number': sortNumber,
-    });
+    int id,
+    int subAreaId,
+    int sortNumber,
+  ) async {
+    final response = await _apiService.post(
+      '${ApiConstants.adminCustomers}/$id/approve',
+      {'sub_area_id': subAreaId, 'sort_number': sortNumber},
+    );
     return CustomerModel.fromJson(response);
   }
 
@@ -149,20 +159,24 @@ class AdminRepository {
   }
 
   Future<SubAreaModel> createSubArea(int areaId, String name) async {
-    final response = await _apiService.post(
-        ApiConstants.subAreas, {'area_id': areaId, 'name': name});
+    final response = await _apiService.post(ApiConstants.subAreas, {
+      'area_id': areaId,
+      'name': name,
+    });
     return SubAreaModel.fromJson(response);
   }
 
   Future<AreaModel> updateArea(int id, String name) async {
-    final response =
-        await _apiService.put('${ApiConstants.areas}/$id', {'name': name});
+    final response = await _apiService.put('${ApiConstants.areas}/$id', {
+      'name': name,
+    });
     return AreaModel.fromJson(response);
   }
 
   Future<SubAreaModel> updateSubArea(int id, String name) async {
-    final response =
-        await _apiService.put('${ApiConstants.subAreas}/$id', {'name': name});
+    final response = await _apiService.put('${ApiConstants.subAreas}/$id', {
+      'name': name,
+    });
     return SubAreaModel.fromJson(response);
   }
 
@@ -176,18 +190,18 @@ class AdminRepository {
 
   // Reasons
   Future<List<Map<String, dynamic>>> getAllReasons() async {
-  final response = await _apiService.get(ApiConstants.reasons);
-  return List<Map<String, dynamic>>.from(response);
+    final response = await _apiService.get(ApiConstants.reasons);
+    return List<Map<String, dynamic>>.from(response);
   }
-
 
   Future<Map<String, dynamic>> createReason(String reason) async {
     return await _apiService.post(ApiConstants.reasons, {'reason': reason});
   }
 
   Future<Map<String, dynamic>> updateReason(int id, String reason) async {
-    return await _apiService.put(
-        '${ApiConstants.reasons}/$id', {'reason': reason});
+    return await _apiService.put('${ApiConstants.reasons}/$id', {
+      'reason': reason,
+    });
   }
 
   Future<void> deleteReason(int id) async {
@@ -222,10 +236,11 @@ class AdminRepository {
     return StockModel.fromJson(response);
   }
 
-  Future<StockModel> updateStockEntry(
-      int id, Map<String, dynamic> data) async {
-    final response =
-        await _apiService.put('${ApiConstants.stockEntries}/$id', data);
+  Future<StockModel> updateStockEntry(int id, Map<String, dynamic> data) async {
+    final response = await _apiService.put(
+      '${ApiConstants.stockEntries}/$id',
+      data,
+    );
     return StockModel.fromJson(response);
   }
 
@@ -236,5 +251,19 @@ class AdminRepository {
   // Entries
   Future<void> deleteEntry(int id) async {
     await _apiService.delete('${ApiConstants.adminEntries}/$id');
+  }
+
+  // Invoice
+  Future<Map<String, dynamic>> generateInvoice({
+    required int customerId,
+    String? startDate,
+    String? endDate,
+  }) async {
+    String endpoint = '${ApiConstants.adminInvoice}?customer_id=$customerId';
+
+    if (startDate != null) endpoint += '&start_date=$startDate';
+    if (endDate != null) endpoint += '&end_date=$endDate';
+
+    return await _apiService.get(endpoint);
   }
 }

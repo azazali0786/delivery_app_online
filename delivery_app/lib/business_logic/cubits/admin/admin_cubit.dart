@@ -299,4 +299,48 @@ class AdminCubit extends Cubit<AdminState> {
       emit(AdminOperationError(e.toString().replaceAll('Exception: ', '')));
     }
   }
+
+  // Reasons
+  Future<void> loadReasons() async {
+    emit(ReasonsLoading());
+    try {
+      final reasons = await _adminRepository.getAllReasons();
+      emit(ReasonsLoaded(reasons));
+    } catch (e) {
+      emit(ReasonsError(e.toString().replaceAll('Exception: ', '')));
+    }
+  }
+
+  Future<void> createReason(String reason) async {
+    emit(AdminOperationLoading());
+    try {
+      await _adminRepository.createReason(reason);
+      emit(const AdminOperationSuccess('Reason created successfully'));
+      loadReasons();
+    } catch (e) {
+      emit(AdminOperationError(e.toString().replaceAll('Exception: ', '')));
+    }
+  }
+
+  Future<void> updateReason(int id, String reason) async {
+    emit(AdminOperationLoading());
+    try {
+      await _adminRepository.updateReason(id, reason);
+      emit(const AdminOperationSuccess('Reason updated successfully'));
+      loadReasons();
+    } catch (e) {
+      emit(AdminOperationError(e.toString().replaceAll('Exception: ', '')));
+    }
+  }
+
+  Future<void> deleteReason(int id) async {
+    emit(AdminOperationLoading());
+    try {
+      await _adminRepository.deleteReason(id);
+      emit(const AdminOperationSuccess('Reason deleted successfully'));
+      loadReasons();
+    } catch (e) {
+      emit(AdminOperationError(e.toString().replaceAll('Exception: ', '')));
+    }
+  }
 }

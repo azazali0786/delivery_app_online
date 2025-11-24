@@ -50,4 +50,7 @@ router.delete('/stock-entries/:id', AdminController.deleteStockEntry);
 // Entry Management
 router.delete('/entries/:id', AdminController.deleteEntry);
 
+// Invoice Generation
+router.get('/invoice', AdminController.generateInvoice);
+
 module.exports = router;

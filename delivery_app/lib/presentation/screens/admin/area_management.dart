@@ -4,10 +4,8 @@ import '../../../core/constants/app_colors.dart';
 import '../../../business_logic/cubits/admin/admin_cubit.dart';
 import '../../../business_logic/cubits/admin/admin_state.dart';
 import '../../../data/repositories/admin_repository.dart';
-import '../../../data/models/area_model.dart';
 import '../../widgets/common/loading_widget.dart';
-import '../../widgets/common/custom_button.dart';
-import '../../widgets/common/custom_textfield.dart';
+
 
 class AreaManagement extends StatelessWidget {
   const AreaManagement({Key? key}) : super(key: key);

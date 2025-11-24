@@ -118,6 +118,27 @@ class StockError extends AdminState {
   List<Object?> get props => [message];
 }
 
+// Reasons States
+class ReasonsLoading extends AdminState {}
+
+class ReasonsLoaded extends AdminState {
+  final List<Map<String, dynamic>> reasons;
+
+  const ReasonsLoaded(this.reasons);
+
+  @override
+  List<Object?> get props => [reasons];
+}
+
+class ReasonsError extends AdminState {
+  final String message;
+
+  const ReasonsError(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
 // Operation States
 class AdminOperationLoading extends AdminState {}
 
