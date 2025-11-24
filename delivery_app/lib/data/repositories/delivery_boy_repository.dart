@@ -147,6 +147,9 @@ class DeliveryBoyRepository {
 
   // Reasons
   Future<List<Map<String, dynamic>>> getReasons() async {
-    return await _apiService.get(ApiConstants.deliveryReasons) as List;
+  final response = await _apiService.get(ApiConstants.deliveryReasons);
+
+  return List<Map<String, dynamic>>.from(response);
   }
+
 }

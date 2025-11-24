@@ -18,8 +18,8 @@ class DeliveryBoyManagement extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => AdminCubit(context.read<AdminRepository>())
-        ..loadDeliveryBoys(),
+      create: (context) =>
+          AdminCubit(context.read<AdminRepository>())..loadDeliveryBoys(),
       child: const DeliveryBoyManagementView(),
     );
   }
@@ -46,21 +46,30 @@ class _DeliveryBoyManagementViewState extends State<DeliveryBoyManagementView> {
   void _showAddDeliveryBoyDialog() {
     showDialog(
       context: context,
-      builder: (ctx) => _AddDeliveryBoyDialog(),
+      builder: (ctx) => BlocProvider.value(
+        value: context.read<AdminCubit>(),
+        child: _AddDeliveryBoyDialog(),
+      ),
     );
   }
 
   void _showEditDeliveryBoyDialog(DeliveryBoyModel deliveryBoy) {
     showDialog(
       context: context,
-      builder: (ctx) => _EditDeliveryBoyDialog(deliveryBoy: deliveryBoy),
+      builder: (ctx) => BlocProvider.value(
+        value: context.read<AdminCubit>(),
+        child: _EditDeliveryBoyDialog(deliveryBoy: deliveryBoy),
+      ),
     );
   }
 
   void _showAssignSubAreasDialog(DeliveryBoyModel deliveryBoy) {
     showDialog(
       context: context,
-      builder: (ctx) => _AssignSubAreasDialog(deliveryBoy: deliveryBoy),
+      builder: (ctx) => BlocProvider.value(
+        value: context.read<AdminCubit>(),
+        child: _AssignSubAreasDialog(deliveryBoy: deliveryBoy),
+      ),
     );
   }
 
@@ -118,10 +127,7 @@ class _DeliveryBoyManagementViewState extends State<DeliveryBoyManagementView> {
                     color: AppColors.error,
                   ),
                   const SizedBox(height: 16),
-                  Text(
-                    state.message,
-                    textAlign: TextAlign.center,
-                  ),
+                  Text(state.message, textAlign: TextAlign.center),
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () {
@@ -162,9 +168,7 @@ class _DeliveryBoyManagementViewState extends State<DeliveryBoyManagementView> {
                                 setState(() {
                                   _searchQuery = null;
                                 });
-                                context
-                                    .read<AdminCubit>()
-                                    .loadDeliveryBoys();
+                                context.read<AdminCubit>().loadDeliveryBoys();
                               },
                             )
                           : null,
@@ -179,9 +183,9 @@ class _DeliveryBoyManagementViewState extends State<DeliveryBoyManagementView> {
                       setState(() {
                         _searchQuery = value.isNotEmpty ? value : null;
                       });
-                      context
-                          .read<AdminCubit>()
-                          .loadDeliveryBoys(search: _searchQuery);
+                      context.read<AdminCubit>().loadDeliveryBoys(
+                        search: _searchQuery,
+                      );
                     },
                   ),
                 ),
@@ -190,9 +194,9 @@ class _DeliveryBoyManagementViewState extends State<DeliveryBoyManagementView> {
                 Expanded(
                   child: RefreshIndicator(
                     onRefresh: () async {
-                      context
-                          .read<AdminCubit>()
-                          .loadDeliveryBoys(search: _searchQuery);
+                      context.read<AdminCubit>().loadDeliveryBoys(
+                        search: _searchQuery,
+                      );
                     },
                     child: ListView.builder(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -205,9 +209,9 @@ class _DeliveryBoyManagementViewState extends State<DeliveryBoyManagementView> {
                           onAssignSubAreas: () =>
                               _showAssignSubAreasDialog(deliveryBoy),
                           onToggleActive: () {
-                            context
-                                .read<AdminCubit>()
-                                .toggleDeliveryBoyActive(deliveryBoy.id);
+                            context.read<AdminCubit>().toggleDeliveryBoyActive(
+                              deliveryBoy.id,
+                            );
                           },
                           onDelete: () {
                             showDialog(
@@ -215,7 +219,8 @@ class _DeliveryBoyManagementViewState extends State<DeliveryBoyManagementView> {
                               builder: (ctx) => AlertDialog(
                                 title: const Text('Delete Delivery Boy'),
                                 content: Text(
-                                    'Are you sure you want to delete ${deliveryBoy.name}?'),
+                                  'Are you sure you want to delete ${deliveryBoy.name}?',
+                                ),
                                 actions: [
                                   TextButton(
                                     onPressed: () => Navigator.pop(ctx),
@@ -274,9 +279,7 @@ class _DeliveryBoyCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -441,16 +444,18 @@ class _DeliveryBoyCard extends StatelessWidget {
                 TextButton.icon(
                   onPressed: onToggleActive,
                   icon: Icon(
-                    deliveryBoy.isActive
-                        ? Icons.block
-                        : Icons.check_circle,
+                    deliveryBoy.isActive ? Icons.block : Icons.check_circle,
                     size: 18,
                   ),
                   label: Text(deliveryBoy.isActive ? 'Deactivate' : 'Activate'),
                 ),
                 TextButton.icon(
                   onPressed: onDelete,
-                  icon: const Icon(Icons.delete, size: 18, color: AppColors.error),
+                  icon: const Icon(
+                    Icons.delete,
+                    size: 18,
+                    color: AppColors.error,
+                  ),
                   label: const Text(
                     'Delete',
                     style: TextStyle(color: AppColors.error),
@@ -518,9 +523,7 @@ class _AddDeliveryBoyDialogState extends State<_AddDeliveryBoyDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -626,7 +629,7 @@ class _EditDeliveryBoyDialog extends StatefulWidget {
   final DeliveryBoyModel deliveryBoy;
 
   const _EditDeliveryBoyDialog({Key? key, required this.deliveryBoy})
-      : super(key: key);
+    : super(key: key);
 
   @override
   State<_EditDeliveryBoyDialog> createState() => _EditDeliveryBoyDialogState();
@@ -643,12 +646,15 @@ class _EditDeliveryBoyDialogState extends State<_EditDeliveryBoyDialog> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.deliveryBoy.name);
-    _addressController =
-        TextEditingController(text: widget.deliveryBoy.address ?? '');
-    _phone1Controller =
-        TextEditingController(text: widget.deliveryBoy.phoneNumber1 ?? '');
-    _phone2Controller =
-        TextEditingController(text: widget.deliveryBoy.phoneNumber2 ?? '');
+    _addressController = TextEditingController(
+      text: widget.deliveryBoy.address ?? '',
+    );
+    _phone1Controller = TextEditingController(
+      text: widget.deliveryBoy.phoneNumber1 ?? '',
+    );
+    _phone2Controller = TextEditingController(
+      text: widget.deliveryBoy.phoneNumber2 ?? '',
+    );
   }
 
   @override
@@ -677,9 +683,7 @@ class _EditDeliveryBoyDialogState extends State<_EditDeliveryBoyDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -755,7 +759,7 @@ class _AssignSubAreasDialog extends StatefulWidget {
   final DeliveryBoyModel deliveryBoy;
 
   const _AssignSubAreasDialog({Key? key, required this.deliveryBoy})
-      : super(key: key);
+    : super(key: key);
 
   @override
   State<_AssignSubAreasDialog> createState() => _AssignSubAreasDialogState();
@@ -774,8 +778,7 @@ class _AssignSubAreasDialogState extends State<_AssignSubAreasDialog> {
 
   Future<void> _loadAreas() async {
     try {
-      final areas =
-          await context.read<AdminRepository>().getAllAreas();
+      final areas = await context.read<AdminRepository>().getAllAreas();
       setState(() {
         _areas = areas;
         _isLoading = false;
@@ -797,18 +800,17 @@ class _AssignSubAreasDialogState extends State<_AssignSubAreasDialog> {
   }
 
   void _handleSubmit() {
-    context
-        .read<AdminCubit>()
-        .assignSubAreas(widget.deliveryBoy.id, _selectedSubAreaIds.toList());
+    context.read<AdminCubit>().assignSubAreas(
+      widget.deliveryBoy.id,
+      _selectedSubAreaIds.toList(),
+    );
     Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
         constraints: const BoxConstraints(maxHeight: 600),
         child: Column(
@@ -840,15 +842,9 @@ class _AssignSubAreasDialogState extends State<_AssignSubAreasDialog> {
             ),
             const Divider(height: 1),
             if (_isLoading)
-              const Expanded(
-                child: Center(child: CircularProgressIndicator()),
-              )
+              const Expanded(child: Center(child: CircularProgressIndicator()))
             else if (_areas.isEmpty)
-              const Expanded(
-                child: Center(
-                  child: Text('No areas available'),
-                ),
-              )
+              const Expanded(child: Center(child: Text('No areas available')))
             else
               Expanded(
                 child: ListView.builder(
@@ -872,8 +868,9 @@ class _AssignSubAreasDialogState extends State<_AssignSubAreasDialog> {
                         ),
                         if (area.subAreas != null) ...[
                           ...area.subAreas!.map((subArea) {
-                            final isSelected =
-                                _selectedSubAreaIds.contains(subArea.id);
+                            final isSelected = _selectedSubAreaIds.contains(
+                              subArea.id,
+                            );
                             return CheckboxListTile(
                               title: Text(subArea.name),
                               value: isSelected,

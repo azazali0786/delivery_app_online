@@ -83,7 +83,9 @@ class _AddCustomerScreenViewState extends State<AddCustomerScreenView> {
         });
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Unable to get location. Please enable location services.'),
+            content: Text(
+              'Unable to get location. Please enable location services.',
+            ),
             backgroundColor: AppColors.error,
           ),
         );
@@ -121,9 +123,7 @@ class _AddCustomerScreenViewState extends State<AddCustomerScreenView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Add Customer'),
-      ),
+      appBar: AppBar(title: const Text('Add Customer')),
       body: BlocConsumer<DeliveryBoyCubit, DeliveryBoyState>(
         listener: (context, state) {
           if (state is DeliveryBoyOperationSuccess) {
@@ -197,8 +197,10 @@ class _AddCustomerScreenViewState extends State<AddCustomerScreenView> {
                     label: 'Permanent Quantity (Liters)',
                     controller: _quantityController,
                     keyboardType: TextInputType.number,
-                    validator: (value) =>
-                        Validators.validatePositiveNumber(value, 'Permanent quantity'),
+                    validator: (value) => Validators.validatePositiveNumber(
+                      value,
+                      'Permanent quantity',
+                    ),
                   ),
                   const SizedBox(height: 24),
 
@@ -262,7 +264,9 @@ class _AddCustomerScreenViewState extends State<AddCustomerScreenView> {
                     text: _isLoadingLocation
                         ? 'Fetching Location...'
                         : 'Auto Fetch Current Location',
-                    onPressed: _isLoadingLocation ? null : _getCurrentLocation,
+                    onPressed: _isLoadingLocation
+                        ? null
+                        : () => _getCurrentLocation(),
                     isLoading: _isLoadingLocation,
                     icon: Icons.my_location,
                     isOutlined: true,
@@ -288,10 +292,7 @@ class _AddCustomerScreenViewState extends State<AddCustomerScreenView> {
                     ),
                     child: const Column(
                       children: [
-                        Icon(
-                          Icons.info_outline,
-                          color: AppColors.info,
-                        ),
+                        Icon(Icons.info_outline, color: AppColors.info),
                         SizedBox(height: 8),
                         Text(
                           'This customer will be added to pending approvals. Admin will approve and assign sub-area.',

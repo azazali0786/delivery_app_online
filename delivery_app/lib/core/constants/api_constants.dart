@@ -1,10 +1,16 @@
 class ApiConstants {
   // Base URL - Change this to your backend URL
-  static const String baseUrl = 'http://localhost:3000/api';
-  
-  // Alternative for Android Emulator
-  // static const String baseUrl = 'http://10.0.2.2:3000/api';
-  
+  // Use Android emulator host mapping by default so emulator can reach your
+  // machine's localhost. If you run the app on a physical device, replace
+  // with your computer's LAN IP (e.g. 192.168.x.x).
+  // When testing on a physical device, use your computer's LAN/Wi-Fi IP below.
+  // Detected Wi‑Fi IP on this machine: 10.226.109.216
+  static const String baseUrl = 'http://10.226.109.216:3000/api';
+
+  // Alternative for local simulator / desktop where `localhost` resolves to
+  // the host machine directly:
+  // static const String baseUrl = 'http://localhost:3000/api';
+
   // Alternative for physical device (use your computer's IP)
   // static const String baseUrl = 'http://192.168.1.100:3000/api';
 

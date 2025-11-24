@@ -10,19 +10,18 @@ class Helpers {
     return DateFormat('yyyy-MM-dd').format(date);
   }
 
-  static String formatCurrency(double amount) {
-    return '₹${amount.toStringAsFixed(2)}';
+  static String formatCurrency(num amount) {
+    final value = amount.toDouble();
+    return '₹${value.toStringAsFixed(2)}';
   }
 
-  static String formatQuantity(double quantity) {
-    return '${quantity.toStringAsFixed(2)} L';
+  static String formatQuantity(num quantity) {
+    final value = quantity.toDouble();
+    return '${value.toStringAsFixed(2)} L';
   }
 
   static Future<void> makePhoneCall(String phoneNumber) async {
-    final Uri launchUri = Uri(
-      scheme: 'tel',
-      path: phoneNumber,
-    );
+    final Uri launchUri = Uri(scheme: 'tel', path: phoneNumber);
     if (await canLaunchUrl(launchUri)) {
       await launchUrl(launchUri);
     }
@@ -37,15 +36,19 @@ class Helpers {
     }
   }
 
-  static Future<void> openMap(String? locationLink, double? lat, double? lng) async {
+  static Future<void> openMap(
+    String? locationLink,
+    double? lat,
+    double? lng,
+  ) async {
     Uri? launchUri;
-    
+
     if (locationLink != null && locationLink.isNotEmpty) {
       launchUri = Uri.parse(locationLink);
     } else if (lat != null && lng != null) {
       launchUri = Uri.parse('https://www.google.com/maps?q=$lat,$lng');
     }
-    
+
     if (launchUri != null && await canLaunchUrl(launchUri)) {
       await launchUrl(launchUri, mode: LaunchMode.externalApplication);
     }

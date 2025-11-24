@@ -21,7 +21,8 @@ class EntryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => DeliveryBoyCubit(context.read<DeliveryBoyRepository>()),
+      create: (context) =>
+          DeliveryBoyCubit(context.read<DeliveryBoyRepository>()),
       child: EntryScreenView(customer: customer),
     );
   }
@@ -42,7 +43,7 @@ class _EntryScreenViewState extends State<EntryScreenView> {
   final _collectedMoneyController = TextEditingController();
   final _pendingBottlesController = TextEditingController();
   final _rateController = TextEditingController();
-  
+
   String _paymentMethod = 'cash';
   List<Map<String, dynamic>> _reasons = [];
   bool _isLoadingReasons = true;
@@ -178,10 +179,7 @@ class _EntryScreenViewState extends State<EntryScreenView> {
             children: [
               const Text(
                 'Scan QR Code for Payment',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 24),
               QrImageView(
@@ -190,10 +188,7 @@ class _EntryScreenViewState extends State<EntryScreenView> {
                 size: 200.0,
               ),
               const SizedBox(height: 24),
-              const Text(
-                'UPI ID: example@upi',
-                style: TextStyle(fontSize: 14),
-              ),
+              const Text('UPI ID: example@upi', style: TextStyle(fontSize: 14)),
               const SizedBox(height: 16),
               TextButton(
                 onPressed: () => Navigator.pop(ctx),
@@ -209,7 +204,7 @@ class _EntryScreenViewState extends State<EntryScreenView> {
   Future<void> _sendTransactionPhoto() async {
     final picker = ImagePicker();
     final image = await picker.pickImage(source: ImageSource.camera);
-    
+
     if (image != null) {
       // Send to WhatsApp
       await Helpers.openWhatsApp(
@@ -222,9 +217,7 @@ class _EntryScreenViewState extends State<EntryScreenView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Entry'),
-      ),
+      appBar: AppBar(title: const Text('Entry')),
       body: BlocConsumer<DeliveryBoyCubit, DeliveryBoyState>(
         listener: (context, state) {
           if (state is DeliveryBoyOperationSuccess) {
@@ -269,7 +262,9 @@ class _EntryScreenViewState extends State<EntryScreenView> {
                             children: [
                               CircleAvatar(
                                 radius: 30,
-                                backgroundColor: AppColors.primary.withOpacity(0.1),
+                                backgroundColor: AppColors.primary.withOpacity(
+                                  0.1,
+                                ),
                                 child: Text(
                                   widget.customer.name[0].toUpperCase(),
                                   style: const TextStyle(
@@ -331,7 +326,8 @@ class _EntryScreenViewState extends State<EntryScreenView> {
                               Expanded(
                                 child: _InfoTile(
                                   label: 'Pending Bottles',
-                                  value: widget.customer.lastTimePendingBottles
+                                  value:
+                                      widget.customer.lastTimePendingBottles
                                           ?.toString() ??
                                       '0',
                                 ),
@@ -349,8 +345,9 @@ class _EntryScreenViewState extends State<EntryScreenView> {
                             children: [
                               Expanded(
                                 child: OutlinedButton.icon(
-                                  onPressed: () =>
-                                      Helpers.makePhoneCall(widget.customer.phoneNumber),
+                                  onPressed: () => Helpers.makePhoneCall(
+                                    widget.customer.phoneNumber,
+                                  ),
                                   icon: const Icon(Icons.phone, size: 18),
                                   label: const Text('Call'),
                                 ),
@@ -390,8 +387,10 @@ class _EntryScreenViewState extends State<EntryScreenView> {
                     label: 'Milk Quantity (Liters)',
                     controller: _quantityController,
                     keyboardType: TextInputType.number,
-                    validator: (value) =>
-                        Validators.validatePositiveNumber(value, 'Milk quantity'),
+                    validator: (value) => Validators.validatePositiveNumber(
+                      value,
+                      'Milk quantity',
+                    ),
                   ),
                   const SizedBox(height: 16),
 
@@ -408,8 +407,10 @@ class _EntryScreenViewState extends State<EntryScreenView> {
                     label: 'Collected Money (₹)',
                     controller: _collectedMoneyController,
                     keyboardType: TextInputType.number,
-                    validator: (value) =>
-                        Validators.validatePositiveNumber(value, 'Collected money'),
+                    validator: (value) => Validators.validatePositiveNumber(
+                      value,
+                      'Collected money',
+                    ),
                   ),
                   const SizedBox(height: 16),
 
@@ -450,7 +451,7 @@ class _EntryScreenViewState extends State<EntryScreenView> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: OutlinedButton.icon(
-                            onPressed: _sendTransactionPhoto,
+                            onPressed: () => _sendTransactionPhoto(),
                             icon: const Icon(Icons.camera_alt),
                             label: const Text('Send Photo'),
                           ),
@@ -471,7 +472,9 @@ class _EntryScreenViewState extends State<EntryScreenView> {
 
                   CustomButton(
                     text: 'Not Delivered',
-                    onPressed: _isLoadingReasons ? null : _showNotDeliveredDialog,
+                    onPressed: _isLoadingReasons
+                        ? null
+                        : _showNotDeliveredDialog,
                     isOutlined: true,
                     color: AppColors.error,
                     icon: Icons.close,
@@ -505,10 +508,7 @@ class _InfoTile extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(
-            fontSize: 12,
-            color: AppColors.textSecondary,
-          ),
+          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
         ),
         const SizedBox(height: 4),
         Text(

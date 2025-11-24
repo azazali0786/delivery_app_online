@@ -176,8 +176,10 @@ class AdminRepository {
 
   // Reasons
   Future<List<Map<String, dynamic>>> getAllReasons() async {
-    return await _apiService.get(ApiConstants.reasons) as List;
+  final response = await _apiService.get(ApiConstants.reasons);
+  return List<Map<String, dynamic>>.from(response);
   }
+
 
   Future<Map<String, dynamic>> createReason(String reason) async {
     return await _apiService.post(ApiConstants.reasons, {'reason': reason});
