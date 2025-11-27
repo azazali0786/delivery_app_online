@@ -156,6 +156,9 @@ class _DeliveryBoyManagementViewState extends State<DeliveryBoyManagementView> {
                 Padding(
                   padding: const EdgeInsets.all(16),
                   child: TextField(
+                    onChanged: (value) => {
+                      
+                    },
                     controller: _searchController,
                     decoration: InputDecoration(
                       hintText: 'Search by name or address...',
@@ -276,194 +279,185 @@ class _DeliveryBoyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                CircleAvatar(
-                  radius: 30,
-                  backgroundColor: deliveryBoy.isActive
-                      ? AppColors.primary.withOpacity(0.1)
-                      : AppColors.textTertiary.withOpacity(0.1),
-                  child: Text(
-                    deliveryBoy.name[0].toUpperCase(),
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: deliveryBoy.isActive
-                          ? AppColors.primary
-                          : AppColors.textTertiary,
+    return InkWell(
+      onLongPress: onDelete,
+      child: Card(
+        margin: const EdgeInsets.only(bottom: 12),
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 30,
+                    backgroundColor: deliveryBoy.isActive
+                        ? AppColors.primary.withOpacity(0.1)
+                        : AppColors.textTertiary.withOpacity(0.1),
+                    child: Text(
+                      deliveryBoy.name[0].toUpperCase(),
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: deliveryBoy.isActive
+                            ? AppColors.primary
+                            : AppColors.textTertiary,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              deliveryBoy.name,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: deliveryBoy.isActive
-                                  ? AppColors.success.withOpacity(0.1)
-                                  : AppColors.error.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              deliveryBoy.isActive ? 'Active' : 'Inactive',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: deliveryBoy.isActive
-                                    ? AppColors.success
-                                    : AppColors.error,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        deliveryBoy.email,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                      if (deliveryBoy.phoneNumber1 != null) ...[
-                        const SizedBox(height: 4),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Row(
                           children: [
-                            const Icon(
-                              Icons.phone,
-                              size: 14,
-                              color: AppColors.textSecondary,
+                            Expanded(
+                              child: Text(
+                                deliveryBoy.name,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
                             ),
-                            const SizedBox(width: 4),
-                            Text(
-                              deliveryBoy.phoneNumber1!,
-                              style: const TextStyle(
-                                fontSize: 13,
-                                color: AppColors.textSecondary,
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: deliveryBoy.isActive
+                                    ? AppColors.success.withOpacity(0.1)
+                                    : AppColors.error.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                deliveryBoy.isActive ? 'Active' : 'Inactive',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: deliveryBoy.isActive
+                                      ? AppColors.success
+                                      : AppColors.error,
+                                ),
                               ),
                             ),
                           ],
                         ),
+                        const SizedBox(height: 4),
+                        Text(
+                          deliveryBoy.email,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                        if (deliveryBoy.phoneNumber1 != null) ...[
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.phone,
+                                size: 14,
+                                color: AppColors.textSecondary,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                deliveryBoy.phoneNumber1!,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ],
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            if (deliveryBoy.address != null) ...[
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  const Icon(
-                    Icons.location_on,
-                    size: 16,
-                    color: AppColors.textSecondary,
-                  ),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      deliveryBoy.address!,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: AppColors.textSecondary,
-                      ),
                     ),
                   ),
                 ],
               ),
-            ],
-            if (deliveryBoy.subAreas != null &&
-                deliveryBoy.subAreas!.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: deliveryBoy.subAreas!.map((subArea) {
-                  return Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
+              if (deliveryBoy.address != null) ...[
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.location_on,
+                      size: 16,
+                      color: AppColors.textSecondary,
                     ),
-                    decoration: BoxDecoration(
-                      color: AppColors.info.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      '${subArea.areaName} - ${subArea.subAreaName}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.info,
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        deliveryBoy.address!,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: AppColors.textSecondary,
+                        ),
                       ),
                     ),
-                  );
-                }).toList(),
-              ),
-            ],
-            const SizedBox(height: 12),
-            const Divider(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                TextButton.icon(
-                  onPressed: onEdit,
-                  icon: const Icon(Icons.edit, size: 18),
-                  label: const Text('Edit'),
-                ),
-                TextButton.icon(
-                  onPressed: onAssignSubAreas,
-                  icon: const Icon(Icons.location_city, size: 18),
-                  label: const Text('Assign'),
-                ),
-                TextButton.icon(
-                  onPressed: onToggleActive,
-                  icon: Icon(
-                    deliveryBoy.isActive ? Icons.block : Icons.check_circle,
-                    size: 18,
-                  ),
-                  label: Text(deliveryBoy.isActive ? 'Deactivate' : 'Activate'),
-                ),
-                TextButton.icon(
-                  onPressed: onDelete,
-                  icon: const Icon(
-                    Icons.delete,
-                    size: 18,
-                    color: AppColors.error,
-                  ),
-                  label: const Text(
-                    'Delete',
-                    style: TextStyle(color: AppColors.error),
-                  ),
+                  ],
                 ),
               ],
-            ),
-          ],
+              if (deliveryBoy.subAreas != null &&
+                  deliveryBoy.subAreas!.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: deliveryBoy.subAreas!.map((subArea) {
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.info.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '${subArea.areaName} - ${subArea.subAreaName}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.info,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
+              const SizedBox(height: 12),
+              const Divider(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  TextButton.icon(
+                    onPressed: onEdit,
+                    icon: const Icon(Icons.edit, size: 18),
+                    label: const Text('Edit'),
+                  ),
+                  TextButton.icon(
+                    onPressed: onAssignSubAreas,
+                    icon: const Icon(Icons.location_city, size: 18),
+                    label: const Text('Assign'),
+                  ),
+                  TextButton.icon(
+                    onPressed: onToggleActive,
+                    icon: Icon(
+                      deliveryBoy.isActive ? Icons.block : Icons.check_circle,
+                      size: 18,
+                    ),
+                    label: Text(deliveryBoy.isActive ? 'Deactivate' : 'Activate'),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -629,7 +623,7 @@ class _EditDeliveryBoyDialog extends StatefulWidget {
   final DeliveryBoyModel deliveryBoy;
 
   const _EditDeliveryBoyDialog({Key? key, required this.deliveryBoy})
-    : super(key: key);
+      : super(key: key);
 
   @override
   State<_EditDeliveryBoyDialog> createState() => _EditDeliveryBoyDialogState();
@@ -637,32 +631,49 @@ class _EditDeliveryBoyDialog extends StatefulWidget {
 
 class _EditDeliveryBoyDialogState extends State<_EditDeliveryBoyDialog> {
   final _formKey = GlobalKey<FormState>();
+
   late final TextEditingController _nameController;
+  late final TextEditingController _emailController;
+  late final TextEditingController _passwordController;
   late final TextEditingController _addressController;
   late final TextEditingController _phone1Controller;
   late final TextEditingController _phone2Controller;
+  late final TextEditingController _adharController;
+  late final TextEditingController _licenceController;
+  late final TextEditingController _panController;
 
   @override
   void initState() {
     super.initState();
+
     _nameController = TextEditingController(text: widget.deliveryBoy.name);
-    _addressController = TextEditingController(
-      text: widget.deliveryBoy.address ?? '',
-    );
-    _phone1Controller = TextEditingController(
-      text: widget.deliveryBoy.phoneNumber1 ?? '',
-    );
-    _phone2Controller = TextEditingController(
-      text: widget.deliveryBoy.phoneNumber2 ?? '',
-    );
+    _emailController = TextEditingController(text: widget.deliveryBoy.email);
+    _passwordController = TextEditingController(); // password not shown
+    _addressController =
+        TextEditingController(text: widget.deliveryBoy.address ?? '');
+    _phone1Controller =
+        TextEditingController(text: widget.deliveryBoy.phoneNumber1 ?? '');
+    _phone2Controller =
+        TextEditingController(text: widget.deliveryBoy.phoneNumber2 ?? '');
+    _adharController =
+        TextEditingController(text: widget.deliveryBoy.adharNumber ?? '');
+    _licenceController = TextEditingController(
+        text: widget.deliveryBoy.drivingLicenceNumber ?? '');
+    _panController =
+        TextEditingController(text: widget.deliveryBoy.panNumber ?? '');
   }
 
   @override
   void dispose() {
     _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
     _addressController.dispose();
     _phone1Controller.dispose();
     _phone2Controller.dispose();
+    _adharController.dispose();
+    _licenceController.dispose();
+    _panController.dispose();
     super.dispose();
   }
 
@@ -670,9 +681,14 @@ class _EditDeliveryBoyDialogState extends State<_EditDeliveryBoyDialog> {
     if (_formKey.currentState!.validate()) {
       final data = {
         'name': _nameController.text.trim(),
+        'email': _emailController.text.trim(),
+        'password': _passwordController.text.trim(), // optional
         'address': _addressController.text.trim(),
         'phone_number1': _phone1Controller.text.trim(),
         'phone_number2': _phone2Controller.text.trim(),
+        'adhar_number': _adharController.text.trim(),
+        'driving_licence_number': _licenceController.text.trim(),
+        'pan_number': _panController.text.trim(),
       };
 
       context.read<AdminCubit>().updateDeliveryBoy(widget.deliveryBoy.id, data);
@@ -702,6 +718,7 @@ class _EditDeliveryBoyDialogState extends State<_EditDeliveryBoyDialog> {
                   ),
                 ),
                 const SizedBox(height: 24),
+
                 CustomTextField(
                   label: 'Name',
                   controller: _nameController,
@@ -709,25 +726,62 @@ class _EditDeliveryBoyDialogState extends State<_EditDeliveryBoyDialog> {
                       Validators.validateRequired(value, 'Name'),
                 ),
                 const SizedBox(height: 16),
+
+                CustomTextField(
+                  label: 'Email',
+                  controller: _emailController,
+                  validator: Validators.validateEmail,
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                const SizedBox(height: 16),
+
+                CustomTextField(
+                  label: 'Password (Optional)',
+                  controller: _passwordController,
+                  obscureText: true,
+                ),
+                const SizedBox(height: 16),
+
                 CustomTextField(
                   label: 'Address',
                   controller: _addressController,
                   maxLines: 2,
                 ),
                 const SizedBox(height: 16),
+
                 CustomTextField(
                   label: 'Phone Number 1',
                   controller: _phone1Controller,
-                  keyboardType: TextInputType.phone,
                   validator: Validators.validatePhone,
+                  keyboardType: TextInputType.phone,
                 ),
                 const SizedBox(height: 16),
+
                 CustomTextField(
                   label: 'Phone Number 2 (Optional)',
                   controller: _phone2Controller,
                   keyboardType: TextInputType.phone,
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
+
+                CustomTextField(
+                  label: 'Adhar Number',
+                  controller: _adharController,
+                ),
+                const SizedBox(height: 16),
+
+                CustomTextField(
+                  label: 'Driving Licence Number',
+                  controller: _licenceController,
+                ),
+                const SizedBox(height: 16),
+
+                CustomTextField(
+                  label: 'PAN Number',
+                  controller: _panController,
+                ),
+                const SizedBox(height: 30),
+
                 Row(
                   children: [
                     Expanded(
@@ -759,7 +813,7 @@ class _AssignSubAreasDialog extends StatefulWidget {
   final DeliveryBoyModel deliveryBoy;
 
   const _AssignSubAreasDialog({Key? key, required this.deliveryBoy})
-    : super(key: key);
+      : super(key: key);
 
   @override
   State<_AssignSubAreasDialog> createState() => _AssignSubAreasDialogState();
@@ -768,6 +822,7 @@ class _AssignSubAreasDialog extends StatefulWidget {
 class _AssignSubAreasDialogState extends State<_AssignSubAreasDialog> {
   List<AreaModel> _areas = [];
   Set<int> _selectedSubAreaIds = {};
+  Set<int> _expandedAreaIds = {}; // Track expanded areas
   bool _isLoading = true;
 
   @override
@@ -793,132 +848,174 @@ class _AssignSubAreasDialogState extends State<_AssignSubAreasDialog> {
         });
       }
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
     }
   }
 
   void _handleSubmit() {
     context.read<AdminCubit>().assignSubAreas(
-      widget.deliveryBoy.id,
-      _selectedSubAreaIds.toList(),
-    );
+          widget.deliveryBoy.id,
+          _selectedSubAreaIds.toList(),
+        );
     Navigator.pop(context);
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Container(
-        constraints: const BoxConstraints(maxHeight: 600),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    'Assign Sub-Areas to ${widget.deliveryBoy.name}',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
+Widget build(BuildContext context) {
+  final screenHeight = MediaQuery.of(context).size.height;
+  final screenWidth = MediaQuery.of(context).size.width;
+
+  return Dialog(
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    child: Container(
+      width: screenWidth * 0.75, // smaller width
+      height: screenHeight * 0.60, // smaller height
+      child: Column(
+        children: [
+          // HEADER
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Assign Sub-Areas to ${widget.deliveryBoy.name}',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Select sub-areas to assign',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppColors.textSecondary,
-                    ),
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Select sub-areas to assign',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textSecondary,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-            const Divider(height: 1),
-            if (_isLoading)
-              const Expanded(child: Center(child: CircularProgressIndicator()))
-            else if (_areas.isEmpty)
-              const Expanded(child: Center(child: Text('No areas available')))
-            else
-              Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: _areas.length,
-                  itemBuilder: (context, index) {
-                    final area = _areas[index];
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          child: Text(
-                            area.name,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
-                            ),
+          ),
+
+          const Divider(height: 1),
+
+          // BODY SCROLLABLE
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _areas.isEmpty
+                    ? const Center(child: Text('No areas available'))
+                    : Scrollbar(
+                        thumbVisibility: true,
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: _areas.map((area) {
+                              final isExpanded =
+                                  _expandedAreaIds.contains(area.id);
+
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  InkWell(
+                                    onTap: () {
+                                      setState(() {
+                                        if (isExpanded) {
+                                          _expandedAreaIds.remove(area.id);
+                                        } else {
+                                          _expandedAreaIds.add(area.id);
+                                        }
+                                      });
+                                    },
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          area.name,
+                                          style: const TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.textPrimary,
+                                          ),
+                                        ),
+                                        Icon(
+                                          isExpanded
+                                              ? Icons.keyboard_arrow_up
+                                              : Icons.keyboard_arrow_down,
+                                          size: 20,
+                                          color: Colors.grey,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+
+                                  const SizedBox(height: 4),
+
+                                  if (isExpanded && area.subAreas != null) ...[
+                                    ...area.subAreas!.map((subArea) {
+                                      final isSelected = _selectedSubAreaIds
+                                          .contains(subArea.id);
+
+                                      return CheckboxListTile(
+                                        title: Text(subArea.name),
+                                        value: isSelected,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            if (value == true) {
+                                              _selectedSubAreaIds
+                                                  .add(subArea.id);
+                                            } else {
+                                              _selectedSubAreaIds
+                                                  .remove(subArea.id);
+                                            }
+                                          });
+                                        },
+                                        activeColor: AppColors.primary,
+                                        contentPadding: EdgeInsets.zero,
+                                      );
+                                    }).toList(),
+                                  ],
+
+                                  const SizedBox(height: 12),
+                                ],
+                              );
+                            }).toList(),
                           ),
                         ),
-                        if (area.subAreas != null) ...[
-                          ...area.subAreas!.map((subArea) {
-                            final isSelected = _selectedSubAreaIds.contains(
-                              subArea.id,
-                            );
-                            return CheckboxListTile(
-                              title: Text(subArea.name),
-                              value: isSelected,
-                              onChanged: (value) {
-                                setState(() {
-                                  if (value == true) {
-                                    _selectedSubAreaIds.add(subArea.id);
-                                  } else {
-                                    _selectedSubAreaIds.remove(subArea.id);
-                                  }
-                                });
-                              },
-                              activeColor: AppColors.primary,
-                              contentPadding: EdgeInsets.zero,
-                            );
-                          }).toList(),
-                        ],
-                        const SizedBox(height: 8),
-                      ],
-                    );
-                  },
+                      ),
+          ),
+
+          const Divider(height: 1),
+
+          // FOOTER BUTTONS
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: CustomButton(
+                    text: 'Cancel',
+                    onPressed: () => Navigator.pop(context),
+                    isOutlined: true,
+                  ),
                 ),
-              ),
-            const Divider(height: 1),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: CustomButton(
-                      text: 'Cancel',
-                      onPressed: () => Navigator.pop(context),
-                      isOutlined: true,
-                    ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: CustomButton(
+                    text: 'Assign',
+                    onPressed: _handleSubmit,
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: CustomButton(
-                      text: 'Assign',
-                      onPressed: _handleSubmit,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
 }
+}
+

@@ -11,7 +11,6 @@ import '../../widgets/common/loading_widget.dart';
 import 'delivery_boy_management.dart';
 import 'customer_management.dart';
 import 'area_management.dart';
-import 'stock_management.dart';
 import 'reason_management.dart';
 import 'assign_stock_screen.dart';
 import 'invoice_share_dialog.dart';
@@ -159,6 +158,52 @@ class AdminDashboardView extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 24),
+                    const Text(
+                      'Quick Actions',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const AssignStockScreen(),
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.inventory_2),
+                            label: const Text('Assign Stock'),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              backgroundColor: AppColors.warning,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () => _showInvoiceDialog(context),
+                            icon: const Icon(Icons.receipt),
+                            label: const Text('Share Invoice'),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              backgroundColor: AppColors.info,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
 
                     // Management Options
                     const Text(
@@ -220,22 +265,6 @@ class AdminDashboardView extends StatelessWidget {
                     const SizedBox(height: 12),
 
                     _ManagementCard(
-                      title: 'Stock Management',
-                      subtitle: 'View and manage stock entries',
-                      icon: Icons.inventory,
-                      color: AppColors.warning,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const StockManagement(),
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 12),
-
-                    _ManagementCard(
                       title: 'Reason Management',
                       subtitle: 'Manage delivery reasons',
                       icon: Icons.note,
@@ -250,53 +279,6 @@ class AdminDashboardView extends StatelessWidget {
                       },
                     ),
                     const SizedBox(height: 24),
-
-                    // Quick Actions
-                    const Text(
-                      'Quick Actions',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const AssignStockScreen(),
-                                ),
-                              );
-                            },
-                            icon: const Icon(Icons.inventory_2),
-                            label: const Text('Assign Stock'),
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              backgroundColor: AppColors.warning,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: () => _showInvoiceDialog(context),
-                            icon: const Icon(Icons.receipt),
-                            label: const Text('Share Invoice'),
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              backgroundColor: AppColors.info,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
                   ],
                 ),
               ),

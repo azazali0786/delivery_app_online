@@ -6,15 +6,14 @@ import '../../../business_logic/cubits/admin/admin_state.dart';
 import '../../../data/repositories/admin_repository.dart';
 import '../../widgets/common/loading_widget.dart';
 
-
 class AreaManagement extends StatelessWidget {
   const AreaManagement({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => AdminCubit(context.read<AdminRepository>())
-        ..loadAreas(),
+      create: (context) =>
+          AdminCubit(context.read<AdminRepository>())..loadAreas(),
       child: const AreaManagementView(),
     );
   }
@@ -66,8 +65,14 @@ class AreaManagementView extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
+                          icon: const Icon(Icons.edit, size: 20),
+                          onPressed: () =>
+                              _showEditAreaDialog(context, area.id, area.name),
+                        ),
+                        IconButton(
                           icon: const Icon(Icons.add, size: 20),
-                          onPressed: () => _showAddSubAreaDialog(context, area.id),
+                          onPressed: () =>
+                              _showAddSubAreaDialog(context, area.id),
                         ),
                         IconButton(
                           icon: const Icon(Icons.delete, size: 20),
@@ -78,12 +83,27 @@ class AreaManagementView extends StatelessWidget {
                     children: area.subAreas?.map((subArea) {
                       return ListTile(
                         title: Text(subArea.name),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete, size: 20),
-                          onPressed: () => _deleteSubArea(context, subArea.id),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.edit, size: 20),
+                              onPressed: () => _showEditSubAreaDialog(
+                                context,
+                                subArea.id,
+                                subArea.name,
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete, size: 20),
+                              onPressed: () =>
+                                  _deleteSubArea(context, subArea.id),
+                            ),
+                          ],
                         ),
                       );
-                    }).toList() ?? [],
+                    }).toList() ??
+                        [],
                   ),
                 );
               },
@@ -96,6 +116,8 @@ class AreaManagementView extends StatelessWidget {
     );
   }
 
+  // ---------------- Add Area ----------------
+
   void _showAddAreaDialog(BuildContext context) {
     final controller = TextEditingController();
     showDialog(
@@ -107,10 +129,7 @@ class AreaManagementView extends StatelessWidget {
           decoration: const InputDecoration(hintText: 'Area name'),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           TextButton(
             onPressed: () {
               if (controller.text.isNotEmpty) {
@@ -125,6 +144,35 @@ class AreaManagementView extends StatelessWidget {
     );
   }
 
+  // ---------------- Update Area ----------------
+
+  void _showEditAreaDialog(BuildContext context, int id, String currentName) {
+    final controller = TextEditingController(text: currentName);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Edit Area'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(hintText: 'Area name'),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () {
+              context.read<AdminCubit>().updateArea(id, controller.text);
+              Navigator.pop(ctx);
+            },
+            child: const Text('Update'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ---------------- Add Sub-Area ----------------
+
   void _showAddSubAreaDialog(BuildContext context, int areaId) {
     final controller = TextEditingController();
     showDialog(
@@ -136,10 +184,7 @@ class AreaManagementView extends StatelessWidget {
           decoration: const InputDecoration(hintText: 'Sub-area name'),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           TextButton(
             onPressed: () {
               if (controller.text.isNotEmpty) {
@@ -154,6 +199,35 @@ class AreaManagementView extends StatelessWidget {
     );
   }
 
+  // ---------------- Update Sub-Area ----------------
+
+  void _showEditSubAreaDialog(BuildContext context, int id, String currentName) {
+    final controller = TextEditingController(text: currentName);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Edit Sub-Area'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(hintText: 'Sub-area name'),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () {
+              context.read<AdminCubit>().updateSubArea(id, controller.text);
+              Navigator.pop(ctx);
+            },
+            child: const Text('Update'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ---------------- Delete Area ----------------
+
   void _deleteArea(BuildContext context, int id) {
     showDialog(
       context: context,
@@ -161,10 +235,7 @@ class AreaManagementView extends StatelessWidget {
         title: const Text('Delete Area'),
         content: const Text('Are you sure?'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           TextButton(
             onPressed: () {
               context.read<AdminCubit>().deleteArea(id);
@@ -177,6 +248,8 @@ class AreaManagementView extends StatelessWidget {
     );
   }
 
+  // ---------------- Delete Sub-Area ----------------
+
   void _deleteSubArea(BuildContext context, int id) {
     showDialog(
       context: context,
@@ -184,10 +257,7 @@ class AreaManagementView extends StatelessWidget {
         title: const Text('Delete Sub-Area'),
         content: const Text('Are you sure?'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           TextButton(
             onPressed: () {
               context.read<AdminCubit>().deleteSubArea(id);

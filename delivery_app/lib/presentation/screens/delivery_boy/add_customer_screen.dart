@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/location_service.dart';
@@ -71,40 +72,59 @@ class _AddCustomerScreenViewState extends State<AddCustomerScreenView> {
           _isLoadingLocation = false;
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Location fetched successfully'),
-            backgroundColor: AppColors.success,
-          ),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('✓ Location captured successfully'),
+              backgroundColor: AppColors.success,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
       } else {
         setState(() {
           _isLoadingLocation = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Unable to get location. Please enable location services.',
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Unable to get location. Please enable location services.'),
+              backgroundColor: AppColors.error,
+              behavior: SnackBarBehavior.floating,
             ),
-            backgroundColor: AppColors.error,
-          ),
-        );
+          );
+        }
       }
     } catch (e) {
       setState(() {
         _isLoadingLocation = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: ${e.toString()}'),
-          backgroundColor: AppColors.error,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
   }
 
   void _handleSubmit() {
     if (_formKey.currentState!.validate()) {
+      // Check if location is captured
+      // if (_latitude == null || _longitude == null) {
+      //   ScaffoldMessenger.of(context).showSnackBar(
+      //     const SnackBar(
+      //       content: Text('Please capture location before submitting'),
+      //       backgroundColor: AppColors.error,
+      //       behavior: SnackBarBehavior.floating,
+      //     ),
+      //   );
+      //   return;
+      // }
+
       final data = {
         'name': _nameController.text.trim(),
         'phone_number': _phoneController.text.trim(),
@@ -123,7 +143,12 @@ class _AddCustomerScreenViewState extends State<AddCustomerScreenView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Customer')),
+      backgroundColor: Colors.grey[50],
+      appBar: AppBar(
+        elevation: 0,
+        title: const Text('Add Customer'),
+        centerTitle: true,
+      ),
       body: BlocConsumer<DeliveryBoyCubit, DeliveryBoyState>(
         listener: (context, state) {
           if (state is DeliveryBoyOperationSuccess) {
@@ -131,6 +156,7 @@ class _AddCustomerScreenViewState extends State<AddCustomerScreenView> {
               SnackBar(
                 content: Text(state.message),
                 backgroundColor: AppColors.success,
+                behavior: SnackBarBehavior.floating,
               ),
             );
             Navigator.pop(context);
@@ -139,6 +165,7 @@ class _AddCustomerScreenViewState extends State<AddCustomerScreenView> {
               SnackBar(
                 content: Text(state.message),
                 backgroundColor: AppColors.error,
+                behavior: SnackBarBehavior.floating,
               ),
             );
           }
@@ -147,163 +174,232 @@ class _AddCustomerScreenViewState extends State<AddCustomerScreenView> {
           final isLoading = state is DeliveryBoyOperationLoading;
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(12),
             child: Form(
               key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text(
-                    'Customer Information',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
+                  SizedBox(height: 20),
+                  // Name Field
                   CustomTextField(
-                    label: 'Customer Name',
+                    label: 'Customer Name *',
                     controller: _nameController,
                     validator: (value) =>
                         Validators.validateRequired(value, 'Customer name'),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
 
-                  CustomTextField(
-                    label: 'Phone Number',
-                    controller: _phoneController,
-                    keyboardType: TextInputType.phone,
-                    validator: Validators.validatePhone,
-                  ),
-                  const SizedBox(height: 16),
-
-                  CustomTextField(
-                    label: 'WhatsApp Number (Optional)',
-                    controller: _whatsappController,
-                    keyboardType: TextInputType.phone,
-                  ),
-                  const SizedBox(height: 16),
-
-                  CustomTextField(
-                    label: 'Address',
-                    controller: _addressController,
-                    maxLines: 3,
-                  ),
-                  const SizedBox(height: 16),
-
-                  CustomTextField(
-                    label: 'Permanent Quantity (Liters)',
-                    controller: _quantityController,
-                    keyboardType: TextInputType.number,
-                    validator: (value) => Validators.validatePositiveNumber(
-                      value,
-                      'Permanent quantity',
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Location Section
-                  const Text(
-                    'Location',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  if (_locationLink != null) ...[
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppColors.success.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: AppColors.success.withOpacity(0.3),
+                  // Phone and WhatsApp Row
+                  Row(
+                    children: [
+                      Expanded(
+                        child: CustomTextField(
+                          label: 'Phone *',
+                          controller: _phoneController,
+                          keyboardType: TextInputType.phone,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                            LengthLimitingTextInputFormatter(10),
+                          ],
+                          validator: Validators.validatePhone,
                         ),
                       ),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.check_circle,
-                            color: AppColors.success,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Location captured',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.success,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Lat: ${_latitude!.toStringAsFixed(6)}, Lng: ${_longitude!.toStringAsFixed(6)}',
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: AppColors.textSecondary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: CustomTextField(
+                          label: 'WhatsApp',
+                          controller: _whatsappController,
+                          keyboardType: TextInputType.phone,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                            LengthLimitingTextInputFormatter(10),
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-
-                  CustomButton(
-                    text: _isLoadingLocation
-                        ? 'Fetching Location...'
-                        : 'Auto Fetch Current Location',
-                    onPressed: _isLoadingLocation
-                        ? null
-                        : () => _getCurrentLocation(),
-                    isLoading: _isLoadingLocation,
-                    icon: Icons.my_location,
-                    isOutlined: true,
+                    ],
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 12),
 
-                  CustomButton(
-                    text: 'Add Customer',
-                    onPressed: _handleSubmit,
-                    isLoading: isLoading,
-                    icon: Icons.person_add,
+                  // Quantity and Address Row
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: CustomTextField(
+                          label: 'Quantity (L) *',
+                          controller: _quantityController,
+                          keyboardType: TextInputType.number,
+                          validator: (value) => Validators.validatePositiveNumber(
+                            value,
+                            'Quantity',
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        flex: 3,
+                        child: CustomTextField(
+                          label: 'Address *',
+                          controller: _addressController,
+                          maxLines: 1,
+                          validator: (value) =>
+                              Validators.validateRequired(value, 'Address'),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
 
+                  // Location Section (Compact)
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.info.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
+                      color: _latitude != null 
+                          ? AppColors.success.withOpacity(0.05)
+                          : Colors.white,
+                      borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                        color: AppColors.info.withOpacity(0.3),
+                        color: _latitude != null 
+                            ? AppColors.success
+                            : Colors.grey[300]!,
+                        width: 1.5,
                       ),
                     ),
-                    child: const Column(
+                    child: Row(
                       children: [
-                        Icon(Icons.info_outline, color: AppColors.info),
-                        SizedBox(height: 8),
-                        Text(
-                          'This customer will be added to pending approvals. Admin will approve and assign sub-area.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: AppColors.textSecondary,
+                        Icon(
+                          _latitude != null ? Icons.location_on : Icons.location_off,
+                          color: _latitude != null ? AppColors.success : Colors.grey,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    'Location',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.grey[800],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 4,
+                                      vertical: 1,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.error.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(3),
+                                    ),
+                                    child: const Text(
+                                      'Optional',
+                                      style: TextStyle(
+                                        fontSize: 9,
+                                        color: AppColors.success,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (_latitude != null)
+                                Text(
+                                  '${_latitude!.toStringAsFixed(4)}, ${_longitude!.toStringAsFixed(4)}',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                            ],
                           ),
+                        ),
+                        ElevatedButton(
+                          onPressed: _isLoadingLocation ? null : _getCurrentLocation,
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            backgroundColor: _latitude != null 
+                                ? AppColors.success 
+                                : AppColors.primary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            minimumSize: Size.zero,
+                          ),
+                          child: _isLoadingLocation
+                              ? const SizedBox(
+                                  width: 14,
+                                  height: 14,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
+                                  ),
+                                )
+                              : Icon(
+                                  _latitude != null ? Icons.refresh : Icons.my_location,
+                                  size: 16,
+                                ),
                         ),
                       ],
                     ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Info + Submit Row
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppColors.info.withOpacity(0.08),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: AppColors.info.withOpacity(0.2),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.info_outline, 
+                                color: AppColors.info, 
+                                size: 16,
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  'Pending approval',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.grey[700],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: CustomButton(
+                          text: 'Add Customer',
+                          onPressed: isLoading ? null : _handleSubmit,
+                          isLoading: isLoading,
+                          icon: Icons.person_add,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
