@@ -5,7 +5,7 @@ class ApiConstants {
   // with your computer's LAN IP (e.g. 192.168.x.x).
   // When testing on a physical device, use your computer's LAN/Wi-Fi IP below.
   // Detected Wi‑Fi IP on this machine: 10.226.109.216
-  static const String baseUrl = 'http://10.145.177.102:3000/api'; 
+  static const String baseUrl = 'http://10.238.67.220:3000/api'; 
 
   // Alternative for local simulator / desktop where `localhost` resolves to
   // the host machine directly:

@@ -176,7 +176,7 @@ class _CustomerManagementViewState extends State<CustomerManagementView> {
                                     ),
                                   ),
                                 SizedBox(height: 4),
-                                Text(customer.subAreaName.toString())
+                                Text(customer.subAreaName.toString()),
                               ],
                             ),
                             trailing: PopupMenuButton(
@@ -221,6 +221,8 @@ class _CustomerManagementViewState extends State<CustomerManagementView> {
                                       ],
                                     ),
                                   );
+                                } else if (value == 'edit') {
+                                  _showEditDialog(context, customer);
                                 }
                               },
                             ),
@@ -240,12 +242,15 @@ class _CustomerManagementViewState extends State<CustomerManagementView> {
     );
   }
 }
+
 void _showApproveDialog(BuildContext context, dynamic customer) {
   final sortNumberController = TextEditingController();
   final formKey = GlobalKey<FormState>();
 
   int? selectedAreaId;
   int? selectedSubAreaId;
+  bool isActive = true;
+  String shift = 'morning';
 
   showDialog(
     context: context,
@@ -254,117 +259,160 @@ void _showApproveDialog(BuildContext context, dynamic customer) {
         title: Text('Approve ${customer.name}'),
         content: Form(
           key: formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'Please assign Area, Sub-Area and Sort Number to approve this customer.',
-                style: TextStyle(fontSize: 13, color: Colors.grey),
-              ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Please assign Area, Sub-Area, Sort Number, shift and active status to approve this customer.',
+                  style: TextStyle(fontSize: 13, color: Colors.grey),
+                ),
 
-              const SizedBox(height: 16),
+                const SizedBox(height: 12),
 
-              // ------------------------ AREA DROPDOWN ------------------------
-              FutureBuilder<List<AreaModel>>(
-                future: context.read<AdminRepository>().getAllAreas(),
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
-                    return const CircularProgressIndicator();
-                  }
-
-                  final areas = snapshot.data!;
-
-                  return DropdownButtonFormField<int>(
-                    value: selectedAreaId,
-                    decoration: const InputDecoration(
-                      labelText: 'Select Area',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.public),
-                    ),
-                    items: areas.map((area) {
-                      return DropdownMenuItem<int>(
-                        value: area.id,
-                        child: Text(area.name),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      setDialogState(() {
-                        selectedAreaId = value;
-                        selectedSubAreaId = null; // Reset sub-area
-                      });
-                    },
-                    validator: (value) =>
-                        value == null ? "Please select an Area" : null,
-                  );
-                },
-              ),
-
-              const SizedBox(height: 16),
-
-              // ------------------------ SUB-AREA DROPDOWN ------------------------
-              if (selectedAreaId != null)
-                FutureBuilder<List<Map<String, dynamic>>>(
-                  future: _loadSubAreas(dialogContext),
+                // Area Dropdown
+                FutureBuilder<List<AreaModel>>(
+                  future: context.read<AdminRepository>().getAllAreas(),
                   builder: (context, snapshot) {
                     if (!snapshot.hasData) {
                       return const CircularProgressIndicator();
                     }
 
-                    final allSubAreas = snapshot.data!;
-                    final filtered = allSubAreas
-                        .where((s) => s['area_id'] == selectedAreaId)
-                        .toList();
-
-                    if (filtered.isEmpty) {
-                      return const Text("No Sub-Areas available for this Area");
-                    }
+                    final areas = snapshot.data!;
 
                     return DropdownButtonFormField<int>(
-                      value: selectedSubAreaId,
+                      value: selectedAreaId,
                       decoration: const InputDecoration(
-                        labelText: 'Select Sub-Area',
+                        labelText: 'Select Area',
                         border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.map),
+                        prefixIcon: Icon(Icons.public),
                       ),
-                      items: filtered.map((sub) {
+                      items: areas.map((area) {
                         return DropdownMenuItem<int>(
-                          value: sub['id'],
-                          child: Text(sub['name']),
+                          value: area.id,
+                          child: Text(area.name),
                         );
                       }).toList(),
                       onChanged: (value) {
                         setDialogState(() {
-                          selectedSubAreaId = value;
+                          selectedAreaId = value;
+                          selectedSubAreaId = null;
                         });
                       },
                       validator: (value) =>
-                          value == null ? 'Please select a Sub-Area' : null,
+                          value == null ? "Please select an Area" : null,
                     );
                   },
                 ),
 
-              const SizedBox(height: 16),
+                const SizedBox(height: 12),
 
-              // ------------------------ SORT NUMBER ------------------------
-              TextFormField(
-                controller: sortNumberController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Sort Number',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.sort),
+                // Sub-Area
+                if (selectedAreaId != null)
+                  FutureBuilder<List<Map<String, dynamic>>>(
+                    future: _loadSubAreas(dialogContext),
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData)
+                        return const CircularProgressIndicator();
+                      final allSubAreas = snapshot.data!;
+                      final filtered = allSubAreas
+                          .where((s) => s['area_id'] == selectedAreaId)
+                          .toList();
+                      if (filtered.isEmpty)
+                        return const Text(
+                          'No Sub-Areas available for this Area',
+                        );
+
+                      return DropdownButtonFormField<int>(
+                        value: selectedSubAreaId,
+                        decoration: const InputDecoration(
+                          labelText: 'Select Sub-Area',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.map),
+                        ),
+                        items: filtered.map((sub) {
+                          return DropdownMenuItem<int>(
+                            value: sub['id'],
+                            child: Text(sub['name']),
+                          );
+                        }).toList(),
+                        onChanged: (value) =>
+                            setDialogState(() => selectedSubAreaId = value),
+                        validator: (value) =>
+                            value == null ? 'Please select a Sub-Area' : null,
+                      );
+                    },
+                  ),
+
+                const SizedBox(height: 12),
+
+                TextFormField(
+                  controller: sortNumberController,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                    signed: false,
+                  ),
+                  decoration: const InputDecoration(
+                    labelText: 'Sort Number (10,5)',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.sort),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) return 'Required';
+                    if (double.tryParse(value) == null)
+                      return 'Must be a valid number';
+                    return null;
+                  },
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) return 'Required';
-                  if (int.tryParse(value) == null) return 'Must be a number';
-                  return null;
-                },
-              ),
-            ],
+
+                const SizedBox(height: 12),
+
+                // Shift selection
+                Row(
+                  children: [
+                    const Text('Shift:'),
+                    const SizedBox(width: 12),
+                    ChoiceChip(
+                      label: const Text('Morning'),
+                      selected: shift == 'morning',
+                      onSelected: (_) =>
+                          setDialogState(() => shift = 'morning'),
+                    ),
+                    const SizedBox(width: 8),
+                    ChoiceChip(
+                      label: const Text('Evening'),
+                      selected: shift == 'evening',
+                      onSelected: (_) =>
+                          setDialogState(() => shift = 'evening'),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 12),
+
+                // Active toggle
+                Row(
+                  children: [
+                    const Text('Status:'),
+                    const SizedBox(width: 12),
+                    ChoiceChip(
+                      label: const Text('Active'),
+                      selected: isActive,
+                      onSelected: (_) => setDialogState(() => isActive = true),
+                    ),
+                    const SizedBox(width: 8),
+                    ChoiceChip(
+                      label: const Text('InActive'),
+                      selected: !isActive,
+                      onSelected: (_) => setDialogState(() => isActive = false),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
 
-        // ------------------------ ACTION BUTTONS ------------------------
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -375,15 +423,34 @@ void _showApproveDialog(BuildContext context, dynamic customer) {
               backgroundColor: AppColors.success,
               foregroundColor: Colors.white,
             ),
-            onPressed: () {
+            onPressed: () async {
               if (formKey.currentState!.validate()) {
+                // First update customer with shift/active if backend supports it
+                final updateData = {
+                  if (selectedSubAreaId != null)
+                    'sub_area_id': selectedSubAreaId,
+                  'sort_number':
+                      double.tryParse(sortNumberController.text) ?? 0.0,
+                  'is_active': isActive,
+                  'shift': shift,
+                };
+
+                try {
+                  await context.read<AdminRepository>().updateCustomer(
+                    customer.id,
+                    updateData,
+                  );
+                } catch (e) {
+                  // ignore update failure but continue to approve if possible
+                }
+
                 Navigator.pop(ctx);
 
                 context.read<AdminCubit>().approveCustomer(
-                      customer.id,
-                      selectedSubAreaId!,
-                      int.parse(sortNumberController.text),
-                    );
+                  customer.id,
+                  selectedSubAreaId!,
+                  double.parse(sortNumberController.text),
+                );
               }
             },
             child: const Text('Approve'),
@@ -394,6 +461,161 @@ void _showApproveDialog(BuildContext context, dynamic customer) {
   );
 }
 
+void _showEditDialog(BuildContext context, dynamic customer) {
+  final nameController = TextEditingController(text: customer.name);
+  final phoneController = TextEditingController(text: customer.phoneNumber);
+  final addressController = TextEditingController(text: customer.address ?? '');
+  final whatsNUmController = TextEditingController(text: customer.whatsappNumber ?? '');
+  final locationController = TextEditingController(
+    text: customer.locationLink ?? '',
+  );
+  final permQtyController = TextEditingController(
+    text: customer.permanentQuantity?.toString() ?? '0',
+  );
+  final formKey = GlobalKey<FormState>();
+
+  bool isActive = customer.isActive ?? true;
+  String shift = (customer.shift != null && (customer.shift == 'evening'))
+      ? 'evening'
+      : 'morning';
+
+  showDialog(
+    context: context,
+    builder: (ctx) => StatefulBuilder(
+      builder: (dialogContext, setDialogState) => AlertDialog(
+        title: Text('Edit ${customer.name}'),
+        content: Form(
+          key: formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(height: 8,),
+                TextFormField(
+                  controller: nameController,
+                  decoration: const InputDecoration(labelText: 'Name'),
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: phoneController,
+                  decoration: const InputDecoration(labelText: 'Phone'),
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: whatsNUmController,
+                  decoration: const InputDecoration(labelText: 'whatsapp Number'),
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: addressController,
+                  decoration: const InputDecoration(labelText: 'Address'),
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: locationController,
+                  decoration: const InputDecoration(labelText: 'Location Link'),
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: permQtyController,
+                  decoration: const InputDecoration(
+                    labelText: 'Permanent Quantity',
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 12),
+                const Text('Shift:'),
+const SizedBox(height: 8),
+Wrap(
+  spacing: 8,
+  children: [
+    ChoiceChip(
+      label: const Text('Morning'),
+      selected: shift == 'morning',
+      onSelected: (_) {
+        setDialogState(() => shift = 'morning');
+      },
+    ),
+    ChoiceChip(
+      label: const Text('Evening'),
+      selected: shift == 'evening',
+      onSelected: (_) {
+        setDialogState(() => shift = 'evening');
+      },
+    ),
+  ],
+),
+                const SizedBox(height: 12),
+               const Text('Status:'),
+const SizedBox(height: 8),
+Wrap(
+  spacing: 8,
+  children: [
+    ChoiceChip(
+      label: const Text('Active'),
+      selected: isActive,
+      onSelected: (_) {
+        setDialogState(() => isActive = true);
+      },
+    ),
+    ChoiceChip(
+      label: const Text('InActive'),
+      selected: !isActive,
+      onSelected: (_) {
+        setDialogState(() => isActive = false);
+      },
+    ),
+  ],
+),
+
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (!formKey.currentState!.validate()) return;
+              final data = {
+                'name': nameController.text,
+                'phone_number': phoneController.text,
+                'address': addressController.text,
+                'permanent_quantity':
+                    double.tryParse(permQtyController.text) ?? 0,
+                'is_active': isActive,
+                'shift': shift,
+                'whatsapp_number': whatsNUmController.text,
+                'location_link': locationController.text,
+              };
+              try {
+                await context.read<AdminRepository>().updateCustomer(
+                  customer.id,
+                  data,
+                );
+                Navigator.pop(ctx);
+                // reload customers
+                context.read<AdminCubit>().loadCustomers();
+              } catch (e) {
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Update failed: $e'),
+                    backgroundColor: AppColors.error,
+                  ),
+                );
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    ),
+  );
+}
 
 Future<List<Map<String, dynamic>>> _loadSubAreas(BuildContext context) async {
   try {
@@ -417,4 +639,3 @@ Future<List<Map<String, dynamic>>> _loadSubAreas(BuildContext context) async {
     return [];
   }
 }
-

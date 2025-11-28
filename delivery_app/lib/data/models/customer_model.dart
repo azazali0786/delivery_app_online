@@ -15,9 +15,11 @@ class CustomerModel extends Equatable {
   final String? areaName;
   final int? deliveryBoyId;
   final String? deliveryBoyName;
-  final int? sortNumber;
+  final double? sortNumber;
   final bool isApproved;
   final bool pendingApproval;
+  final bool? isActive;
+  final String? shift;
   final double? totalPendingMoney;
   final int? lastTimePendingBottles;
   final bool? todayDeliveryStatus;
@@ -40,6 +42,8 @@ class CustomerModel extends Equatable {
     this.sortNumber,
     required this.isApproved,
     required this.pendingApproval,
+    this.isActive,
+    this.shift,
     this.totalPendingMoney,
     this.lastTimePendingBottles,
     this.todayDeliveryStatus,
@@ -59,15 +63,27 @@ class CustomerModel extends Equatable {
       longitude: json['longitude'] != null
           ? double.tryParse(json['longitude'].toString())
           : null,
-      permanentQuantity: double.tryParse(json['permanent_quantity'].toString()) ?? 0,
+      permanentQuantity:
+          double.tryParse(json['permanent_quantity'].toString()) ?? 0,
       subAreaId: json['sub_area_id'],
       subAreaName: json['sub_area_name'],
       areaName: json['area_name'],
       deliveryBoyId: json['delivery_boy_id'],
       deliveryBoyName: json['delivery_boy_name'],
-      sortNumber: json['sort_number'],
+      sortNumber: json['sort_number'] != null
+          ? (json['sort_number'] is num
+                ? (json['sort_number'] as num).toDouble()
+                : double.tryParse(json['sort_number'].toString()))
+          : null,
       isApproved: json['is_approved'] ?? false,
       pendingApproval: json['pending_approval'] ?? false,
+      isActive: json['is_active'] != null
+          ? (json['is_active'] is bool
+                ? json['is_active']
+                : (json['is_active'].toString() == '1' ||
+                      json['is_active'].toString().toLowerCase() == 'true'))
+          : true,
+      shift: json['shift'] ?? json['shift_time'] ?? null,
       totalPendingMoney: json['total_pending_money'] != null
           ? double.tryParse(json['total_pending_money'].toString())
           : null,
@@ -92,30 +108,32 @@ class CustomerModel extends Equatable {
       'sort_number': sortNumber,
       'is_approved': isApproved,
       'pending_approval': pendingApproval,
+      'is_active': isActive,
+      'shift': shift,
     };
   }
 
   @override
   List<Object?> get props => [
-        id,
-        name,
-        phoneNumber,
-        address,
-        whatsappNumber,
-        locationLink,
-        latitude,
-        longitude,
-        permanentQuantity,
-        subAreaId,
-        subAreaName,
-        areaName,
-        deliveryBoyId,
-        deliveryBoyName,
-        sortNumber,
-        isApproved,
-        pendingApproval,
-        totalPendingMoney,
-        lastTimePendingBottles,
-        todayDeliveryStatus,
-      ];
+    id,
+    name,
+    phoneNumber,
+    address,
+    whatsappNumber,
+    locationLink,
+    latitude,
+    longitude,
+    permanentQuantity,
+    subAreaId,
+    subAreaName,
+    areaName,
+    deliveryBoyId,
+    deliveryBoyName,
+    sortNumber,
+    isApproved,
+    pendingApproval,
+    totalPendingMoney,
+    lastTimePendingBottles,
+    todayDeliveryStatus,
+  ];
 }

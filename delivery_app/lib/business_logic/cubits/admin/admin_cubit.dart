@@ -160,7 +160,7 @@ class AdminCubit extends Cubit<AdminState> {
     }
   }
 
-  Future<void> approveCustomer(int id, int subAreaId, int sortNumber) async {
+  Future<void> approveCustomer(int id, int subAreaId, double sortNumber) async {
     emit(AdminOperationLoading());
     try {
       await _adminRepository.approveCustomer(id, subAreaId, sortNumber);

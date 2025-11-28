@@ -138,7 +138,7 @@ class AdminRepository {
   Future<CustomerModel> approveCustomer(
     int id,
     int subAreaId,
-    int sortNumber,
+    double sortNumber,
   ) async {
     final response = await _apiService.post(
       '${ApiConstants.adminCustomers}/$id/approve',

@@ -17,7 +17,7 @@ pool.on('error', (err) => {
 // Initialize database tables
 async function initializeDatabase() {
   const client = await pool.connect();
-  
+
   try {
     await client.query('BEGIN');
 
@@ -94,9 +94,11 @@ async function initializeDatabase() {
         permanent_quantity DECIMAL(10, 2) DEFAULT 0,
         sub_area_id INTEGER REFERENCES sub_areas(id),
         delivery_boy_id INTEGER REFERENCES delivery_boys(id),
-        sort_number INTEGER,
+        sort_number NUMERIC(10, 5),
         is_approved BOOLEAN DEFAULT false,
         pending_approval BOOLEAN DEFAULT true,
+        is_active BOOLEAN DEFAULT true,
+        shift VARCHAR(20),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
@@ -112,7 +114,6 @@ async function initializeDatabase() {
         pending_bottles INTEGER DEFAULT 0,
         rate DECIMAL(10, 2) DEFAULT 0,
         payment_method VARCHAR(20) DEFAULT 'cash',
-        transaction_photo TEXT,
         is_delivered BOOLEAN DEFAULT true,
         not_delivered_reason VARCHAR(255),
         entry_date DATE NOT NULL,

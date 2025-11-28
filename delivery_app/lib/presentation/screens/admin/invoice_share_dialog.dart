@@ -5,7 +5,6 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/helpers.dart';
 import '../../../core/utils/invoice_pdf_helper.dart';
 import '../../../data/repositories/customer_repository.dart';
-import 'package:dropdown_search/dropdown_search.dart';
 
 
 class InvoiceShareDialog extends StatefulWidget {

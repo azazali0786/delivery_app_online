@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/helpers.dart';
 import '../../../business_logic/cubits/delivery_boy/delivery_boy_cubit.dart';
@@ -35,10 +34,11 @@ class CustomerListView extends StatefulWidget {
 class _CustomerListViewState extends State<CustomerListView> {
   String? _deliveryStatusFilter;
   String? _areaFilter;
+  String? _shiftFilter;
   String? _subAreaFilter;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-  
+
   List<CustomerModel> _filteredCustomers = [];
   Set<String> _allAreas = {};
   Set<String> _allSubAreas = {};
@@ -62,6 +62,8 @@ class _CustomerListViewState extends State<CustomerListView> {
 
   List<CustomerModel> _filterCustomers(List<CustomerModel> customers) {
     return customers.where((customer) {
+      // Exclude inactive customers
+      if (customer.isActive != null && customer.isActive == false) return false;
       // Search filter
       if (_searchQuery.isNotEmpty) {
         final query = _searchQuery.toLowerCase();
@@ -80,42 +82,20 @@ class _CustomerListViewState extends State<CustomerListView> {
         return false;
       }
 
+      // Shift filter
+      if (_shiftFilter != null && (customer.shift ?? '') != _shiftFilter)
+        return false;
+
       return true;
     }).toList();
   }
 
-  Future<void> _makePhoneCall(String phoneNumber) async {
-    final uri = Uri.parse('tel:+91$phoneNumber');
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
-    }
-  }
+  
 
-  Future<void> _openLocation(CustomerModel customer) async {
-    Uri? uri;
-    
-    if (customer.locationLink != null && customer.locationLink!.isNotEmpty) {
-      uri = Uri.parse(customer.locationLink!);
-    } else if (customer.latitude != null && customer.longitude != null) {
-      uri = Uri.parse(
-          'https://www.google.com/maps/search/?api=1&query=${customer.latitude},${customer.longitude}');
-    }
-
-    if (uri != null && await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Location not available')),
-        );
-      }
-    }
-  }
-
-    void _showFilterBottomSheet() {
+  void _showFilterBottomSheet() {
     // Capture the cubit before opening bottom sheet
     final cubit = context.read<DeliveryBoyCubit>();
-    
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -123,169 +103,214 @@ class _CustomerListViewState extends State<CustomerListView> {
       ),
       builder: (bottomSheetContext) => StatefulBuilder(
         builder: (context, setModalState) {
-          return Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
+          return SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Filters',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          setState(() {
+                            _deliveryStatusFilter = null;
+                            _areaFilter = null;
+                            _subAreaFilter = null;
+                          });
+                          setModalState(() {});
+                          cubit.loadCustomers();
+                        },
+                        child: const Text('Clear All'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+            
+                  // Delivery Status Filter
+                  const Text(
+                    'Delivery Status',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Wrap(
+                    spacing: 8,
+                    children: [
+                      _FilterChip(
+                        label: 'All',
+                        selected: _deliveryStatusFilter == null,
+                        onSelected: () {
+                          setState(() => _deliveryStatusFilter = null);
+                          setModalState(() {});
+                          cubit.loadCustomers();
+                        },
+                      ),
+                      _FilterChip(
+                        label: 'Delivered',
+                        selected: _deliveryStatusFilter == 'delivered',
+                        onSelected: () {
+                          setState(() => _deliveryStatusFilter = 'delivered');
+                          setModalState(() {});
+                          cubit.loadCustomers(deliveryStatus: 'delivered');
+                        },
+                      ),
+                      _FilterChip(
+                        label: 'Pending',
+                        selected: _deliveryStatusFilter == 'pending',
+                        onSelected: () {
+                          setState(() => _deliveryStatusFilter = 'pending');
+                          setModalState(() {});
+                          cubit.loadCustomers(deliveryStatus: 'pending');
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Shift',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Wrap(
+                    spacing: 8,
+                    children: [
+                      _FilterChip(
+                        label: 'All',
+                        selected: _shiftFilter == null,
+                        onSelected: () {
+                          setState(() => _shiftFilter = null);
+                          setModalState(() {});
+                        },
+                      ),
+                      _FilterChip(
+                        label: 'Morning',
+                        selected: _shiftFilter == 'morning',
+                        onSelected: () {
+                          setState(() => _shiftFilter = 'morning');
+                          setModalState(() {});
+                        },
+                      ),
+                      _FilterChip(
+                        label: 'Evening',
+                        selected: _shiftFilter == 'evening',
+                        onSelected: () {
+                          setState(() => _shiftFilter = 'evening');
+                          setModalState(() {});
+                        },
+                      ),
+                    ],
+                  ),
+            
+                  if (_allAreas.isNotEmpty) ...[
+                    const SizedBox(height: 5),
                     const Text(
-                      'Filters',
+                      'Area',
                       style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textSecondary,
                       ),
                     ),
-                    TextButton(
-                      onPressed: () {
-                        setState(() {
-                          _deliveryStatusFilter = null;
-                          _areaFilter = null;
-                          _subAreaFilter = null;
-                        });
-                        setModalState(() {});
-                        cubit.loadCustomers();
-                      },
-                      child: const Text('Clear All'),
+                    const SizedBox(height: 4),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Wrap(
+                        spacing: 8,
+                        children: [
+                          _FilterChip(
+                            label: 'All Areas',
+                            selected: _areaFilter == null,
+                            onSelected: () {
+                              setState(() {
+                                _areaFilter = null;
+                                _subAreaFilter = null;
+                              });
+                              setModalState(() {});
+                            },
+                          ),
+                          ..._allAreas.map(
+                            (area) => _FilterChip(
+                              label: area,
+                              selected: _areaFilter == area,
+                              onSelected: () {
+                                setState(() {
+                                  _areaFilter = area;
+                                  _subAreaFilter = null;
+                                });
+                                setModalState(() {});
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
-                ),
-                const SizedBox(height: 10),
-                
-                // Delivery Status Filter
-                const Text(
-                  'Delivery Status',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Wrap(
-                  spacing: 8,
-                  children: [
-                    _FilterChip(
-                      label: 'All',
-                      selected: _deliveryStatusFilter == null,
-                      onSelected: () {
-                        setState(() => _deliveryStatusFilter = null);
-                        setModalState(() {});
-                        cubit.loadCustomers();
-                      },
+            
+                  if (_allSubAreas.isNotEmpty) ...[
+                    const SizedBox(height: 5),
+                    const Text(
+                      'Sub Area',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
-                    _FilterChip(
-                      label: 'Delivered',
-                      selected: _deliveryStatusFilter == 'delivered',
-                      onSelected: () {
-                        setState(() => _deliveryStatusFilter = 'delivered');
-                        setModalState(() {});
-                        cubit.loadCustomers(deliveryStatus: 'delivered');
-                      },
-                    ),
-                    _FilterChip(
-                      label: 'Pending',
-                      selected: _deliveryStatusFilter == 'pending',
-                      onSelected: () {
-                        setState(() => _deliveryStatusFilter = 'pending');
-                        setModalState(() {});
-                        cubit.loadCustomers(deliveryStatus: 'pending');
-                      },
+                    const SizedBox(height: 4),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Wrap(
+                        spacing: 8,
+                        children: [
+                          _FilterChip(
+                            label: 'All Sub Areas',
+                            selected: _subAreaFilter == null,
+                            onSelected: () {
+                              setState(() => _subAreaFilter = null);
+                              setModalState(() {});
+                            },
+                          ),
+                          ..._allSubAreas.map(
+                            (subArea) => _FilterChip(
+                              label: subArea,
+                              selected: _subAreaFilter == subArea,
+                              onSelected: () {
+                                setState(() => _subAreaFilter = subArea);
+                                setModalState(() {});
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
-                ),
-                
-                if (_allAreas.isNotEmpty) ...[
-                  const SizedBox(height: 5),
-                  const Text(
-                    'Area',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Wrap(
-                      spacing: 8,
-                      children: [
-                        _FilterChip(
-                          label: 'All Areas',
-                          selected: _areaFilter == null,
-                          onSelected: () {
-                            setState(() {
-                              _areaFilter = null;
-                              _subAreaFilter = null;
-                            });
-                            setModalState(() {});
-                          },
-                        ),
-                        ..._allAreas.map((area) => _FilterChip(
-                          label: area,
-                          selected: _areaFilter == area,
-                          onSelected: () {
-                            setState(() {
-                              _areaFilter = area;
-                              _subAreaFilter = null;
-                            });
-                            setModalState(() {});
-                          },
-                        )),
-                      ],
+                  SizedBox(height: 10),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(bottomSheetContext),
+                      child: const Text('Apply Filters'),
                     ),
                   ),
                 ],
-                
-                if (_allSubAreas.isNotEmpty) ...[
-                  const SizedBox(height: 5),
-                  const Text(
-                    'Sub Area',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Wrap(
-                      spacing: 8,
-                      children: [
-                        _FilterChip(
-                          label: 'All Sub Areas',
-                          selected: _subAreaFilter == null,
-                          onSelected: () {
-                            setState(() => _subAreaFilter = null);
-                            setModalState(() {});
-                          },
-                        ),
-                        ..._allSubAreas.map((subArea) => _FilterChip(
-                          label: subArea,
-                          selected: _subAreaFilter == subArea,
-                          onSelected: () {
-                            setState(() => _subAreaFilter = subArea);
-                            setModalState(() {});
-                          },
-                        )),
-                      ],
-                    ),
-                  ),
-                ],
-                SizedBox(height: 10),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.pop(bottomSheetContext),
-                    child: const Text('Apply Filters'),
-                  ),
-                ),
-              ],
+              ),
             ),
           );
         },
@@ -305,8 +330,8 @@ class _CustomerListViewState extends State<CustomerListView> {
             icon: Stack(
               children: [
                 const Icon(Icons.filter_list),
-                if (_deliveryStatusFilter != null || 
-                    _areaFilter != null || 
+                if (_deliveryStatusFilter != null ||
+                    _areaFilter != null ||
                     _subAreaFilter != null)
                   Positioned(
                     right: 0,
@@ -418,7 +443,10 @@ class _CustomerListViewState extends State<CustomerListView> {
                 // Active Filters Display
                 if (_areaFilter != null || _subAreaFilter != null)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     color: Colors.white,
                     child: Row(
                       children: [
@@ -482,8 +510,12 @@ class _CustomerListViewState extends State<CustomerListView> {
                               final customer = _filteredCustomers[index];
                               return _CustomerCard(
                                 customer: customer,
-                                onCall: () => _makePhoneCall(customer.phoneNumber),
-                                onLocation: () => _openLocation(customer),
+                                onCall: () => Helpers.makePhoneCall(customer.phoneNumber),
+                                onLocation: () => Helpers.openMap(
+                                  customer.locationLink,
+                                  customer.latitude,
+                                  customer.longitude,
+                              ),
                               );
                             },
                           ),
@@ -544,9 +576,7 @@ class _CustomerCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       elevation: 2,
       shadowColor: Colors.black12,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: () {
           Navigator.push(
@@ -581,7 +611,17 @@ class _CustomerCard extends StatelessWidget {
                     ),
                     child: Center(
                       child: Text(
-                        customer.name[0].toUpperCase(),
+                        (customer.shift != null
+                                ? (customer.shift!.toLowerCase().contains('m')
+                                      ? 'M'
+                                      : (customer.shift!.toLowerCase().contains(
+                                              'e',
+                                            )
+                                            ? 'E'
+                                            : customer.name[0]))
+                                : customer.name[0])
+                            .toString()
+                            .toUpperCase(),
                         style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -657,9 +697,9 @@ class _CustomerCard extends StatelessWidget {
                     ),
                 ],
               ),
-              
+
               const SizedBox(height: 10),
-              
+
               // Details Row
               Row(
                 children: [
@@ -677,13 +717,15 @@ class _CustomerCard extends StatelessWidget {
                       child: _InfoCard(
                         icon: Icons.account_balance_wallet_outlined,
                         label: 'Pending',
-                        value: Helpers.formatCurrency(customer.totalPendingMoney!),
+                        value: Helpers.formatCurrency(
+                          customer.totalPendingMoney!,
+                        ),
                         color: AppColors.error,
                       ),
                     ),
                   if (customer.totalPendingMoney != null)
                     const SizedBox(width: 8),
-                 
+
                   // Action Buttons
                   IconButton(
                     onPressed: onCall,
@@ -691,7 +733,7 @@ class _CustomerCard extends StatelessWidget {
                     style: IconButton.styleFrom(
                       backgroundColor: AppColors.primary.withOpacity(0.1),
                       foregroundColor: AppColors.primary,
-                      padding: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(8), 
                     ),
                   ),
                   const SizedBox(width: 6),
@@ -734,10 +776,7 @@ class _InfoCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: color.withOpacity(0.08),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: color.withOpacity(0.2),
-          width: 1,
-        ),
+        border: Border.all(color: color.withOpacity(0.2), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

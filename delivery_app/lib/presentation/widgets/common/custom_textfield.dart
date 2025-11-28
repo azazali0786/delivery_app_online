@@ -39,15 +39,19 @@ class CustomTextField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+
+        /// LABEL (Smaller)
         Text(
           label,
           style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
+            fontSize: 12,          // Smaller
+            fontWeight: FontWeight.w500,
             color: AppColors.textPrimary,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6), // Reduced space
+
+        /// TEXT FIELD
         TextFormField(
           controller: controller,
           validator: validator,
@@ -58,31 +62,55 @@ class CustomTextField extends StatelessWidget {
           onTap: onTap,
           onChanged: onChanged,
           inputFormatters: inputFormatters,
+
+          style: const TextStyle(
+            fontSize: 13,          // Smaller input text
+            height: 1.2,
+          ),
+
           decoration: InputDecoration(
             hintText: hint,
-            suffixIcon: suffixIcon,
-            prefixIcon: prefixIcon,
+            hintStyle: const TextStyle(fontSize: 12),
+
+            prefixIcon: prefixIcon != null
+                ? Padding(
+                    padding: const EdgeInsets.only(left: 8, right: 4),
+                    child: prefixIcon,
+                  )
+                : null,
+
+            suffixIcon: suffixIcon != null
+                ? Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: suffixIcon,
+                  )
+                : null,
+
             filled: true,
             fillColor: enabled ? Colors.white : AppColors.surfaceLight,
+
+            /// Smaller borders
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(8), // Smaller radius
               borderSide: BorderSide(color: AppColors.border),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(8),
               borderSide: BorderSide(color: AppColors.border),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.primary, width: 2),
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
             ),
             errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(8),
               borderSide: const BorderSide(color: AppColors.error),
             ),
+
+            /// Smaller padding (reduces height)
             contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 16,
+              horizontal: 12,
+              vertical: 10, // Reduced from 16 → 10
             ),
           ),
         ),

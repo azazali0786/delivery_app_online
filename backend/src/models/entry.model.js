@@ -5,9 +5,9 @@ class EntryModel {
     const result = await pool.query(`
       INSERT INTO entries (
         customer_id, delivery_boy_id, milk_quantity, collected_money,
-        pending_bottles, rate, payment_method, transaction_photo,
+        pending_bottles, rate, payment_method,
         is_delivered, not_delivered_reason, entry_date
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       RETURNING *
     `, [
       data.customer_id,
@@ -17,12 +17,11 @@ class EntryModel {
       data.pending_bottles || 0,
       data.rate || 0,
       data.payment_method || 'cash',
-      data.transaction_photo || null,
       data.is_delivered !== undefined ? data.is_delivered : true,
       data.not_delivered_reason || null,
       data.entry_date || new Date().toISOString().split('T')[0]
     ]);
-    
+
     return result.rows[0];
   }
 
@@ -46,7 +45,7 @@ class EntryModel {
       SELECT * FROM entries 
       WHERE customer_id = $1
     `;
-    
+
     const params = [customerId];
     let paramCount = 2;
 
@@ -79,7 +78,7 @@ class EntryModel {
       LEFT JOIN customers c ON e.customer_id = c.id
       WHERE e.delivery_boy_id = $1
     `;
-    
+
     const params = [deliveryBoyId];
 
     if (date) {
