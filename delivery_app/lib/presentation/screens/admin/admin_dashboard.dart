@@ -1,3 +1,4 @@
+import 'package:delivery_app/presentation/screens/admin/admin_dashboard_Report.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/constants/app_colors.dart';
@@ -37,6 +38,17 @@ class AdminDashboardView extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Admin Dashboard'),
         actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AdminDashboardReport(),
+                ),
+              );
+            },
+            icon: Icon(Icons.dashboard),
+          ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {

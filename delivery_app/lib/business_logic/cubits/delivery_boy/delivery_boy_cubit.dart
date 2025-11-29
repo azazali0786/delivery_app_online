@@ -6,17 +6,18 @@ class DeliveryBoyCubit extends Cubit<DeliveryBoyState> {
   final DeliveryBoyRepository _deliveryBoyRepository;
 
   DeliveryBoyCubit(this._deliveryBoyRepository)
-      : super(DeliveryBoyDashboardInitial());
+    : super(DeliveryBoyDashboardInitial());
 
   // Dashboard
   Future<void> loadDashboard() async {
     emit(DeliveryBoyDashboardLoading());
     try {
-      final stats = await _deliveryBoyRepository.getDashboard();
+      final stats = await _deliveryBoyRepository.calculateDashboardStats();
       emit(DeliveryBoyDashboardLoaded(stats));
     } catch (e) {
-      emit(DeliveryBoyDashboardError(
-          e.toString().replaceAll('Exception: ', '')));
+      emit(
+        DeliveryBoyDashboardError(e.toString().replaceAll('Exception: ', '')),
+      );
     }
   }
 
@@ -27,8 +28,7 @@ class DeliveryBoyCubit extends Cubit<DeliveryBoyState> {
       final profile = await _deliveryBoyRepository.getProfile();
       emit(DeliveryBoyProfileLoaded(profile));
     } catch (e) {
-      emit(
-          DeliveryBoyProfileError(e.toString().replaceAll('Exception: ', '')));
+      emit(DeliveryBoyProfileError(e.toString().replaceAll('Exception: ', '')));
     }
   }
 
@@ -49,8 +49,9 @@ class DeliveryBoyCubit extends Cubit<DeliveryBoyState> {
       );
       emit(DeliveryBoyCustomersLoaded(customers));
     } catch (e) {
-      emit(DeliveryBoyCustomersError(
-          e.toString().replaceAll('Exception: ', '')));
+      emit(
+        DeliveryBoyCustomersError(e.toString().replaceAll('Exception: ', '')),
+      );
     }
   }
 
@@ -58,11 +59,15 @@ class DeliveryBoyCubit extends Cubit<DeliveryBoyState> {
     emit(DeliveryBoyOperationLoading());
     try {
       await _deliveryBoyRepository.createCustomer(data);
-      emit(const DeliveryBoyOperationSuccess(
-          'Customer added successfully. Waiting for admin approval.'));
+      emit(
+        const DeliveryBoyOperationSuccess(
+          'Customer added successfully. Waiting for admin approval.',
+        ),
+      );
     } catch (e) {
-      emit(DeliveryBoyOperationError(
-          e.toString().replaceAll('Exception: ', '')));
+      emit(
+        DeliveryBoyOperationError(e.toString().replaceAll('Exception: ', '')),
+      );
     }
   }
 
@@ -73,8 +78,7 @@ class DeliveryBoyCubit extends Cubit<DeliveryBoyState> {
       final entries = await _deliveryBoyRepository.getEntries(date: date);
       emit(DeliveryBoyEntriesLoaded(entries));
     } catch (e) {
-      emit(DeliveryBoyEntriesError(
-          e.toString().replaceAll('Exception: ', '')));
+      emit(DeliveryBoyEntriesError(e.toString().replaceAll('Exception: ', '')));
     }
   }
 
@@ -92,8 +96,7 @@ class DeliveryBoyCubit extends Cubit<DeliveryBoyState> {
       );
       emit(DeliveryBoyEntriesLoaded(entries));
     } catch (e) {
-      emit(DeliveryBoyEntriesError(
-          e.toString().replaceAll('Exception: ', '')));
+      emit(DeliveryBoyEntriesError(e.toString().replaceAll('Exception: ', '')));
     }
   }
 
@@ -104,8 +107,9 @@ class DeliveryBoyCubit extends Cubit<DeliveryBoyState> {
       emit(const DeliveryBoyOperationSuccess('Entry created successfully'));
       loadDashboard();
     } catch (e) {
-      emit(DeliveryBoyOperationError(
-          e.toString().replaceAll('Exception: ', '')));
+      emit(
+        DeliveryBoyOperationError(e.toString().replaceAll('Exception: ', '')),
+      );
     }
   }
 
@@ -115,8 +119,9 @@ class DeliveryBoyCubit extends Cubit<DeliveryBoyState> {
       await _deliveryBoyRepository.updateEntry(id, data);
       emit(const DeliveryBoyOperationSuccess('Entry updated successfully'));
     } catch (e) {
-      emit(DeliveryBoyOperationError(
-          e.toString().replaceAll('Exception: ', '')));
+      emit(
+        DeliveryBoyOperationError(e.toString().replaceAll('Exception: ', '')),
+      );
     }
   }
 
@@ -127,16 +132,14 @@ class DeliveryBoyCubit extends Cubit<DeliveryBoyState> {
       emit(const DeliveryBoyOperationSuccess('Marked as not delivered'));
       loadDashboard();
     } catch (e) {
-      emit(DeliveryBoyOperationError(
-          e.toString().replaceAll('Exception: ', '')));
+      emit(
+        DeliveryBoyOperationError(e.toString().replaceAll('Exception: ', '')),
+      );
     }
   }
 
   // Stock
-  Future<void> loadStockEntries({
-    String? startDate,
-    String? endDate,
-  }) async {
+  Future<void> loadStockEntries({String? startDate, String? endDate}) async {
     emit(DeliveryBoyStockLoading());
     try {
       final stocks = await _deliveryBoyRepository.getStockEntries(
@@ -145,8 +148,7 @@ class DeliveryBoyCubit extends Cubit<DeliveryBoyState> {
       );
       emit(DeliveryBoyStockLoaded(stocks));
     } catch (e) {
-      emit(
-          DeliveryBoyStockError(e.toString().replaceAll('Exception: ', '')));
+      emit(DeliveryBoyStockError(e.toString().replaceAll('Exception: ', '')));
     }
   }
 
@@ -157,8 +159,7 @@ class DeliveryBoyCubit extends Cubit<DeliveryBoyState> {
       final areas = await _deliveryBoyRepository.getAssignedAreas();
       emit(DeliveryBoyAreasLoaded(areas));
     } catch (e) {
-      emit(
-          DeliveryBoyAreasError(e.toString().replaceAll('Exception: ', '')));
+      emit(DeliveryBoyAreasError(e.toString().replaceAll('Exception: ', '')));
     }
   }
 }

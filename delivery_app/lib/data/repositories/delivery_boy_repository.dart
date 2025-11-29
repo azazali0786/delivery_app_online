@@ -16,6 +16,103 @@ class DeliveryBoyRepository {
     return await _apiService.get(ApiConstants.deliveryDashboard);
   }
 
+  // Calculate Dashboard Stats
+  Future<Map<String, dynamic>> calculateDashboardStats() async {
+    try {
+      // Fetch all customers, entries for today, and pending entries
+      final dashboard = await getDashboard();
+      final customers = await getCustomers();
+      final todayEntries = await getEntries(
+        date: DateTime.now().toString().split(' ')[0],
+      );
+
+      // ---------------------------
+      // ✅ UPDATED NEED CALCULATION
+      // ---------------------------
+      int needHalf = 0;
+      int needOne = 0;
+
+      for (var customer in customers.where((u) => u.isActive ?? false)) {
+        final double qty = customer.permanentQuantity;
+
+        needOne += qty ~/ 1; // full 1-liter bottles
+        double remaining = qty % 1; // leftover
+
+        if (remaining >= 0.5) needHalf += 1; // half bottle if >= 0.5
+      }
+
+      // ---------------------------
+      // Existing ASSIGN logic (unchanged)
+      // ---------------------------
+      double assignHalf = 0;
+      double assignOne = 0;
+      double todayOnline = 0;
+      double todayCash = 0;
+      double todayPending = 0;
+
+      for (var entry in todayEntries) {
+        double quantity = entry.milkQuantity;
+
+        assignOne += quantity ~/ 1;
+        double remaining = quantity % 1;
+        if (remaining >= 0.5) assignHalf += 1;
+
+        if (entry.paymentMethod.toLowerCase() == 'online') {
+          todayOnline += entry.collectedMoney;
+        } else if (entry.paymentMethod.toLowerCase() == 'cash') {
+          todayCash += entry.collectedMoney;
+        }
+
+        todayPending += entry.pendingBottles * entry.rate;
+      }
+
+      // Left in market
+      double leftHalf = needHalf - assignHalf;
+      double leftOne = needOne - assignOne;
+
+      // if (leftHalf < 0) leftHalf = 0;
+      // if (leftOne < 0) leftOne = 0;
+
+      // Total pending
+      double totalPending = 0;
+      for (var customer in customers) {
+        if (customer.totalPendingMoney != null) {
+          totalPending += customer.totalPendingMoney!;
+        }
+      }
+
+      return {
+        'stock_half_ltr_bottles': dashboard['half_ltr_bottles'] ?? 0,
+        'stock_one_ltr_bottles': dashboard['one_ltr_bottles'] ?? 0,
+        'need_half': needHalf,
+        'need_one': needOne,
+        'assign_half': assignHalf.toInt(),
+        'assign_one': assignOne.toInt(),
+        'left_half': leftHalf.toInt(),
+        'left_one': leftOne.toInt(),
+        'today_online': todayOnline.toStringAsFixed(2),
+        'today_cash': todayCash.toStringAsFixed(2),
+        'today_pending': todayPending.toStringAsFixed(2),
+        'total_pending': totalPending.toStringAsFixed(2),
+      };
+    } catch (e) {
+      return {
+        'stock_half_ltr_bottles': 0,
+        'stock_one_ltr_bottles': 0,
+        'need_half': 0,
+        'need_one': 0,
+        'assign_half': 0,
+        'assign_one': 0,
+        'left_half': 0,
+        'left_one': 0,
+        'today_online': '0.00',
+        'today_cash': '0.00',
+        'today_pending': '0.00',
+        'total_pending': '0.00',
+      };
+    }
+  }
+
   // Profile
   Future<DeliveryBoyModel> getProfile() async {
     final response = await _apiService.get(ApiConstants.deliveryProfile);
@@ -50,14 +147,17 @@ class DeliveryBoyRepository {
   }
 
   Future<CustomerModel> getCustomerById(int id) async {
-    final response =
-        await _apiService.get('${ApiConstants.deliveryCustomers}/$id');
+    final response = await _apiService.get(
+      '${ApiConstants.deliveryCustomers}/$id',
+    );
     return CustomerModel.fromJson(response);
   }
 
   Future<CustomerModel> createCustomer(Map<String, dynamic> data) async {
-    final response =
-        await _apiService.post(ApiConstants.deliveryCustomers, data);
+    final response = await _apiService.post(
+      ApiConstants.deliveryCustomers,
+      data,
+    );
     return CustomerModel.fromJson(response);
   }
 
@@ -77,8 +177,7 @@ class DeliveryBoyRepository {
     String? startDate,
     String? endDate,
   }) async {
-    String endpoint =
-        '${ApiConstants.deliveryCustomers}/$customerId/entries';
+    String endpoint = '${ApiConstants.deliveryCustomers}/$customerId/entries';
     List<String> queryParams = [];
 
     if (startDate != null) queryParams.add('start_date=$startDate');
@@ -98,15 +197,18 @@ class DeliveryBoyRepository {
   }
 
   Future<EntryModel> updateEntry(int id, Map<String, dynamic> data) async {
-    final response =
-        await _apiService.put('${ApiConstants.deliveryEntries}/$id', data);
+    final response = await _apiService.put(
+      '${ApiConstants.deliveryEntries}/$id',
+      data,
+    );
     return EntryModel.fromJson(response);
   }
 
   Future<EntryModel> markNotDelivered(int id, String reason) async {
     final response = await _apiService.patch(
-        '${ApiConstants.deliveryEntries}/$id/not-delivered',
-        {'reason': reason});
+      '${ApiConstants.deliveryEntries}/$id/not-delivered',
+      {'reason': reason},
+    );
     return EntryModel.fromJson(response);
   }
 
@@ -131,8 +233,9 @@ class DeliveryBoyRepository {
 
   Future<StockModel?> getTodayStock() async {
     try {
-      final response =
-          await _apiService.get('${ApiConstants.deliveryStockEntries}/today');
+      final response = await _apiService.get(
+        '${ApiConstants.deliveryStockEntries}/today',
+      );
       return StockModel.fromJson(response);
     } catch (e) {
       return null;
@@ -147,9 +250,8 @@ class DeliveryBoyRepository {
 
   // Reasons
   Future<List<Map<String, dynamic>>> getReasons() async {
-  final response = await _apiService.get(ApiConstants.deliveryReasons);
+    final response = await _apiService.get(ApiConstants.deliveryReasons);
 
-  return List<Map<String, dynamic>>.from(response);
+    return List<Map<String, dynamic>>.from(response);
   }
-
 }

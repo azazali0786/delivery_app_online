@@ -4,6 +4,7 @@ import '../models/delivery_boy_model.dart';
 import '../models/customer_model.dart';
 import '../models/area_model.dart';
 import '../models/stock_model.dart';
+import '../models/entry_model.dart';
 
 class AdminRepository {
   final ApiService _apiService;
@@ -13,6 +14,92 @@ class AdminRepository {
   // Dashboard
   Future<Map<String, dynamic>> getDashboard() async {
     return await _apiService.get(ApiConstants.adminDashboard);
+  }
+
+  // Calculate Stats for Specific Delivery Boy
+  Future<Map<String, dynamic>> calculateDeliveryBoyStats(
+    int deliveryBoyId,
+  ) async {
+    try {
+      // Fetch customers assigned to this delivery boy
+      final customers = await getAllCustomers(deliveryBoyId: deliveryBoyId);
+
+      // Fetch entries for today for this delivery boy
+      final todayEntries = await getEntries(
+        deliveryBoyId: deliveryBoyId,
+        date: DateTime.now().toString().split(' ')[0],
+      );
+
+      // Calculate Need (Bottles) from permanent quantity
+      double needHalf = 0;
+      double needOne = 0;
+
+      for (var customer in customers) {
+        double permanentQty = customer.permanentQuantity;
+        // 0.5L bottles = permanentQty / 0.5, 1L bottles = permanentQty / 1
+        needHalf += (permanentQty / 0.5).floor().toDouble();
+        needOne += (permanentQty / 1).floor().toDouble();
+      }
+
+      // Calculate Assign (Today Stock Assign) from today's entries
+      double assignHalf = 0;
+      double assignOne = 0;
+      double todayOnline = 0;
+      double todayCash = 0;
+      double todayPending = 0;
+
+      for (var entry in todayEntries) {
+        double quantity = entry.milkQuantity;
+        assignHalf += (quantity / 0.5).floor().toDouble();
+        assignOne += (quantity / 1).floor().toDouble();
+
+        // Calculate money collections
+        if (entry.paymentMethod.toLowerCase() == 'online') {
+          todayOnline += entry.collectedMoney;
+        } else if (entry.paymentMethod.toLowerCase() == 'cash') {
+          todayCash += entry.collectedMoney;
+        }
+        todayPending += entry.pendingBottles * entry.rate;
+      }
+
+      // Calculate Left in Market = Need - Assign
+      double leftHalf = (needHalf - assignHalf) < 0 ? 0 : needHalf - assignHalf;
+      double leftOne = (needOne - assignOne) < 0 ? 0 : needOne - assignOne;
+
+      // Calculate Total Pending Money
+      double totalPending = 0;
+      for (var customer in customers) {
+        if (customer.totalPendingMoney != null) {
+          totalPending += customer.totalPendingMoney!;
+        }
+      }
+
+      return {
+        'need_half': needHalf.toInt(),
+        'need_one': needOne.toInt(),
+        'assign_half': assignHalf.toInt(),
+        'assign_one': assignOne.toInt(),
+        'left_half': leftHalf.toInt(),
+        'left_one': leftOne.toInt(),
+        'today_online': todayOnline.toStringAsFixed(2),
+        'today_cash': todayCash.toStringAsFixed(2),
+        'today_pending': todayPending.toStringAsFixed(2),
+        'total_pending': totalPending.toStringAsFixed(2),
+      };
+    } catch (e) {
+      return {
+        'need_half': 0,
+        'need_one': 0,
+        'assign_half': 0,
+        'assign_one': 0,
+        'left_half': 0,
+        'left_one': 0,
+        'today_online': '0.00',
+        'today_cash': '0.00',
+        'today_pending': '0.00',
+        'total_pending': '0.00',
+      };
+    }
   }
 
   // Delivery Boys
@@ -251,6 +338,32 @@ class AdminRepository {
   // Entries
   Future<void> deleteEntry(int id) async {
     await _apiService.delete('${ApiConstants.adminEntries}/$id');
+  }
+
+  Future<List<EntryModel>> getEntries({
+    int? deliveryBoyId,
+    String? date,
+  }) async {
+    String endpoint = ApiConstants.adminEntries;
+    List<String> queryParams = [];
+
+    if (deliveryBoyId != null) {
+      queryParams.add('delivery_boy_id=$deliveryBoyId');
+    }
+    if (date != null) {
+      queryParams.add('date=$date');
+    }
+
+    if (queryParams.isNotEmpty) {
+      endpoint += '?${queryParams.join('&')}';
+    }
+
+    try {
+      final response = await _apiService.get(endpoint);
+      return (response as List).map((e) => EntryModel.fromJson(e)).toList();
+    } catch (e) {
+      return [];
+    }
   }
 
   // Invoice

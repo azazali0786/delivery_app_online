@@ -73,6 +73,16 @@ class _DeliveryBoyManagementViewState extends State<DeliveryBoyManagementView> {
     );
   }
 
+  void _showDeliveryBoyStatsDialog(DeliveryBoyModel deliveryBoy) {
+    showDialog(
+      context: context,
+      builder: (ctx) => BlocProvider.value(
+        value: context.read<AdminCubit>(),
+        child: _DeliveryBoyStatsDialog(deliveryBoy: deliveryBoy),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -156,9 +166,7 @@ class _DeliveryBoyManagementViewState extends State<DeliveryBoyManagementView> {
                 Padding(
                   padding: const EdgeInsets.all(16),
                   child: TextField(
-                    onChanged: (value) => {
-                      
-                    },
+                    onChanged: (value) => {},
                     controller: _searchController,
                     decoration: InputDecoration(
                       hintText: 'Search by name or address...',
@@ -245,6 +253,8 @@ class _DeliveryBoyManagementViewState extends State<DeliveryBoyManagementView> {
                               ),
                             );
                           },
+                          onViewStats: () =>
+                              _showDeliveryBoyStatsDialog(deliveryBoy),
                         );
                       },
                     ),
@@ -267,6 +277,7 @@ class _DeliveryBoyCard extends StatelessWidget {
   final VoidCallback onAssignSubAreas;
   final VoidCallback onToggleActive;
   final VoidCallback onDelete;
+  final VoidCallback onViewStats;
 
   const _DeliveryBoyCard({
     Key? key,
@@ -275,12 +286,14 @@ class _DeliveryBoyCard extends StatelessWidget {
     required this.onAssignSubAreas,
     required this.onToggleActive,
     required this.onDelete,
+    required this.onViewStats,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onLongPress: onDelete,
+      onTap: onViewStats,
       child: Card(
         margin: const EdgeInsets.only(bottom: 12),
         elevation: 2,
@@ -452,7 +465,9 @@ class _DeliveryBoyCard extends StatelessWidget {
                       deliveryBoy.isActive ? Icons.block : Icons.check_circle,
                       size: 18,
                     ),
-                    label: Text(deliveryBoy.isActive ? 'Deactivate' : 'Activate'),
+                    label: Text(
+                      deliveryBoy.isActive ? 'Deactivate' : 'Activate',
+                    ),
                   ),
                 ],
               ),
@@ -623,7 +638,7 @@ class _EditDeliveryBoyDialog extends StatefulWidget {
   final DeliveryBoyModel deliveryBoy;
 
   const _EditDeliveryBoyDialog({Key? key, required this.deliveryBoy})
-      : super(key: key);
+    : super(key: key);
 
   @override
   State<_EditDeliveryBoyDialog> createState() => _EditDeliveryBoyDialogState();
@@ -649,18 +664,24 @@ class _EditDeliveryBoyDialogState extends State<_EditDeliveryBoyDialog> {
     _nameController = TextEditingController(text: widget.deliveryBoy.name);
     _emailController = TextEditingController(text: widget.deliveryBoy.email);
     _passwordController = TextEditingController(); // password not shown
-    _addressController =
-        TextEditingController(text: widget.deliveryBoy.address ?? '');
-    _phone1Controller =
-        TextEditingController(text: widget.deliveryBoy.phoneNumber1 ?? '');
-    _phone2Controller =
-        TextEditingController(text: widget.deliveryBoy.phoneNumber2 ?? '');
-    _adharController =
-        TextEditingController(text: widget.deliveryBoy.adharNumber ?? '');
+    _addressController = TextEditingController(
+      text: widget.deliveryBoy.address ?? '',
+    );
+    _phone1Controller = TextEditingController(
+      text: widget.deliveryBoy.phoneNumber1 ?? '',
+    );
+    _phone2Controller = TextEditingController(
+      text: widget.deliveryBoy.phoneNumber2 ?? '',
+    );
+    _adharController = TextEditingController(
+      text: widget.deliveryBoy.adharNumber ?? '',
+    );
     _licenceController = TextEditingController(
-        text: widget.deliveryBoy.drivingLicenceNumber ?? '');
-    _panController =
-        TextEditingController(text: widget.deliveryBoy.panNumber ?? '');
+      text: widget.deliveryBoy.drivingLicenceNumber ?? '',
+    );
+    _panController = TextEditingController(
+      text: widget.deliveryBoy.panNumber ?? '',
+    );
   }
 
   @override
@@ -813,7 +834,7 @@ class _AssignSubAreasDialog extends StatefulWidget {
   final DeliveryBoyModel deliveryBoy;
 
   const _AssignSubAreasDialog({Key? key, required this.deliveryBoy})
-      : super(key: key);
+    : super(key: key);
 
   @override
   State<_AssignSubAreasDialog> createState() => _AssignSubAreasDialogState();
@@ -854,168 +875,447 @@ class _AssignSubAreasDialogState extends State<_AssignSubAreasDialog> {
 
   void _handleSubmit() {
     context.read<AdminCubit>().assignSubAreas(
-          widget.deliveryBoy.id,
-          _selectedSubAreaIds.toList(),
-        );
+      widget.deliveryBoy.id,
+      _selectedSubAreaIds.toList(),
+    );
     Navigator.pop(context);
   }
 
   @override
-Widget build(BuildContext context) {
-  final screenHeight = MediaQuery.of(context).size.height;
-  final screenWidth = MediaQuery.of(context).size.width;
+  Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
 
-  return Dialog(
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-    child: Container(
-      width: screenWidth * 0.75, // smaller width
-      height: screenHeight * 0.60, // smaller height
-      child: Column(
-        children: [
-          // HEADER
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Assign Sub-Areas to ${widget.deliveryBoy.name}',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Container(
+        width: screenWidth * 0.75, // smaller width
+        height: screenHeight * 0.60, // smaller height
+        child: Column(
+          children: [
+            // HEADER
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Assign Sub-Areas to ${widget.deliveryBoy.name}',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 6),
-                const Text(
-                  'Select sub-areas to assign',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: AppColors.textSecondary,
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Select sub-areas to assign',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
 
-          const Divider(height: 1),
+            const Divider(height: 1),
 
-          // BODY SCROLLABLE
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _areas.isEmpty
-                    ? const Center(child: Text('No areas available'))
-                    : Scrollbar(
-                        thumbVisibility: true,
-                        child: SingleChildScrollView(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: _areas.map((area) {
-                              final isExpanded =
-                                  _expandedAreaIds.contains(area.id);
+            // BODY SCROLLABLE
+            Expanded(
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _areas.isEmpty
+                  ? const Center(child: Text('No areas available'))
+                  : Scrollbar(
+                      thumbVisibility: true,
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: _areas.map((area) {
+                            final isExpanded = _expandedAreaIds.contains(
+                              area.id,
+                            );
 
-                              return Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  InkWell(
-                                    onTap: () {
-                                      setState(() {
-                                        if (isExpanded) {
-                                          _expandedAreaIds.remove(area.id);
-                                        } else {
-                                          _expandedAreaIds.add(area.id);
-                                        }
-                                      });
-                                    },
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          area.name,
-                                          style: const TextStyle(
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.bold,
-                                            color: AppColors.textPrimary,
-                                          ),
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                InkWell(
+                                  onTap: () {
+                                    setState(() {
+                                      if (isExpanded) {
+                                        _expandedAreaIds.remove(area.id);
+                                      } else {
+                                        _expandedAreaIds.add(area.id);
+                                      }
+                                    });
+                                  },
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        area.name,
+                                        style: const TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.textPrimary,
                                         ),
-                                        Icon(
-                                          isExpanded
-                                              ? Icons.keyboard_arrow_up
-                                              : Icons.keyboard_arrow_down,
-                                          size: 20,
-                                          color: Colors.grey,
-                                        ),
-                                      ],
-                                    ),
+                                      ),
+                                      Icon(
+                                        isExpanded
+                                            ? Icons.keyboard_arrow_up
+                                            : Icons.keyboard_arrow_down,
+                                        size: 20,
+                                        color: Colors.grey,
+                                      ),
+                                    ],
                                   ),
+                                ),
 
-                                  const SizedBox(height: 4),
+                                const SizedBox(height: 4),
 
-                                  if (isExpanded && area.subAreas != null) ...[
-                                    ...area.subAreas!.map((subArea) {
-                                      final isSelected = _selectedSubAreaIds
-                                          .contains(subArea.id);
+                                if (isExpanded && area.subAreas != null) ...[
+                                  ...area.subAreas!.map((subArea) {
+                                    final isSelected = _selectedSubAreaIds
+                                        .contains(subArea.id);
 
-                                      return CheckboxListTile(
-                                        title: Text(subArea.name),
-                                        value: isSelected,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            if (value == true) {
-                                              _selectedSubAreaIds
-                                                  .add(subArea.id);
-                                            } else {
-                                              _selectedSubAreaIds
-                                                  .remove(subArea.id);
-                                            }
-                                          });
-                                        },
-                                        activeColor: AppColors.primary,
-                                        contentPadding: EdgeInsets.zero,
-                                      );
-                                    }).toList(),
-                                  ],
-
-                                  const SizedBox(height: 12),
+                                    return CheckboxListTile(
+                                      title: Text(subArea.name),
+                                      value: isSelected,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          if (value == true) {
+                                            _selectedSubAreaIds.add(subArea.id);
+                                          } else {
+                                            _selectedSubAreaIds.remove(
+                                              subArea.id,
+                                            );
+                                          }
+                                        });
+                                      },
+                                      activeColor: AppColors.primary,
+                                      contentPadding: EdgeInsets.zero,
+                                    );
+                                  }).toList(),
                                 ],
-                              );
-                            }).toList(),
-                          ),
+
+                                const SizedBox(height: 12),
+                              ],
+                            );
+                          }).toList(),
                         ),
                       ),
-          ),
-
-          const Divider(height: 1),
-
-          // FOOTER BUTTONS
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              children: [
-                Expanded(
-                  child: CustomButton(
-                    text: 'Cancel',
-                    onPressed: () => Navigator.pop(context),
-                    isOutlined: true,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: CustomButton(
-                    text: 'Assign',
-                    onPressed: _handleSubmit,
-                  ),
-                ),
-              ],
+                    ),
             ),
-          ),
+
+            const Divider(height: 1),
+
+            // FOOTER BUTTONS
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: CustomButton(
+                      text: 'Cancel',
+                      onPressed: () => Navigator.pop(context),
+                      isOutlined: true,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: CustomButton(
+                      text: 'Assign',
+                      onPressed: _handleSubmit,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DeliveryBoyStatsDialog extends StatefulWidget {
+  final DeliveryBoyModel deliveryBoy;
+
+  const _DeliveryBoyStatsDialog({Key? key, required this.deliveryBoy})
+    : super(key: key);
+
+  @override
+  State<_DeliveryBoyStatsDialog> createState() =>
+      _DeliveryBoyStatsDialogState();
+}
+
+class _DeliveryBoyStatsDialogState extends State<_DeliveryBoyStatsDialog> {
+  late Future<Map<String, dynamic>> _statsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _statsFuture = context.read<AdminRepository>().calculateDeliveryBoyStats(
+      widget.deliveryBoy.id,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: FutureBuilder<Map<String, dynamic>>(
+        future: _statsFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Padding(
+              padding: EdgeInsets.all(32),
+              child: CircularProgressIndicator(),
+            );
+          }
+
+          if (snapshot.hasError) {
+            return Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.error_outline,
+                    size: 60,
+                    color: AppColors.error,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text('Error loading stats'),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Close'),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          final stats = snapshot.data ?? {};
+
+          return SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    "${widget.deliveryBoy.name}'s Stats",
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Today's Stock Section
+                  const Text(
+                    "Today's Stock",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: Column(
+                      children: [
+                        // Header Row
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: const [
+                            SizedBox(width: 120, child: Text("")),
+                            Expanded(
+                              child: Center(
+                                child: Text(
+                                  "1/2 L",
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Center(
+                                child: Text(
+                                  "1 L",
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+
+                        // Need Row
+                        _stockRow(
+                          title: "Need (bottle)",
+                          half: stats["need_half"].toString(),
+                          one: stats["need_one"].toString(),
+                        ),
+
+                        // Assign Row
+                        _stockRow(
+                          title: "Assign (bottle)",
+                          half: stats["assign_half"].toString(),
+                          one: stats["assign_one"].toString(),
+                        ),
+
+                        // Left in market Row
+                        _stockRow(
+                          title: "Left in market",
+                          half: stats["left_half"].toString(),
+                          one: stats["left_one"].toString(),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Today's Money Section
+                  const Text(
+                    "Today's Money",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: Column(
+                      children: [
+                        // Header Row
+                        Row(
+                          children: const [
+                            Expanded(
+                              child: Center(
+                                child: Text(
+                                  "Online",
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Center(
+                                child: Text(
+                                  "Cash",
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Center(
+                                child: Text(
+                                  "Pending",
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+
+                        // Values Row
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Center(
+                                child: Text(stats["today_online"].toString()),
+                              ),
+                            ),
+                            Expanded(
+                              child: Center(
+                                child: Text(stats["today_cash"].toString()),
+                              ),
+                            ),
+                            Expanded(
+                              child: Center(
+                                child: Text(stats["today_pending"].toString()),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Total Pending Money
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          "Total Pending Money",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          '₹${stats["total_pending"]}',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Close Button
+                  ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Close'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _stockRow({
+    required String title,
+    required String half,
+    required String one,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          SizedBox(width: 120, child: Text(title)),
+          Expanded(child: Center(child: Text(half))),
+          Expanded(child: Center(child: Text(one))),
         ],
       ),
-    ),
-  );
+    );
+  }
 }
-}
-
