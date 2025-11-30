@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/helpers.dart';
 import '../../../business_logic/cubits/admin/admin_cubit.dart';
@@ -182,6 +183,11 @@ class _AssignStockViewState extends State<AssignStockView> {
   }
 
   Widget _buildStockCard(dynamic stock, int index) {
+    final raw = stock.entryDate ?? '';
+    DateTime dt = DateTime.parse(raw).toLocal();
+
+// Format: 2025-11-29 8:30 AM
+    final formatted = DateFormat('yyyy-MM-dd h:mm a').format(dt);
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -199,131 +205,128 @@ class _AssignStockViewState extends State<AssignStockView> {
         borderRadius: BorderRadius.circular(16),
         child: Material(
           color: Colors.transparent,
-          child: InkWell(
-            onTap: () => _showStockDetails(stock),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        backgroundColor: Colors.blue[100],
-                        radius: 24,
-                        child: Text(
-                          (stock.deliveryBoyName ?? 'U')[0].toUpperCase(),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: Colors.blue[100],
+                      radius: 24,
+                      child: Text(
+                        (stock.deliveryBoyName ?? 'U')[0].toUpperCase(),
+                        style: TextStyle(
+                          color: Colors.blue[800],
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            stock.deliveryBoyName ?? 'Unknown',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                          formatted,
                           style: TextStyle(
-                            color: Colors.blue[800],
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20,
+                            color: Colors.grey[600],
+                            fontSize: 13,
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              stock.deliveryBoyName ?? 'Unknown',
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              stock.entryDate ?? '',
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 13,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      PopupMenuButton(
-                        icon: const Icon(Icons.more_vert),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        itemBuilder: (context) => [
-                          const PopupMenuItem(
-                            value: 'edit',
-                            child: Row(
-                              children: [
-                                Icon(Icons.edit, color: Colors.blue, size: 20),
-                                SizedBox(width: 12),
-                                Text('Edit'),
-                              ],
-                            ),
-                          ),
-                          const PopupMenuItem(
-                            value: 'delete',
-                            child: Row(
-                              children: [
-                                Icon(Icons.delete, color: Colors.red, size: 20),
-                                SizedBox(width: 12),
-                                Text('Delete'),
-                              ],
-                            ),
-                          ),
                         ],
-                        onSelected: (value) {
-                          if (value == 'edit') {
-                            _editStockEntry(stock);
-                          } else if (value == 'delete') {
-                            _deleteStockEntry(stock);
-                          }
-                        },
+                      ),
+                    ),
+                    PopupMenuButton(
+                      icon: const Icon(Icons.more_vert),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      itemBuilder: (context) => [
+                        const PopupMenuItem(
+                          value: 'edit',
+                          child: Row(
+                            children: [
+                              Icon(Icons.edit, color: Colors.blue, size: 20),
+                              SizedBox(width: 12),
+                              Text('Edit'),
+                            ],
+                          ),
+                        ),
+                        const PopupMenuItem(
+                          value: 'delete',
+                          child: Row(
+                            children: [
+                              Icon(Icons.delete, color: Colors.red, size: 20),
+                              SizedBox(width: 12),
+                              Text('Delete'),
+                            ],
+                          ),
+                        ),
+                      ],
+                      onSelected: (value) {
+                        if (value == 'edit') {
+                          _editStockEntry(stock);
+                        } else if (value == 'delete') {
+                          _deleteStockEntry(stock);
+                        }
+                      },
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[50],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      _buildStockInfo(
+                        icon: Icons.local_drink,
+                        label: 'Half Liter',
+                        value: '${stock.halfLtrBottles}',
+                        color: Colors.orange,
+                      ),
+                      Container(
+                        width: 1,
+                        height: 40,
+                        color: Colors.grey[300],
+                        margin: const EdgeInsets.symmetric(horizontal: 12),
+                      ),
+                      _buildStockInfo(
+                        icon: Icons.local_drink_outlined,
+                        label: 'One Liter',
+                        value: '${stock.oneLtrBottles}',
+                        color: Colors.blue,
+                      ),
+                      Container(
+                        width: 1,
+                        height: 40,
+                        color: Colors.grey[300],
+                        margin: const EdgeInsets.symmetric(horizontal: 12),
+                      ),
+                      _buildStockInfo(
+                        icon: Icons.recycling,
+                        label: 'Collected',
+                        value: '${stock.collectedBottles ?? 0}',
+                        color: Colors.green,
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[50],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        _buildStockInfo(
-                          icon: Icons.local_drink,
-                          label: 'Half Liter',
-                          value: '${stock.halfLtrBottles}',
-                          color: Colors.orange,
-                        ),
-                        Container(
-                          width: 1,
-                          height: 40,
-                          color: Colors.grey[300],
-                          margin: const EdgeInsets.symmetric(horizontal: 12),
-                        ),
-                        _buildStockInfo(
-                          icon: Icons.local_drink_outlined,
-                          label: 'One Liter',
-                          value: '${stock.oneLtrBottles}',
-                          color: Colors.blue,
-                        ),
-                        Container(
-                          width: 1,
-                          height: 40,
-                          color: Colors.grey[300],
-                          margin: const EdgeInsets.symmetric(horizontal: 12),
-                        ),
-                        _buildStockInfo(
-                          icon: Icons.recycling,
-                          label: 'Collected',
-                          value: '${stock.collectedBottles ?? 0}',
-                          color: Colors.green,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -455,39 +458,7 @@ class _AssignStockViewState extends State<AssignStockView> {
     );
   }
 
-  void _showStockDetails(dynamic stock) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Stock Details',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey[800],
-              ),
-            ),
-            const SizedBox(height: 20),
-            _buildDetailRow('Delivery Boy', stock.deliveryBoyName ?? 'Unknown'),
-            _buildDetailRow('Half Liter Bottles', '${stock.halfLtrBottles}'),
-            _buildDetailRow('One Liter Bottles', '${stock.oneLtrBottles}'),
-            _buildDetailRow(
-                'Collected Bottles', '${stock.collectedBottles ?? 0}'),
-            _buildDetailRow('Entry Date', stock.entryDate ?? ''),
-            const SizedBox(height: 20),
-          ],
-        ),
-      ),
-    );
-  }
+  
 
   Widget _buildDetailRow(String label, String value) {
     return Padding(

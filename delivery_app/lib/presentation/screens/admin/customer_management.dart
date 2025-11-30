@@ -37,6 +37,8 @@ class CustomerManagementView extends StatefulWidget {
 class _CustomerManagementViewState extends State<CustomerManagementView> {
   final _searchController = TextEditingController();
   final _minPendingController = TextEditingController();
+  bool _isPendingMode = false;
+
   
   String? _searchQuery;
   double? _minPendingMoney;
@@ -135,18 +137,22 @@ class _CustomerManagementViewState extends State<CustomerManagementView> {
         title: const Text('Customer Details'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.pending_actions),
-            tooltip: 'Pending Approvals',
-            onPressed: () {
-              context.read<AdminCubit>().loadPendingApprovals();
-            },
-          ),
+          icon: const Icon(Icons.pending_actions),
+          tooltip: 'Pending Approvals',
+          onPressed: () {
+            context.read<AdminCubit>().loadPendingApprovals();
+            setState(() => _isPendingMode = true);
+          },
+        ),
+
           IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              context.read<AdminCubit>().loadCustomers();
-            },
-          ),
+          icon: const Icon(Icons.refresh),
+          onPressed: () {
+            context.read<AdminCubit>().loadCustomers();
+            setState(() => _isPendingMode = false);
+          },
+        ),
+
         ],
       ),
       body: BlocConsumer<AdminCubit, AdminState>(
@@ -202,6 +208,7 @@ class _CustomerManagementViewState extends State<CustomerManagementView> {
             return Column(
               children: [
                 // Filter Bar
+                if (!_isPendingMode)
                 CustomerFilterBar(
                   searchController: _searchController,
                   minPendingController: _minPendingController,
@@ -217,6 +224,7 @@ class _CustomerManagementViewState extends State<CustomerManagementView> {
                   onShiftChanged: (value) => setState(() => _shiftFilter = value),
                   onClearFilters: _clearFilters,
                 ),
+
 
                 // Customer List
                 Expanded(

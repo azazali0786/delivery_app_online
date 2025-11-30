@@ -760,7 +760,11 @@ class _AdminDashboardReportState extends State<AdminDashboardReport> {
                     ],
                   ),
                 ),
-                Text(
+                
+                const SizedBox(width: 12),
+                Column(
+                  children: [
+                    Text(
                   '₹${group.totalAmount.toStringAsFixed(2)}',
                   style: const TextStyle(
                     fontSize: 20,
@@ -768,19 +772,25 @@ class _AdminDashboardReportState extends State<AdminDashboardReport> {
                     color: Color(0xFFED8936),
                   ),
                 ),
-                const SizedBox(width: 12),
-                IconButton(
-                  onPressed: () => _showEditExpenseDialog(group),
-                  icon: const Icon(Icons.edit),
-                  color: const Color(0xFF4299E1),
-                  tooltip: 'Edit Day Expenses',
+                    Row(
+                      children: [
+                        IconButton(
+                      onPressed: () => _showEditExpenseDialog(group),
+                      icon: const Icon(Icons.edit),
+                      color: const Color(0xFF4299E1),
+                      tooltip: 'Edit Day Expenses',
+                    ),
+                    IconButton(
+                      onPressed: () => _showDeleteDayConfirmation(group.date),
+                      icon: const Icon(Icons.delete_outline),
+                      color: const Color(0xFFF56565),
+                      tooltip: 'Delete All Day Expenses',
+                    ),
+                      ],
+                    ),
+                  ],
                 ),
-                IconButton(
-                  onPressed: () => _showDeleteDayConfirmation(group.date),
-                  icon: const Icon(Icons.delete_outline),
-                  color: const Color(0xFFF56565),
-                  tooltip: 'Delete All Day Expenses',
-                ),
+                
               ],
             ),
           ),

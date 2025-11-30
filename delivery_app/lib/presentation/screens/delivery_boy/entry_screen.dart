@@ -98,18 +98,13 @@ class _EntryScreenViewState extends State<EntryScreenView> {
   }
 
   void _handleSubmit() {
-    // Use Form validation to show inline errors on the TextFields.
     if (!(_formKey.currentState?.validate() ?? false)) {
       return;
     }
 
-    // Parse inputs safely (validators already ensured they are valid)
     String qText = _quantityController.text.trim().replaceAll(',', '.');
     String rateText = _rateController.text.trim().replaceAll(',', '.');
-    String collectedText = _collectedMoneyController.text.trim().replaceAll(
-      ',',
-      '.',
-    );
+    String collectedText = _collectedMoneyController.text.trim().replaceAll(',', '.');
     String pendingText = _pendingBottlesController.text.trim();
 
     final milkQty = double.tryParse(qText) ?? 0.0;
@@ -129,7 +124,6 @@ class _EntryScreenViewState extends State<EntryScreenView> {
 
     context.read<DeliveryBoyCubit>().createEntry(data);
 
-    // Optionally collapse the form after submit
     setState(() {
       _isFormExpanded = false;
     });
@@ -154,7 +148,6 @@ class _EntryScreenViewState extends State<EntryScreenView> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         titlePadding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
         contentPadding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
-
         title: const Text(
           'Mark as Not Delivered',
           style: TextStyle(
@@ -163,7 +156,6 @@ class _EntryScreenViewState extends State<EntryScreenView> {
             color: AppColors.textPrimary,
           ),
         ),
-
         content: StatefulBuilder(
           builder: (context, setState) {
             return Column(
@@ -178,8 +170,6 @@ class _EntryScreenViewState extends State<EntryScreenView> {
                   ),
                 ),
                 const SizedBox(height: 8),
-
-                // Compact dropdown
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   decoration: BoxDecoration(
@@ -212,10 +202,8 @@ class _EntryScreenViewState extends State<EntryScreenView> {
             );
           },
         ),
-
         actionsPadding: const EdgeInsets.fromLTRB(12, 6, 12, 10),
         actions: [
-          // Cancel button
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: const Text(
@@ -223,8 +211,6 @@ class _EntryScreenViewState extends State<EntryScreenView> {
               style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
             ),
           ),
-
-          // Submit button
           ElevatedButton(
             onPressed: () {
               if (selectedReason != null) {
@@ -302,10 +288,9 @@ class _EntryScreenViewState extends State<EntryScreenView> {
           return SingleChildScrollView(
             child: Column(
               children: [
-                // Customer Info Card
                 CustomerInfoCard(customer: widget.customer),
-
-                // Entry Form Section - Collapsible
+                
+                // Entry Form Section
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 12),
                   decoration: BoxDecoration(
@@ -368,7 +353,6 @@ class _EntryScreenViewState extends State<EntryScreenView> {
 
                       if (_isFormExpanded) ...[
                         const Divider(height: 1),
-
                         Padding(
                           padding: const EdgeInsets.all(10),
                           child: Form(
@@ -376,7 +360,6 @@ class _EntryScreenViewState extends State<EntryScreenView> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                // ROW 1 -----------------------
                                 Row(
                                   children: [
                                     Expanded(
@@ -385,18 +368,11 @@ class _EntryScreenViewState extends State<EntryScreenView> {
                                         controller: _quantityController,
                                         keyboardType: TextInputType.number,
                                         validator: (val) {
-                                          final s =
-                                              val?.trim().replaceAll(
-                                                ',',
-                                                '.',
-                                              ) ??
-                                              '';
+                                          final s = val?.trim().replaceAll(',', '.') ?? '';
                                           if (s.isEmpty) return 'Required';
                                           final v = double.tryParse(s);
-                                          if (v == null)
-                                            return 'Enter valid number';
-                                          if (v <= 0)
-                                            return 'Must be greater than 0';
+                                          if (v == null) return 'Enter valid number';
+                                          if (v <= 0) return 'Must be greater than 0';
                                           return null;
                                         },
                                       ),
@@ -408,28 +384,18 @@ class _EntryScreenViewState extends State<EntryScreenView> {
                                         controller: _rateController,
                                         keyboardType: TextInputType.number,
                                         validator: (val) {
-                                          final s =
-                                              val?.trim().replaceAll(
-                                                ',',
-                                                '.',
-                                              ) ??
-                                              '';
+                                          final s = val?.trim().replaceAll(',', '.') ?? '';
                                           if (s.isEmpty) return 'Required';
                                           final v = double.tryParse(s);
-                                          if (v == null)
-                                            return 'Enter valid number';
-                                          if (v <= 0)
-                                            return 'Must be greater than 0';
+                                          if (v == null) return 'Enter valid number';
+                                          if (v <= 0) return 'Must be greater than 0';
                                           return null;
                                         },
                                       ),
                                     ),
                                   ],
                                 ),
-
                                 const SizedBox(height: 10),
-
-                                // ROW 2 -----------------------
                                 Row(
                                   children: [
                                     Expanded(
@@ -438,18 +404,11 @@ class _EntryScreenViewState extends State<EntryScreenView> {
                                         controller: _collectedMoneyController,
                                         keyboardType: TextInputType.number,
                                         validator: (val) {
-                                          final s =
-                                              val?.trim().replaceAll(
-                                                ',',
-                                                '.',
-                                              ) ??
-                                              '';
+                                          final s = val?.trim().replaceAll(',', '.') ?? '';
                                           if (s.isEmpty) return 'Required';
                                           final v = double.tryParse(s);
-                                          if (v == null)
-                                            return 'Enter valid number';
-                                          if (v < 0)
-                                            return 'Cannot be negative';
+                                          if (v == null) return 'Enter valid number';
+                                          if (v < 0) return 'Cannot be negative';
                                           return null;
                                         },
                                       ),
@@ -464,32 +423,21 @@ class _EntryScreenViewState extends State<EntryScreenView> {
                                           final s = val?.trim() ?? '';
                                           if (s.isEmpty) return 'Required';
                                           final v = int.tryParse(s);
-                                          if (v == null)
-                                            return 'Enter whole number';
-                                          if (v < 0)
-                                            return 'Cannot be negative';
+                                          if (v == null) return 'Enter whole number';
+                                          if (v < 0) return 'Cannot be negative';
                                           return null;
                                         },
                                       ),
                                     ),
                                   ],
                                 ),
-
                                 const SizedBox(height: 10),
-
-                                // DROPDOWN --------------------
                                 CustomDropdown<String>(
                                   label: 'Payment Method',
                                   value: _paymentMethod,
                                   items: const [
-                                    DropdownMenuItem(
-                                      value: 'cash',
-                                      child: Text('Cash'),
-                                    ),
-                                    DropdownMenuItem(
-                                      value: 'online',
-                                      child: Text('Online'),
-                                    ),
+                                    DropdownMenuItem(value: 'cash', child: Text('Cash')),
+                                    DropdownMenuItem(value: 'online', child: Text('Online')),
                                   ],
                                   onChanged: (value) {
                                     setState(() {
@@ -497,10 +445,7 @@ class _EntryScreenViewState extends State<EntryScreenView> {
                                     });
                                   },
                                 ),
-
                                 const SizedBox(height: 14),
-
-                                // BUTTONS ---------------------
                                 Row(
                                   children: [
                                     Expanded(
@@ -517,39 +462,27 @@ class _EntryScreenViewState extends State<EntryScreenView> {
                                               fontWeight: FontWeight.w600,
                                             ),
                                           ),
-                                          icon: const Icon(
-                                            Icons.check_circle_outline,
-                                            size: 16,
-                                          ),
+                                          icon: const Icon(Icons.check_circle_outline, size: 16),
                                           label: const Text("Submit"),
                                         ),
                                       ),
                                     ),
-
                                     const SizedBox(width: 8),
-
                                     Expanded(
                                       child: SizedBox(
                                         height: 40,
                                         child: OutlinedButton.icon(
-                                          onPressed: _isLoadingReasons
-                                              ? null
-                                              : _showNotDeliveredDialog,
+                                          onPressed: _isLoadingReasons ? null : _showNotDeliveredDialog,
                                           style: OutlinedButton.styleFrom(
                                             padding: EdgeInsets.zero,
-                                            side: BorderSide(
-                                              color: AppColors.error,
-                                            ),
+                                            side: BorderSide(color: AppColors.error),
                                             foregroundColor: AppColors.error,
                                             textStyle: const TextStyle(
                                               fontSize: 13,
                                               fontWeight: FontWeight.w600,
                                             ),
                                           ),
-                                          icon: const Icon(
-                                            Icons.cancel_outlined,
-                                            size: 16,
-                                          ),
+                                          icon: const Icon(Icons.cancel_outlined, size: 16),
                                           label: const Text("Not Delivered"),
                                         ),
                                       ),
@@ -567,17 +500,14 @@ class _EntryScreenViewState extends State<EntryScreenView> {
 
                 const SizedBox(height: 16),
 
-                // Entry History Section
+                // Entry History Section - FIXED CUMULATIVE CALCULATION
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 4,
-                          vertical: 8,
-                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
                         child: Row(
                           children: [
                             Container(
@@ -586,11 +516,7 @@ class _EntryScreenViewState extends State<EntryScreenView> {
                                 color: AppColors.primary.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(6),
                               ),
-                              child: const Icon(
-                                Icons.history,
-                                color: AppColors.primary,
-                                size: 16,
-                              ),
+                              child: const Icon(Icons.history, color: AppColors.primary, size: 16),
                             ),
                             const SizedBox(width: 10),
                             const Text(
@@ -625,9 +551,7 @@ class _EntryScreenViewState extends State<EntryScreenView> {
                                 Icon(
                                   Icons.inbox_outlined,
                                   size: 40,
-                                  color: AppColors.textSecondary.withOpacity(
-                                    0.5,
-                                  ),
+                                  color: AppColors.textSecondary.withOpacity(0.5),
                                 ),
                                 const SizedBox(height: 8),
                                 const Text(
@@ -649,9 +573,10 @@ class _EntryScreenViewState extends State<EntryScreenView> {
                           itemBuilder: (context, index) {
                             final entry = _entries[index];
 
-                            // Calculate cumulative pending
+                            // FIXED: Calculate cumulative pending correctly
+                            // Start from the beginning and add up to current entry
                             double cumulativePending = 0;
-                            for (int i = 0; i <= index; i++) {
+                            for (int i = _entries.length - 1; i >= index; i--) {
                               final e = _entries[i];
                               final isDelivered = (e is Map
                                   ? e['is_delivered'] ?? true
@@ -668,8 +593,8 @@ class _EntryScreenViewState extends State<EntryScreenView> {
                                     ? e['collected_money']?.toDouble() ?? 0
                                     : e.collectedMoney?.toDouble() ?? 0);
 
-                                cumulativePending +=
-                                    (milkQty * rate - collected);
+                                // Add today's pending to the running total
+                                cumulativePending += (milkQty * rate - collected);
                               }
                             }
 

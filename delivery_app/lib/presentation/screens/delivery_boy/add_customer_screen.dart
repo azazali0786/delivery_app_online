@@ -113,18 +113,6 @@ class _AddCustomerScreenViewState extends State<AddCustomerScreenView> {
 
   void _handleSubmit() {
     if (_formKey.currentState!.validate()) {
-      // Check if location is captured
-      // if (_latitude == null || _longitude == null) {
-      //   ScaffoldMessenger.of(context).showSnackBar(
-      //     const SnackBar(
-      //       content: Text('Please capture location before submitting'),
-      //       backgroundColor: AppColors.error,
-      //       behavior: SnackBarBehavior.floating,
-      //     ),
-      //   );
-      //   return;
-      // }
-
       final data = {
         'name': _nameController.text.trim(),
         'phone_number': _phoneController.text.trim(),

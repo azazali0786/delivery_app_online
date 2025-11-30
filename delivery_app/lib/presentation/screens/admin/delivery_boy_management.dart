@@ -1,4 +1,3 @@
-import 'package:delivery_app/presentation/screens/delivery_boy/delivery_dashboard.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/constants/app_colors.dart';
@@ -371,53 +370,11 @@ class _DeliveryBoyCard extends StatelessWidget {
                             color: AppColors.textSecondary,
                           ),
                         ),
-                        if (deliveryBoy.phoneNumber1 != null) ...[
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.phone,
-                                size: 14,
-                                color: AppColors.textSecondary,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                deliveryBoy.phoneNumber1!,
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  color: AppColors.textSecondary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
                       ],
                     ),
                   ),
                 ],
               ),
-              if (deliveryBoy.address != null) ...[
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.location_on,
-                      size: 16,
-                      color: AppColors.textSecondary,
-                    ),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        deliveryBoy.address!,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
               if (deliveryBoy.subAreas != null &&
                   deliveryBoy.subAreas!.isNotEmpty) ...[
                 const SizedBox(height: 12),
@@ -467,7 +424,7 @@ class _DeliveryBoyCard extends StatelessWidget {
                       size: 18,
                     ),
                     label: Text(
-                      deliveryBoy.isActive ? 'Deactivate' : 'Activate',
+                      deliveryBoy.isActive ? 'Intivate' : 'Activate',
                     ),
                   ),
                 ],
@@ -754,13 +711,6 @@ class _EditDeliveryBoyDialogState extends State<_EditDeliveryBoyDialog> {
                   controller: _emailController,
                   validator: Validators.validateEmail,
                   keyboardType: TextInputType.emailAddress,
-                ),
-                const SizedBox(height: 16),
-
-                CustomTextField(
-                  label: 'Password (Optional)',
-                  controller: _passwordController,
-                  obscureText: true,
                 ),
                 const SizedBox(height: 16),
 
@@ -1066,6 +1016,12 @@ class _DeliveryBoyStatsDialogState extends State<_DeliveryBoyStatsDialog> {
 
   @override
   Widget build(BuildContext context) {
+    String _formatNumber(dynamic value) {
+  if (value == null) return '0';
+  final num number = num.tryParse(value.toString()) ?? 0;
+  return number.toStringAsFixed(0); // removes .00
+}
+
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: FutureBuilder<Map<String, dynamic>>( 
@@ -1111,7 +1067,7 @@ class _DeliveryBoyStatsDialogState extends State<_DeliveryBoyStatsDialog> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    "${widget.deliveryBoy.name}'s Stats",
+                    "${widget.deliveryBoy.name}'s",
                     style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
@@ -1162,21 +1118,21 @@ class _DeliveryBoyStatsDialogState extends State<_DeliveryBoyStatsDialog> {
 
                         // Need Row
                         _stockRow(
-                          title: "Need (bottle)",
+                          title: "Required",
                           half: stats["need_half"].toString(),
                           one: stats["need_one"].toString(),
                         ),
 
                         // Assign Row
                         _stockRow(
-                          title: "Assign (bottle)",
+                          title: "Dispatched",
                           half: stats["assign_half"].toString(),
                           one: stats["assign_one"].toString(),
                         ),
 
                         // Left in market Row
                         _stockRow(
-                          title: "Left in market",
+                          title: "Pending",
                           half: stats["left_half"].toString(),
                           one: stats["left_one"].toString(),
                         ),
@@ -1236,20 +1192,21 @@ class _DeliveryBoyStatsDialogState extends State<_DeliveryBoyStatsDialog> {
                         Row(
                           children: [
                             Expanded(
-                              child: Center(
-                                child: Text(stats["today_online"].toString()),
-                              ),
-                            ),
-                            Expanded(
-                              child: Center(
-                                child: Text(stats["today_cash"].toString()),
-                              ),
-                            ),
-                            Expanded(
-                              child: Center(
-                                child: Text(stats["today_pending"].toString()),
-                              ),
-                            ),
+  child: Center(
+    child: Text(_formatNumber(stats["today_online"])),
+  ),
+),
+Expanded(
+  child: Center(
+    child: Text(_formatNumber(stats["today_cash"])),
+  ),
+),
+Expanded(
+  child: Center(
+    child: Text(_formatNumber(stats["today_pending"])),
+  ),
+),
+
                           ],
                         ),
                       ],
@@ -1270,14 +1227,14 @@ class _DeliveryBoyStatsDialogState extends State<_DeliveryBoyStatsDialog> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text(
-                          "Total Pending Money",
+                          "Total Pending",
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         Text(
-                          '₹${stats["total_pending"]}',
+                          '₹${_formatNumber(stats["total_pending"])}',
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,

@@ -246,6 +246,8 @@ class InvoicePdfHelper {
     }
 
     final doc = pw.Document();
+    entries.sort((a, b) =>
+    DateTime.parse(a['entry_date']).compareTo(DateTime.parse(b['entry_date'])));
     final logoData = await _loadLogo();
     final logo = logoData != null ? pw.MemoryImage(logoData) : null;
 
@@ -267,6 +269,8 @@ class InvoicePdfHelper {
 
     final balance = totalAmount - totalCollected;
     final invoiceNo = 'INV-${DateTime.now().millisecondsSinceEpoch}';
+    double cumulativeBalance = 0;
+    
 
     doc.addPage(
       pw.MultiPage(
@@ -479,42 +483,45 @@ class InvoicePdfHelper {
                 ),
                 // Rows
                 ...entries.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final data = entry.value;
-                  final milkQty =
-                      double.tryParse(data['milk_quantity'].toString()) ?? 0.0;
-                  final rate = double.tryParse(data['rate'].toString()) ?? 0.0;
-                  final collected =
-                      double.tryParse(data['collected_money'].toString()) ??
-                      0.0;
-                  final amount = milkQty * rate;
-                  final balance = amount - collected;
+  final index = entry.key;
+  final data = entry.value;
 
-                  return pw.TableRow(
-                    decoration: pw.BoxDecoration(
-                      color: index % 2 == 0
-                          ? PdfColors.white
-                          : PdfColors.grey100,
-                    ),
-                    children: [
-                      _buildTableCell(
-                        DateFormat(
-                          'dd MMM yyyy',
-                        ).format(DateTime.parse(data['entry_date'])),
-                      ),
-                      _buildTableCell(milkQty.toStringAsFixed(1)),
-                      _buildTableCell(rate.toStringAsFixed(0)),
-                      _buildTableCell(amount.toStringAsFixed(2)),
-                      _buildTableCell(collected.toStringAsFixed(2)),
-                      _buildTableCell(
-                        balance.toStringAsFixed(2),
-                        color: balance > 0
-                            ? PdfColors.red700
-                            : PdfColors.green700,
-                      ),
-                    ],
-                  );
-                }).toList(),
+  final milkQty =
+      double.tryParse(data['milk_quantity'].toString()) ?? 0.0;
+  final rate =
+      double.tryParse(data['rate'].toString()) ?? 0.0;
+  final collected =
+      double.tryParse(data['collected_money'].toString()) ?? 0.0;
+
+  final amount = milkQty * rate;
+
+  final pending = amount - collected;
+  cumulativeBalance += pending;
+  final totalBalance = cumulativeBalance;
+
+  return pw.TableRow(
+    decoration: pw.BoxDecoration(
+      color: index % 2 == 0 ? PdfColors.white : PdfColors.grey100,
+    ),
+    children: [
+      _buildTableCell(
+        DateFormat('dd MMM yyyy')
+            .format(DateTime.parse(data['entry_date'])),
+      ),
+      _buildTableCell(milkQty.toStringAsFixed(1)),
+      _buildTableCell(rate.toStringAsFixed(0)),
+      _buildTableCell(amount.toStringAsFixed(2)),
+      _buildTableCell(collected.toStringAsFixed(2)),
+      _buildTableCell(
+        totalBalance.toStringAsFixed(2),
+        color: totalBalance > 0
+            ? PdfColors.red700
+            : PdfColors.green700,
+      ),
+    ],
+  );
+}).toList(),
+
               ],
             ),
 
