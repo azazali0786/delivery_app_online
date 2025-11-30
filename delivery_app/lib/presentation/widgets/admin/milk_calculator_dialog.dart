@@ -19,6 +19,8 @@ class _MilkCalculatorDialogState extends State<MilkCalculatorDialog> {
   String _result = '';
   double _waterToAdd = 0;
   String _targetType = ''; // 'fat' or 'snf'
+  double _finalFat = 0;
+  double _finalSnf = 0;
 
   @override
   void dispose() {
@@ -65,6 +67,9 @@ class _MilkCalculatorDialogState extends State<MilkCalculatorDialog> {
 
       double waterNeeded = 0;
       String type = '';
+      double finalFat = 0;
+      double finalSnf = 0;
+      double finalQuantity = 0;
 
       if (requiredFat != null) {
         // Calculate water needed to achieve required fat percentage
@@ -79,6 +84,11 @@ class _MilkCalculatorDialogState extends State<MilkCalculatorDialog> {
           return;
         }
         waterNeeded = (currentFat * quantity / requiredFat) - quantity;
+        finalQuantity = quantity + waterNeeded;
+        
+        // Calculate final fat and SNF
+        finalFat = requiredFat;
+        finalSnf = (currentSnf * quantity) / finalQuantity;
         type = 'Fat';
       } else if (requiredSnf != null) {
         // Calculate water needed to achieve required SNF percentage
@@ -93,12 +103,19 @@ class _MilkCalculatorDialogState extends State<MilkCalculatorDialog> {
           return;
         }
         waterNeeded = (currentSnf * quantity / requiredSnf) - quantity;
+        finalQuantity = quantity + waterNeeded;
+        
+        // Calculate final fat and SNF
+        finalFat = (currentFat * quantity) / finalQuantity;
+        finalSnf = requiredSnf;
         type = 'SNF';
       }
 
       setState(() {
         _waterToAdd = waterNeeded;
         _targetType = type;
+        _finalFat = finalFat;
+        _finalSnf = finalSnf;
         _result = 'calculated';
       });
     }
@@ -114,6 +131,8 @@ class _MilkCalculatorDialogState extends State<MilkCalculatorDialog> {
       _result = '';
       _waterToAdd = 0;
       _targetType = '';
+      _finalFat = 0;
+      _finalSnf = 0;
     });
   }
 
@@ -461,6 +480,102 @@ class _MilkCalculatorDialogState extends State<MilkCalculatorDialog> {
                               ),
                             ],
                           ),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFFF5F5),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: const Color(0xFFED8936).withOpacity(0.2),
+                                  ),
+                                ),
+                                child: Column(
+                                  children: [
+                                    const Icon(
+                                      Icons.opacity,
+                                      color: Color(0xFFED8936),
+                                      size: 20,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    const Text(
+                                      'Final Fat',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Color(0xFF718096),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '${_finalFat.toStringAsFixed(2)}',
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFFED8936),
+                                      ),
+                                    ),
+                                    const Text(
+                                      'gm/100ml',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: Color(0xFF718096),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF0FFF4),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: const Color(0xFF48BB78).withOpacity(0.2),
+                                  ),
+                                ),
+                                child: Column(
+                                  children: [
+                                    const Icon(
+                                      Icons.water_drop,
+                                      color: Color(0xFF48BB78),
+                                      size: 20,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    const Text(
+                                      'Final SNF',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Color(0xFF718096),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '${_finalSnf.toStringAsFixed(2)}',
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF48BB78),
+                                      ),
+                                    ),
+                                    const Text(
+                                      'gm/100ml',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: Color(0xFF718096),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),

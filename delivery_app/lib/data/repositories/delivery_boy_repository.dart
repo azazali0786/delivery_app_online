@@ -63,7 +63,7 @@ class DeliveryBoyRepository {
           todayCash += entry.collectedMoney;
         }
 
-        todayPending += entry.pendingBottles * entry.rate;
+        todayPending += entry.milkQuantity * entry.rate-entry.collectedMoney;
       }
 
       // Left in market
@@ -108,7 +108,7 @@ class DeliveryBoyRepository {
         'today_online': '0.00',
         'today_cash': '0.00',
         'today_pending': '0.00',
-        'total_pending': '0.00',
+        'total_pending': '0.00', 
       };
     }
   }

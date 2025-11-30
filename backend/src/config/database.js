@@ -69,6 +69,17 @@ async function initializeDatabase() {
       )
     `);
 
+    // Create expenses table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS expenses (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL,
+        amount NUMERIC(12,2) NOT NULL DEFAULT 0,
+        expense_date DATE NOT NULL,
+        created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT (NOW())
+      )
+    `);
+
     // Create delivery_boy_subareas junction table
     await client.query(`
       CREATE TABLE IF NOT EXISTS delivery_boy_subareas (

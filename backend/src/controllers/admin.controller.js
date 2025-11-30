@@ -5,6 +5,7 @@ const AreaModel = require('../models/area.model');
 const ReasonModel = require('../models/reason.model');
 const StockModel = require('../models/stock.model');
 const EntryModel = require('../models/entry.model');
+const ExpenseModel = require('../models/expense.model');
 
 class AdminController {
   // Dashboard
@@ -336,6 +337,27 @@ class AdminController {
   }
 
   // Entries Management
+  // Add this method to your AdminController class in admin.controller.js
+
+static async getAllEntries(req, res, next) {
+  try {
+    const filters = {
+      delivery_boy_id: req.query.delivery_boy_id,
+      customer_id: req.query.customer_id,
+      date: req.query.date,
+      start_date: req.query.start_date,
+      end_date: req.query.end_date,
+      payment_method: req.query.payment_method,
+      is_delivered: req.query.is_delivered
+    };
+    
+    const entries = await AdminModel.getAllEntries(filters);
+    res.json(entries);
+  } catch (error) {
+    next(error);
+  }
+}
+
   static async deleteEntry(req, res, next) {
     try {
       const entry = await EntryModel.delete(req.params.id);
@@ -402,6 +424,168 @@ class AdminController {
       };
 
       res.json(invoiceData);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // New: Create multiple expenses
+  static async createExpenses(req, res, next) {
+    try {
+      const { expenses } = req.body;
+      if (!Array.isArray(expenses)) {
+        return res.status(400).json({ error: 'expenses must be an array' });
+      }
+      // Normalize expense_date if not provided
+      const toInsert = expenses.map(e => ({
+        name: e.name,
+        amount: parseFloat(e.amount) || 0,
+        expense_date: e.expense_date || new Date().toISOString().split('T')[0]
+      }));
+      const inserted = await ExpenseModel.createMany(toInsert);
+      res.status(201).json(inserted);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async getExpenses(req, res, next) {
+    try {
+      const { start_date, end_date } = req.query;
+      const expenses = await ExpenseModel.getByDateRange(start_date, end_date);
+      res.json(expenses);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async updateExpense(req, res, next) {
+    try {
+      const updated = await ExpenseModel.update(req.params.id, req.body);
+      if (!updated) return res.status(404).json({ error: 'Expense not found' });
+      res.json(updated);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async deleteExpense(req, res, next) {
+    try {
+      const deleted = await ExpenseModel.delete(req.params.id);
+      if (!deleted) return res.status(404).json({ error: 'Expense not found' });
+      res.json({ message: 'Expense deleted', expense: deleted });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async deleteExpensesByDate(req, res, next) {
+    try {
+      const { date } = req.query;
+      if (!date) return res.status(400).json({ error: 'date query param required' });
+      const deleted = await ExpenseModel.deleteByDate(date);
+      res.json({ deleted_count: deleted.length, deleted });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // New: Dashboard report combining entries and expenses
+  static async getDashboardReport(req, res, next) {
+    try {
+      const date = req.query.date || new Date().toISOString().split('T')[0];
+
+      // We'll compute using queries directly via pool to avoid changing EntryModel
+      const { pool } = require('../config/database');
+
+      // Selected date's online and cash collection
+      const datePayments = await pool.query(
+        `SELECT payment_method, COALESCE(SUM(collected_money),0) as total
+         FROM entries
+         WHERE entry_date = $1
+         GROUP BY payment_method`, [date]
+      );
+
+      let online = 0, cash = 0;
+      for (const row of datePayments.rows) {
+        if ((row.payment_method || '').toLowerCase().includes('cash')) cash += parseFloat(row.total);
+        else online += parseFloat(row.total);
+      }
+
+      const dateTotal = online + cash;
+
+      // Selected date's pending: sum(milk_quantity*rate - collected_money) for date's entries
+      const pendingRes = await pool.query(
+        `SELECT COALESCE(SUM(milk_quantity * rate - collected_money), 0) as pending
+         FROM entries
+         WHERE entry_date = $1`, [date]
+      );
+      const datePending = parseFloat(pendingRes.rows[0].pending);
+
+      // Selected date's expenses
+      const dateExpenses = await ExpenseModel.getTotalAmount(date, date);
+
+      // Selected date's profit = collected - expenses
+      const dateProfit = dateTotal - dateExpenses;
+
+      // Total collection overall
+      const totalCollectionRes = await pool.query(
+        `SELECT COALESCE(SUM(collected_money),0) as total FROM entries`
+      );
+      const totalCollection = parseFloat(totalCollectionRes.rows[0].total);
+
+      // Total expenses overall
+      const totalExpenses = await ExpenseModel.getTotalAmount();
+
+      // Total profit overall
+      const totalProfit = totalCollection - totalExpenses;
+
+      // Left bottles (latest entries per customer)
+      const leftBottlesRes = await pool.query(
+        `SELECT COALESCE(SUM(e.pending_bottles),0) as total_left_bottles
+         FROM entries e
+         WHERE e.id IN (SELECT MAX(id) FROM entries GROUP BY customer_id)`
+      );
+      const leftBottles = parseInt(leftBottlesRes.rows[0].total_left_bottles);
+
+      // Total delivery boys (active)
+      const totalDeliveryBoysRes = await pool.query(
+        `SELECT COUNT(*) as count FROM delivery_boys WHERE is_active = true`
+      );
+      const totalDeliveryBoys = parseInt(totalDeliveryBoysRes.rows[0].count);
+
+      // Total customers (approved)
+      const totalCustomersRes = await pool.query(
+        `SELECT COUNT(*) as count FROM customers WHERE is_approved = true`
+      );
+      const totalCustomers = parseInt(totalCustomersRes.rows[0].count);
+
+      // Total pending money (all customers, all time)
+      const totalPendingMoneyRes = await pool.query(
+        `SELECT COALESCE(SUM(milk_quantity * rate - collected_money), 0) as total
+         FROM entries`
+      );
+      const totalPendingMoney = parseFloat(totalPendingMoneyRes.rows[0].total);
+
+      res.json({
+        total: {
+          collection: totalCollection,
+          leftBottles,
+          total_profit: totalProfit,
+          total_expenses: totalExpenses,
+          delivery_boys: totalDeliveryBoys,
+          customers: totalCustomers,
+          pending_money: totalPendingMoney
+        },
+        date: {
+          online,
+          cash,
+          total: dateTotal,
+          pending: datePending,
+          expenses: dateExpenses,
+          profit: dateProfit
+        }
+      });
     } catch (error) {
       next(error);
     }

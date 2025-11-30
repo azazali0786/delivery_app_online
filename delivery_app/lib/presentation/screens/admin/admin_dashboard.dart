@@ -2,7 +2,6 @@ import 'package:delivery_app/presentation/screens/admin/admin_dashboard_Report.d
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../core/utils/helpers.dart';
 import '../../../business_logic/cubits/auth/auth_cubit.dart';
 import '../../../business_logic/cubits/admin/admin_cubit.dart';
 import '../../../business_logic/cubits/admin/admin_state.dart';
@@ -132,7 +131,7 @@ class AdminDashboardView extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Stats Grid
+                    // Stats Grid (trimmed as requested)
                     GridView.count(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
@@ -142,30 +141,10 @@ class AdminDashboardView extends StatelessWidget {
                       childAspectRatio: 0.90,
                       children: [
                         StatCard(
-                          title: 'Delivery Boys',
-                          value: stats['total_delivery_boys'].toString(),
-                          icon: Icons.person,
-                          color: AppColors.primary,
-                        ),
-                        StatCard(
-                          title: 'Total Customers',
-                          value: stats['total_customers'].toString(),
-                          icon: Icons.people,
-                          color: AppColors.secondary,
-                        ),
-                        StatCard(
                           title: 'Pending Approvals',
                           value: stats['pending_approvals'].toString(),
                           icon: Icons.pending_actions,
                           color: AppColors.warning,
-                        ),
-                        StatCard(
-                          title: 'Pending Money',
-                          value: Helpers.formatCurrency(
-                            stats['total_pending_money'],
-                          ),
-                          icon: Icons.account_balance_wallet,
-                          color: AppColors.error,
                         ),
                       ],
                     ),

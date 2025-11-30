@@ -9,6 +9,7 @@ router.use(authenticateAdmin);
 
 // Dashboard
 router.get('/dashboard', AdminController.getDashboard);
+router.get('/dashboard/report', AdminController.getDashboardReport);
 
 // Delivery Boy Management
 router.post('/delivery-boys', AdminController.createDeliveryBoy);
@@ -48,7 +49,15 @@ router.put('/stock-entries/:id', AdminController.updateStockEntry);
 router.delete('/stock-entries/:id', AdminController.deleteStockEntry);
 
 // Entry Management
+router.get('/entries', AdminController.getAllEntries);
 router.delete('/entries/:id', AdminController.deleteEntry);
+
+// Expenses
+router.post('/expenses', AdminController.createExpenses);
+router.get('/expenses', AdminController.getExpenses);
+router.delete('/expenses/by-date', AdminController.deleteExpensesByDate); // ← Move this line UP
+router.put('/expenses/:id', AdminController.updateExpense);
+router.delete('/expenses/:id', AdminController.deleteExpense);
 
 // Invoice Generation
 router.get('/invoice', AdminController.generateInvoice);

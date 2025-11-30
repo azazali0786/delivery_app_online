@@ -16,32 +16,48 @@ class AdminRepository {
     return await _apiService.get(ApiConstants.adminDashboard);
   }
 
+  Future<Map<String, dynamic>> getDashboardReport({String? date}) async {
+    String endpoint = ApiConstants.adminDashboardReport;
+    if (date != null) {
+      endpoint += '?date=$date';
+    }
+    return await _apiService.get(endpoint);
+  }
+
   // Calculate Stats for Specific Delivery Boy
   Future<Map<String, dynamic>> calculateDeliveryBoyStats(
     int deliveryBoyId,
   ) async {
     try {
-      // Fetch customers assigned to this delivery boy
+      // Fetch customers assigned to this delivery boy (only active ones)
       final customers = await getAllCustomers(deliveryBoyId: deliveryBoyId);
-
+      final activeCustomers = customers
+          .where((c) => c.isActive ?? false)
+          .toList();
       // Fetch entries for today for this delivery boy
       final todayEntries = await getEntries(
         deliveryBoyId: deliveryBoyId,
         date: DateTime.now().toString().split(' ')[0],
       );
 
-      // Calculate Need (Bottles) from permanent quantity
-      double needHalf = 0;
-      double needOne = 0;
+      // ---------------------------
+      // ✅ UPDATED NEED CALCULATION (matching delivery boy logic)
+      // ---------------------------
+      int needHalf = 0;
+      int needOne = 0;
 
-      for (var customer in customers) {
-        double permanentQty = customer.permanentQuantity;
-        // 0.5L bottles = permanentQty / 0.5, 1L bottles = permanentQty / 1
-        needHalf += (permanentQty / 0.5).floor().toDouble();
-        needOne += (permanentQty / 1).floor().toDouble();
+      for (var customer in activeCustomers) {
+        final double qty = customer.permanentQuantity;
+
+        needOne += qty ~/ 1; // full 1-liter bottles
+        double remaining = qty % 1; // leftover
+
+        if (remaining >= 0.5) needHalf += 1; // half bottle if >= 0.5
       }
 
+      // ---------------------------
       // Calculate Assign (Today Stock Assign) from today's entries
+      // ---------------------------
       double assignHalf = 0;
       double assignOne = 0;
       double todayOnline = 0;
@@ -50,8 +66,10 @@ class AdminRepository {
 
       for (var entry in todayEntries) {
         double quantity = entry.milkQuantity;
-        assignHalf += (quantity / 0.5).floor().toDouble();
-        assignOne += (quantity / 1).floor().toDouble();
+
+        assignOne += quantity ~/ 1;
+        double remaining = quantity % 1;
+        if (remaining >= 0.5) assignHalf += 1;
 
         // Calculate money collections
         if (entry.paymentMethod.toLowerCase() == 'online') {
@@ -59,12 +77,19 @@ class AdminRepository {
         } else if (entry.paymentMethod.toLowerCase() == 'cash') {
           todayCash += entry.collectedMoney;
         }
-        todayPending += entry.pendingBottles * entry.rate;
+
+        // Fixed: Calculate today's pending correctly
+        todayPending +=
+            (entry.milkQuantity * entry.rate) - entry.collectedMoney;
       }
 
       // Calculate Left in Market = Need - Assign
-      double leftHalf = (needHalf - assignHalf) < 0 ? 0 : needHalf - assignHalf;
-      double leftOne = (needOne - assignOne) < 0 ? 0 : needOne - assignOne;
+      double leftHalf = needHalf - assignHalf;
+      double leftOne = needOne - assignOne;
+
+      // Don't set negative values to 0 to show oversupply
+      // if (leftHalf < 0) leftHalf = 0;
+      // if (leftOne < 0) leftOne = 0;
 
       // Calculate Total Pending Money
       double totalPending = 0;
@@ -73,10 +98,9 @@ class AdminRepository {
           totalPending += customer.totalPendingMoney!;
         }
       }
-
       return {
-        'need_half': needHalf.toInt(),
-        'need_one': needOne.toInt(),
+        'need_half': needHalf,
+        'need_one': needOne,
         'assign_half': assignHalf.toInt(),
         'assign_one': assignOne.toInt(),
         'left_half': leftHalf.toInt(),
@@ -87,6 +111,7 @@ class AdminRepository {
         'total_pending': totalPending.toStringAsFixed(2),
       };
     } catch (e) {
+      print('Error calculating delivery boy stats: $e');
       return {
         'need_half': 0,
         'need_one': 0,
@@ -313,7 +338,6 @@ class AdminRepository {
     if (queryParams.isNotEmpty) {
       endpoint += '?${queryParams.join('&')}';
     }
-
     final response = await _apiService.get(endpoint);
     return (response as List).map((e) => StockModel.fromJson(e)).toList();
   }
@@ -340,6 +364,39 @@ class AdminRepository {
     await _apiService.delete('${ApiConstants.adminEntries}/$id');
   }
 
+  // Expenses
+  Future<List<Map<String, dynamic>>> createExpenses(
+    List<Map<String, dynamic>> expenses,
+  ) async {
+    final response = await _apiService.post(ApiConstants.adminExpenses, {
+      'expenses': expenses,
+    });
+    return List<Map<String, dynamic>>.from(response);
+  }
+
+  Future<List<Map<String, dynamic>>> getExpenses({
+    String? startDate,
+    String? endDate,
+  }) async {
+    String endpoint = ApiConstants.adminExpenses;
+    List<String> qp = [];
+    if (startDate != null) qp.add('start_date=$startDate');
+    if (endDate != null) qp.add('end_date=$endDate');
+    if (qp.isNotEmpty) endpoint += '?${qp.join('&')}';
+    final response = await _apiService.get(endpoint);
+    return List<Map<String, dynamic>>.from(response);
+  }
+
+  Future<void> deleteExpense(int id) async {
+    await _apiService.delete('${ApiConstants.adminExpenses}/$id');
+  }
+
+  Future<void> deleteExpensesByDate(String date) async {
+    await _apiService.delete(
+      '${ApiConstants.adminExpenses}/by-date?date=$date',
+    );
+  }
+
   Future<List<EntryModel>> getEntries({
     int? deliveryBoyId,
     String? date,
@@ -357,7 +414,6 @@ class AdminRepository {
     if (queryParams.isNotEmpty) {
       endpoint += '?${queryParams.join('&')}';
     }
-
     try {
       final response = await _apiService.get(endpoint);
       return (response as List).map((e) => EntryModel.fromJson(e)).toList();

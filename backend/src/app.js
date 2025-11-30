@@ -12,6 +12,23 @@ const { errorHandler } = require('./middleware/errorHandler');
 
 const app = express();
 
+// 👉 ADD THIS LINE (global counter object)
+const apiCallCount = {};
+
+// 👉 Request logger + counter middleware (put BEFORE routes)
+app.use((req, res, next) => {
+  const key = `${req.method} ${req.originalUrl}`;
+
+  if (!apiCallCount[key]) {
+    apiCallCount[key] = 0;
+  }
+  apiCallCount[key]++;
+
+  console.log(`${key} → ${apiCallCount[key]} calls`);
+
+  next();
+});
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -24,6 +41,11 @@ app.use('/api/delivery-boy', deliveryBoyRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/entries', entryRoutes);
 app.use('/api/stock', stockRoutes);
+
+// (optional) Debug route to see counts in browser/postman
+app.get('/api/debug/api-calls', (req, res) => {
+  res.json(apiCallCount);
+});
 
 // Health check
 app.get('/api/health', (req, res) => {
