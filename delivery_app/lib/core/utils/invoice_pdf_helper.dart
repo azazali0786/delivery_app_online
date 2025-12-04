@@ -387,24 +387,17 @@ class InvoicePdfHelper {
                           ),
                         ),
                         pw.SizedBox(height: 4),
-                        if (customerAddress != null &&
-                            customerAddress.isNotEmpty)
-                          pw.Text(
-                            customerAddress,
-                            style: const pw.TextStyle(fontSize: 10),
-                          ),
-                        pw.SizedBox(height: 4),
                         pw.Text(
                           '$areaName / $subAreaName',
                           style: const pw.TextStyle(fontSize: 10),
                         ),
-                        if (customerPhone.isNotEmpty) ...[
-                          pw.SizedBox(height: 4),
-                          pw.Text(
-                            'Phone: $customerPhone',
-                            style: const pw.TextStyle(fontSize: 10),
-                          ),
-                        ],
+                        // if (customerPhone.isNotEmpty) ...[
+                        //   pw.SizedBox(height: 4),
+                        //   pw.Text(
+                        //     'Phone: $customerPhone',
+                        //     style: const pw.TextStyle(fontSize: 10),
+                        //   ),
+                        // ],
                       ],
                     ),
                   ),
