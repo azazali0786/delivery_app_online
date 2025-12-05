@@ -5,7 +5,7 @@ class MilkCalculatorDialog extends StatefulWidget {
   const MilkCalculatorDialog({Key? key}) : super(key: key);
 
   @override
-  State<MilkCalculatorDialog> createState() => _MilkCalculatorDialogState();
+  State<MilkCalculatorDialog> createState() => _MilkCalculatorDialogState(); 
 }
 
 class _MilkCalculatorDialogState extends State<MilkCalculatorDialog> {
@@ -138,11 +138,16 @@ class _MilkCalculatorDialogState extends State<MilkCalculatorDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Container(
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Milk Calculator'),
+        backgroundColor: const Color(0xFF9F7AEA),
+        elevation: 0,
+        actions: [],
+      )
+      
+      ,
+      body: Container(
         padding: const EdgeInsets.all(24),
         constraints: const BoxConstraints(maxWidth: 500),
         child: SingleChildScrollView(
@@ -166,27 +171,17 @@ class _MilkCalculatorDialogState extends State<MilkCalculatorDialog> {
                         size: 24,
                       ),
                     ),
-                    const SizedBox(width: 16),
-                    const Expanded(
-                      child: Text(
-                        'Milk Balance Calculator',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF2D3748),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Calculate water needed to balance milk',
+                    const SizedBox(width: 12),
+                    Text(
+                  'Calculate milk to balance Fat/SNF',
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.grey[600],
                   ),
                 ),
+                  ],
+                ),
+                
                 const SizedBox(height: 24),
                 
                 // Milk Quantity

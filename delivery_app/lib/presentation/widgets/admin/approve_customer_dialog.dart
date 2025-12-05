@@ -52,8 +52,52 @@ class _ApproveCustomerDialogState extends State<ApproveCustomerDialog> {
         _areas = areas;
         _isLoading = false;
       });
+      
+      // Auto-fill values after areas are loaded
+      _autoFillValues();
     } catch (e) {
       setState(() => _isLoading = false);
+    }
+  }
+
+  void _autoFillValues() {
+    // Auto-fill sub_area_id and find corresponding area_id
+    if (widget.customer.subAreaId != null) {
+      setState(() {
+        _selectedSubAreaId = widget.customer.subAreaId;
+        
+        // Find the area that contains this sub-area
+        for (var area in _areas) {
+          if (area.subAreas != null) {
+            final hasSubArea = area.subAreas!.any(
+              (subArea) => subArea.id == widget.customer.subAreaId,
+            );
+            if (hasSubArea) {
+              _selectedAreaId = area.id;
+              break;
+            }
+          }
+        }
+      });
+    }
+
+    // Auto-fill sort number
+    if (widget.customer.sortNumber != null) {
+      _sortNumberController.text = widget.customer.sortNumber.toString();
+    }
+
+    // Auto-fill shift
+    if (widget.customer.shift != null) {
+      setState(() {
+        _shift = widget.customer.shift!.toLowerCase();
+      });
+    }
+
+    // Auto-fill active status
+    if (widget.customer.isActive != null) {
+      setState(() {
+        _isActive = widget.customer.isActive!;
+      });
     }
   }
 

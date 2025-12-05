@@ -1,56 +1,67 @@
-import 'package:delivery_app/presentation/screens/admin/admin_dashboard_Report.dart';
-import 'package:delivery_app/presentation/screens/delivery_boy/add_customer_screen.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../core/constants/app_colors.dart';
-import '../../../business_logic/cubits/auth/auth_cubit.dart';
-import '../../../business_logic/cubits/admin/admin_cubit.dart';
-import '../../../business_logic/cubits/admin/admin_state.dart';
-import '../../../data/repositories/admin_repository.dart';
-import '../../widgets/common/loading_widget.dart';
-import 'delivery_boy_management.dart';
-import 'customer_management.dart';
-import 'area_management.dart';
-import 'reason_management.dart';
-import 'assign_stock_screen.dart';
-import 'invoice_share_dialog.dart';
+  import 'package:delivery_app/presentation/screens/admin/admin_dashboard_Report.dart';
+  import 'package:delivery_app/presentation/screens/delivery_boy/add_customer_screen.dart';
+  import 'package:flutter/material.dart';
+  import 'package:flutter_bloc/flutter_bloc.dart';
+  import '../../../core/constants/app_colors.dart';
+  import '../../../business_logic/cubits/auth/auth_cubit.dart';
+  import '../../../business_logic/cubits/admin/admin_cubit.dart';
+  import '../../../business_logic/cubits/admin/admin_state.dart';
+  import '../../../data/repositories/admin_repository.dart';
+  import '../../widgets/common/loading_widget.dart';
+  import 'delivery_boy_management.dart';
+  import 'customer_management.dart';
+  import 'area_management.dart';
+  import 'reason_management.dart';
+  import 'assign_stock_screen.dart';
+  import 'invoice_share_dialog.dart';
 
-class AdminDashboard extends StatelessWidget {
-  const AdminDashboard({Key? key}) : super(key: key);
+  class AdminDashboard extends StatelessWidget {
+    const AdminDashboard({Key? key}) : super(key: key);
 
-  @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) =>
-          AdminCubit(context.read<AdminRepository>())..loadDashboard(),
-      child: const AdminDashboardView(),
-    );
+    @override
+    Widget build(BuildContext context) {
+      return BlocProvider(
+        create: (context) =>
+            AdminCubit(context.read<AdminRepository>())..loadDashboard(),
+        child: const AdminDashboardView(),
+      );
+    }
+  }
+
+  class AdminDashboardView extends StatelessWidget {
+    const AdminDashboardView({Key? key}) : super(key: key);
+
+    @override
+    Widget build(BuildContext context) {
+      return Scaffold(
+        floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Colors.white,
+        icon: const Icon(Icons.person_add_rounded),
+        label: const Text(
+          "Add Customer",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        onPressed: () async {
+  final result = await Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => BlocProvider.value(
+        value: context.read<AdminCubit>(),
+        child: const AddCustomerScreen(),
+      ),
+    ),
+  );
+
+  if (result == true) {
+    context.read<AdminCubit>().loadDashboard(); // refresh UI
   }
 }
 
-class AdminDashboardView extends StatelessWidget {
-  const AdminDashboardView({Key? key}) : super(key: key);
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-//       floatingActionButton: FloatingActionButton.extended(
-//   backgroundColor: Theme.of(context).colorScheme.primary,
-//   foregroundColor: Colors.white,
-//   icon: const Icon(Icons.person_add_rounded),
-//   label: const Text(
-//     "Add Customer",
-//     style: TextStyle(fontWeight: FontWeight.bold),
-//   ),
-//   onPressed: () {
-//     Navigator.push(
-//       context,
-//       MaterialPageRoute(builder: (_) => const AddCustomerScreen()),
-//     );
-//   },
-// ),
+      ),
 
-      backgroundColor: const Color(0xfff7f8fc),
+        backgroundColor: const Color(0xfff7f8fc),
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.white,
@@ -138,7 +149,7 @@ class AdminDashboardView extends StatelessWidget {
                       color: AppColors.secondary,
                       onTap: () => Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const CustomerManagement()),
+                        MaterialPageRoute(builder: (_) => const CustomerManagement(unApproved: false,)),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -227,9 +238,9 @@ class AdminDashboardView extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const CustomerManagement()),
+                MaterialPageRoute(builder: (_) => const CustomerManagement(unApproved: true,)),
               );
-            },
+            }, 
           ),
         ),
       ],

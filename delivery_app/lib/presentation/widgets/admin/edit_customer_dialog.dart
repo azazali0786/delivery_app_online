@@ -246,70 +246,7 @@ class _EditCustomerDialogState extends State<EditCustomerDialog> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 16),
-
-                // Shift Selection
-                const Text(
-                  'Shift',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ChoiceChip(
-                        label: const Text('Morning'),
-                        selected: _shift == 'morning',
-                        onSelected: (_) => setState(() => _shift = 'morning'),
-                        selectedColor: AppColors.primary.withOpacity(0.2),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: ChoiceChip(
-                        label: const Text('Evening'),
-                        selected: _shift == 'evening',
-                        onSelected: (_) => setState(() => _shift = 'evening'),
-                        selectedColor: AppColors.primary.withOpacity(0.2),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-
-                // Status Selection
-                const Text(
-                  'Status',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ChoiceChip(
-                        label: const Text('Active'),
-                        selected: _isActive,
-                        onSelected: (_) => setState(() => _isActive = true),
-                        selectedColor: AppColors.success.withOpacity(0.2),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: ChoiceChip(
-                        label: const Text('Inactive'),
-                        selected: !_isActive,
-                        onSelected: (_) => setState(() => _isActive = false),
-                        selectedColor: AppColors.error.withOpacity(0.2),
-                      ),
-                    ),
-                  ],
-                ),
+                
                 const SizedBox(height: 24),
 
                 // Action Buttons

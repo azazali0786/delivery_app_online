@@ -49,12 +49,23 @@ class _DeliveryDashboardView extends StatelessWidget {
         foregroundColor: colorScheme.onPrimary,
         icon: const Icon(Icons.person_add_rounded),
         label: const Text('Add Customer'),
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const AddCustomerScreen()),
-          );
-        },
+        onPressed: () async {
+  final result = await Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => BlocProvider.value(
+        value: context.read<DeliveryBoyCubit>(),
+        child: const AddCustomerScreen(),
+      ),
+    ),
+  );
+
+  if (result == true) {
+    context.read<DeliveryBoyCubit>().loadDashboard(); // refresh UI
+  }
+}
+
+
       ),
       body: BlocBuilder<DeliveryBoyCubit, DeliveryBoyState>(
         builder: (context, state) {

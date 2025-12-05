@@ -181,9 +181,11 @@ class _AdminDashboardReportState extends State<AdminDashboardReport> {
   }
 
   void _showMilkCalculator() {
-    showDialog(
-      context: context,
-      builder: (context) => const MilkCalculatorDialog(),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const MilkCalculatorDialog(),
+      ),
     );
   }
 

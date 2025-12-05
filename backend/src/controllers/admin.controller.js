@@ -94,7 +94,7 @@ class AdminController {
   // Customer Management
   static async createCustomer(req, res, next) {
     try {
-      const customer = await CustomerModel.create(req.body);
+      const customer = await CustomerModel.create(req.body, req.user.id);
       res.status(201).json(customer);
     } catch (error) {
       next(error);

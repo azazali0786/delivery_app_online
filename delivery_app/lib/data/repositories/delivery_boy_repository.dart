@@ -150,7 +150,7 @@ class DeliveryBoyRepository {
     final response = await _apiService.get(
       '${ApiConstants.deliveryCustomers}/$id',
     );
-    return CustomerModel.fromJson(response);
+    return CustomerModel.fromJson(response); 
   }
 
   Future<CustomerModel> createCustomer(Map<String, dynamic> data) async {

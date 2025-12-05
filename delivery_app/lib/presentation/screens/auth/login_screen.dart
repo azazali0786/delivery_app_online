@@ -151,43 +151,43 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 24),
 
                       // Info Text
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: AppColors.info.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: AppColors.info.withOpacity(0.3),
-                          ),
-                        ),
-                        child: const Column(
-                          children: [
-                            Text(
-                              'Default Admin Credentials',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.info,
-                              ),
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              'Email: azazwinner786@gmail.com',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                            Text(
-                              'Password: Azaz@123',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      // Container(
+                      //   padding: const EdgeInsets.all(16),
+                      //   decoration: BoxDecoration(
+                      //     color: AppColors.info.withOpacity(0.1),
+                      //     borderRadius: BorderRadius.circular(12),
+                      //     border: Border.all(
+                      //       color: AppColors.info.withOpacity(0.3),
+                      //     ),
+                      //   ),
+                      //   child: const Column(
+                      //     children: [
+                      //       Text(
+                      //         'Default Admin Credentials',
+                      //         style: TextStyle(
+                      //           fontSize: 12,
+                      //           fontWeight: FontWeight.w600,
+                      //           color: AppColors.info,
+                      //         ),
+                      //       ),
+                      //       SizedBox(height: 8),
+                      //       Text(
+                      //         'Email: azazwinner786@gmail.com',
+                      //         style: TextStyle(
+                      //           fontSize: 11,
+                      //           color: AppColors.textSecondary,
+                      //         ),
+                      //       ),
+                      //       Text(
+                      //         'Password: Azaz@123',
+                      //         style: TextStyle(
+                      //           fontSize: 11,
+                      //           color: AppColors.textSecondary,
+                      //         ),
+                      //       ),
+                      //     ],
+                      //   ),
+                      // ),
                     ],
                   ),
                 ),
