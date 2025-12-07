@@ -13,8 +13,6 @@ class CustomerModel extends Equatable {
   final int? subAreaId;
   final String? subAreaName;
   final String? areaName;
-  final int? deliveryBoyId;
-  final String? deliveryBoyName;
   final double? sortNumber;
   final bool isApproved;
   final bool pendingApproval;
@@ -37,8 +35,6 @@ class CustomerModel extends Equatable {
     this.subAreaId,
     this.subAreaName,
     this.areaName,
-    this.deliveryBoyId,
-    this.deliveryBoyName,
     this.sortNumber,
     required this.isApproved,
     required this.pendingApproval,
@@ -68,8 +64,6 @@ class CustomerModel extends Equatable {
       subAreaId: json['sub_area_id'],
       subAreaName: json['sub_area_name'],
       areaName: json['area_name'],
-      deliveryBoyId: json['delivery_boy_id'],
-      deliveryBoyName: json['delivery_boy_name'],
       sortNumber: json['sort_number'] != null
           ? (json['sort_number'] is num
                 ? (json['sort_number'] as num).toDouble()
@@ -104,7 +98,6 @@ class CustomerModel extends Equatable {
       'longitude': longitude,
       'permanent_quantity': permanentQuantity,
       'sub_area_id': subAreaId,
-      'delivery_boy_id': deliveryBoyId,
       'sort_number': sortNumber,
       'is_approved': isApproved,
       'pending_approval': pendingApproval,
@@ -127,8 +120,6 @@ class CustomerModel extends Equatable {
     subAreaId,
     subAreaName,
     areaName,
-    deliveryBoyId,
-    deliveryBoyName,
     sortNumber,
     isApproved,
     pendingApproval,

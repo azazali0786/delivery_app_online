@@ -29,17 +29,47 @@ class AdminRepository {
     int deliveryBoyId,
   ) async {
     try {
-      // Fetch customers assigned to this delivery boy (only active ones)
-      final customers = await getAllCustomers(deliveryBoyId: deliveryBoyId);
+      // Fetch delivery boy with their assigned sub-areas
+      final deliveryBoys = await getAllDeliveryBoys();
+      final deliveryBoy = deliveryBoys.firstWhere(
+        (db) => db.id == deliveryBoyId,
+        orElse: () => throw Exception('Delivery boy not found'),
+      );
+
+      // Get list of sub-area IDs assigned to this delivery boy
+      final assignedSubAreaIds =
+          deliveryBoy.subAreas?.map((sa) => sa.subAreaId).toList() ?? [];
+
+      // Fetch customers assigned to this delivery boy
+      final allCustomers = await getAllCustomers(deliveryBoyId: deliveryBoyId);
+
+      // Filter customers to only those in the same sub-areas as delivery boy
+      final customers = allCustomers
+          .where(
+            (c) =>
+                c.subAreaId != null && assignedSubAreaIds.contains(c.subAreaId),
+          )
+          .toList();
+
       final activeCustomers = customers
           .where((c) => c.isActive ?? false)
           .toList();
+
       // Fetch entries for today for this delivery boy
       final todayEntries = await getEntries(
         deliveryBoyId: deliveryBoyId,
         date: DateTime.now().toString().split(' ')[0],
       );
 
+      // Fetch today's stock entry for this delivery boy
+      final todayDate = DateTime.now().toString().split(' ')[0];
+      final stockEntries = await getAllStockEntries(
+        deliveryBoyId: deliveryBoyId,
+        startDate: todayDate,
+        endDate: todayDate,
+      );
+
+      print(todayEntries);
       // ---------------------------
       // ✅ UPDATED NEED CALCULATION (matching delivery boy logic)
       // ---------------------------
@@ -56,7 +86,18 @@ class AdminRepository {
       }
 
       // ---------------------------
-      // Calculate Assign (Today Stock Assign) from today's entries
+      // Calculate Dispatched Stock from today's stock entries
+      // ---------------------------
+      double dispatchedHalf = 0;
+      double dispatchedOne = 0;
+
+      for (var stock in stockEntries) {
+        dispatchedHalf += stock.halfLtrBottles;
+        dispatchedOne += stock.oneLtrBottles;
+      }
+
+      // ---------------------------
+      // Calculate Assign (Today Delivered) from today's entries
       // ---------------------------
       double assignHalf = 0;
       double assignOne = 0;
@@ -83,9 +124,9 @@ class AdminRepository {
             (entry.milkQuantity * entry.rate) - entry.collectedMoney;
       }
 
-      // Calculate Left in Market = Need - Assign
-      double leftHalf = needHalf - assignHalf;
-      double leftOne = needOne - assignOne;
+      // Calculate Left in Market = Dispatched - Delivered
+      double leftHalf = dispatchedHalf - assignHalf;
+      double leftOne = dispatchedOne - assignOne;
 
       // Don't set negative values to 0 to show oversupply
       // if (leftHalf < 0) leftHalf = 0;
@@ -101,6 +142,8 @@ class AdminRepository {
       return {
         'need_half': needHalf,
         'need_one': needOne,
+        'stock_half_ltr_bottles': dispatchedHalf.toInt(),
+        'stock_one_ltr_bottles': dispatchedOne.toInt(),
         'assign_half': assignHalf.toInt(),
         'assign_one': assignOne.toInt(),
         'left_half': leftHalf.toInt(),

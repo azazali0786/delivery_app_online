@@ -104,7 +104,6 @@ async function initializeDatabase() {
         longitude DECIMAL(11, 8),
         permanent_quantity DECIMAL(10, 2) DEFAULT 0,
         sub_area_id INTEGER REFERENCES sub_areas(id),
-        delivery_boy_id INTEGER REFERENCES delivery_boys(id),
         sort_number NUMERIC(10, 5),
         is_approved BOOLEAN DEFAULT false,
         pending_approval BOOLEAN DEFAULT true,
@@ -119,7 +118,7 @@ async function initializeDatabase() {
       CREATE TABLE IF NOT EXISTS entries (
         id SERIAL PRIMARY KEY,
         customer_id INTEGER REFERENCES customers(id) ON DELETE CASCADE,
-        delivery_boy_id INTEGER REFERENCES delivery_boys(id),
+        delivery_boy_id INTEGER REFERENCES delivery_boys(id) ON DELETE SET NULL,
         milk_quantity DECIMAL(10, 2) DEFAULT 0,
         collected_money DECIMAL(10, 2) DEFAULT 0,
         pending_bottles INTEGER DEFAULT 0,

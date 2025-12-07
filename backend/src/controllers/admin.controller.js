@@ -59,10 +59,18 @@ class AdminController {
 
   static async deleteDeliveryBoy(req, res, next) {
     try {
-      const deliveryBoy = await DeliveryBoyModel.delete(req.params.id);
+      // Check if delivery boy exists
+      const deliveryBoy = await DeliveryBoyModel.findById(req.params.id);
       if (!deliveryBoy) {
         return res.status(404).json({ error: 'Delivery boy not found' });
       }
+
+      // Delete the delivery boy (all sub_area assignments will be deleted via CASCADE)
+      const result = await DeliveryBoyModel.delete(req.params.id);
+      if (!result) {
+        return res.status(404).json({ error: 'Failed to delete delivery boy' });
+      }
+
       res.json({ message: 'Delivery boy deleted successfully' });
     } catch (error) {
       next(error);
@@ -339,24 +347,24 @@ class AdminController {
   // Entries Management
   // Add this method to your AdminController class in admin.controller.js
 
-static async getAllEntries(req, res, next) {
-  try {
-    const filters = {
-      delivery_boy_id: req.query.delivery_boy_id,
-      customer_id: req.query.customer_id,
-      date: req.query.date,
-      start_date: req.query.start_date,
-      end_date: req.query.end_date,
-      payment_method: req.query.payment_method,
-      is_delivered: req.query.is_delivered
-    };
-    
-    const entries = await AdminModel.getAllEntries(filters);
-    res.json(entries);
-  } catch (error) {
-    next(error);
+  static async getAllEntries(req, res, next) {
+    try {
+      const filters = {
+        delivery_boy_id: req.query.delivery_boy_id,
+        customer_id: req.query.customer_id,
+        date: req.query.date,
+        start_date: req.query.start_date,
+        end_date: req.query.end_date,
+        payment_method: req.query.payment_method,
+        is_delivered: req.query.is_delivered
+      };
+
+      const entries = await AdminModel.getAllEntries(filters);
+      res.json(entries);
+    } catch (error) {
+      next(error);
+    }
   }
-}
 
   static async deleteEntry(req, res, next) {
     try {

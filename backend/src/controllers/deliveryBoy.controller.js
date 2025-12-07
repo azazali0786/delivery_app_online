@@ -23,14 +23,14 @@ class DeliveryBoyController {
       if (!deliveryBoy) {
         return res.status(404).json({ error: 'Profile not found' });
       }
-      
+
       // Remove password from response
       delete deliveryBoy.password;
-      
+
       // Get assigned sub-areas
       const subAreas = await DeliveryBoyModel.getAssignedSubAreas(req.user.id);
       deliveryBoy.assigned_sub_areas = subAreas;
-      
+
       res.json(deliveryBoy);
     } catch (error) {
       next(error);
@@ -68,12 +68,18 @@ class DeliveryBoyController {
       if (!customer) {
         return res.status(404).json({ error: 'Customer not found' });
       }
-      
-      // Verify this customer belongs to this delivery boy
-      if (customer.delivery_boy_id !== req.user.id) {
+
+      // Verify this customer's sub_area is assigned to this delivery boy
+      const { pool } = require('../config/database');
+      const assignmentCheck = await pool.query(
+        'SELECT 1 FROM delivery_boy_subareas WHERE delivery_boy_id = $1 AND sub_area_id = $2',
+        [req.user.id, customer.sub_area_id]
+      );
+
+      if (assignmentCheck.rows.length === 0) {
         return res.status(403).json({ error: 'Access denied' });
       }
-      
+
       res.json(customer);
     } catch (error) {
       next(error);
@@ -87,7 +93,7 @@ class DeliveryBoyController {
         ...req.body,
         delivery_boy_id: req.user.id
       };
-      
+
       const entry = await EntryModel.create(entryData);
       res.status(201).json(entry);
     } catch (error) {
@@ -125,12 +131,12 @@ class DeliveryBoyController {
       if (!entry) {
         return res.status(404).json({ error: 'Entry not found' });
       }
-      
+
       // Verify this entry belongs to this delivery boy
       if (entry.delivery_boy_id !== req.user.id) {
         return res.status(403).json({ error: 'Access denied' });
       }
-      
+
       const updatedEntry = await EntryModel.update(req.params.id, req.body);
       res.json(updatedEntry);
     } catch (error) {
@@ -141,21 +147,21 @@ class DeliveryBoyController {
   static async markNotDelivered(req, res, next) {
     try {
       const { reason } = req.body;
-      
+
       const entry = await EntryModel.findById(req.params.id);
       if (!entry) {
         return res.status(404).json({ error: 'Entry not found' });
       }
-      
+
       if (entry.delivery_boy_id !== req.user.id) {
         return res.status(403).json({ error: 'Access denied' });
       }
-      
+
       const updatedEntry = await EntryModel.update(req.params.id, {
         is_delivered: false,
         not_delivered_reason: reason
       });
-      
+
       res.json(updatedEntry);
     } catch (error) {
       next(error);
@@ -190,7 +196,7 @@ class DeliveryBoyController {
   static async getAssignedAreas(req, res, next) {
     try {
       const subAreas = await DeliveryBoyModel.getAssignedSubAreas(req.user.id);
-      
+
       // Group by area
       const areaMap = {};
       subAreas.forEach(sa => {
@@ -206,7 +212,7 @@ class DeliveryBoyController {
           name: sa.sub_area_name
         });
       });
-      
+
       res.json(Object.values(areaMap));
     } catch (error) {
       next(error);

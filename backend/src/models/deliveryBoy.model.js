@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 class DeliveryBoyModel {
   static async create(data) {
     const hashedPassword = await bcrypt.hash(data.password, 10);
-    
+
     const result = await pool.query(`
       INSERT INTO delivery_boys (
         name, email, password, address, phone_number1, phone_number2,
@@ -22,7 +22,7 @@ class DeliveryBoyModel {
       data.driving_licence_number,
       data.pan_number
     ]);
-    
+
     return result.rows[0];
   }
 
@@ -158,8 +158,7 @@ class DeliveryBoyModel {
     const bottlesResult = await pool.query(`
       SELECT COALESCE(SUM(pending_bottles), 0) as total_left_bottles
       FROM entries e
-      JOIN customers c ON e.customer_id = c.id
-      WHERE c.delivery_boy_id = $1
+      WHERE e.delivery_boy_id = $1
       AND e.id IN (
         SELECT MAX(id) FROM entries GROUP BY customer_id
       )

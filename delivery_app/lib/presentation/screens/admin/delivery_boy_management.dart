@@ -82,6 +82,65 @@ class _DeliveryBoyManagementViewState extends State<DeliveryBoyManagementView> {
       ),
     );
   }
+  
+  void _showDeleteDeliveryBoyDialog(DeliveryBoyModel deliveryBoy) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Delivery Boy'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Are you sure you want to delete ${deliveryBoy.name}?',
+              style: const TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.warning.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.warning, width: 1),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.info_outline, color: AppColors.warning, size: 20),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Customers will be unassigned if not reassigned first.',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              context.read<AdminCubit>().deleteDeliveryBoy(deliveryBoy.id);
+            },
+            child: const Text(
+              'Delete',
+              style: TextStyle(color: AppColors.error),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -225,33 +284,7 @@ class _DeliveryBoyManagementViewState extends State<DeliveryBoyManagementView> {
                             );
                           },
                           onDelete: () {
-                            showDialog(
-                              context: context,
-                              builder: (ctx) => AlertDialog(
-                                title: const Text('Delete Delivery Boy'),
-                                content: Text(
-                                  'Are you sure you want to delete ${deliveryBoy.name}?',
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(ctx),
-                                    child: const Text('Cancel'),
-                                  ),
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.pop(ctx);
-                                      context
-                                          .read<AdminCubit>()
-                                          .deleteDeliveryBoy(deliveryBoy.id);
-                                    },
-                                    child: const Text(
-                                      'Delete',
-                                      style: TextStyle(color: AppColors.error),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
+                            _showDeleteDeliveryBoyDialog(deliveryBoy);
                           },
                           onViewStats: () =>
                               _showDeliveryBoyStatsDialog(deliveryBoy),
@@ -423,9 +456,7 @@ class _DeliveryBoyCard extends StatelessWidget {
                       deliveryBoy.isActive ? Icons.block : Icons.check_circle,
                       size: 18,
                     ),
-                    label: Text(
-                      deliveryBoy.isActive ? 'Intivate' : 'Activate',
-                    ),
+                    label: Text(deliveryBoy.isActive ? 'Intivate' : 'Activate'),
                   ),
                 ],
               ),
@@ -1126,6 +1157,13 @@ class _DeliveryBoyStatsDialogState extends State<_DeliveryBoyStatsDialog> {
                         // Assign Row
                         _stockRow(
                           title: "Dispatched",
+                          half: stats["stock_half_ltr_bottles"].toString(),
+                          one: stats["stock_one_ltr_bottles"].toString(),
+                        ),
+
+                        //
+                        _stockRow(
+                          title: "Delivered",
                           half: stats["assign_half"].toString(),
                           one: stats["assign_one"].toString(),
                         ),

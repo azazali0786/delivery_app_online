@@ -52,7 +52,11 @@ class _EntryScreenViewState extends State<EntryScreenView> {
   @override
   void initState() {
     super.initState();
-    _quantityController.text = widget.customer.permanentQuantity.toString();
+    final qty = widget.customer.permanentQuantity;
+_quantityController.text = qty % 1 == 0
+    ? qty.toInt().toString()
+    : qty.toString();
+
     _rateController.text = "80"; // Default rate
     _loadReasons();
     _loadEntries();
@@ -106,6 +110,8 @@ class _EntryScreenViewState extends State<EntryScreenView> {
     String rateText = _rateController.text.trim().replaceAll(',', '.');
     String collectedText = _collectedMoneyController.text.trim().replaceAll(',', '.');
     String pendingText = _pendingBottlesController.text.trim();
+
+    
 
     final milkQty = double.tryParse(qText) ?? 0.0;
     final rate = double.tryParse(rateText) ?? 0.0;

@@ -130,7 +130,8 @@ class _AddCustomerScreenViewState extends State<AddCustomerScreenView> {
         'phone_number': _phoneController.text.trim(),
         'address': _addressController.text.trim(),
         'whatsapp_number': _whatsappController.text.trim(),
-        'permanent_quantity': double.tryParse(_quantityController.text.trim()) ?? 0.0,
+        'permanent_quantity':
+            double.tryParse(_quantityController.text.trim()) ?? 0.0,
         'latitude': _latitude,
         'longitude': _longitude,
         'location_link': _locationLink,
@@ -283,10 +284,7 @@ class _AddCustomerScreenViewState extends State<AddCustomerScreenView> {
                       controller: _quantityController,
                       keyboardType: TextInputType.number,
                       validator: (value) =>
-                          Validators.validatePositiveNumber(
-                            value,
-                            'Quantity',
-                          ),
+                          Validators.validatePositiveNumber(value, 'Quantity'),
                     ),
                   ),
                   const SizedBox(width: 12),

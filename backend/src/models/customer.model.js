@@ -5,9 +5,9 @@ class CustomerModel {
     const result = await pool.query(`
       INSERT INTO customers (
         name, phone_number, address, whatsapp_number, location_link,
-        latitude, longitude, permanent_quantity, sub_area_id, delivery_boy_id,
+        latitude, longitude, permanent_quantity, sub_area_id,
         sort_number, is_approved, pending_approval, is_active, shift
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
       RETURNING *
     `, [
       data.name,
@@ -18,12 +18,10 @@ class CustomerModel {
       data.latitude || null,
       data.longitude || null,
       data.permanent_quantity || 0,
-      data.sub_area_id || null,
-      data.delivery_boy_id || createdBy,
+      data.sub_area_id,
       data.sort_number ? parseFloat(data.sort_number) : null,
-      createdBy ? false : true, // If created by delivery boy, needs approval
-      createdBy ? true : false,  // If created by admin, no approval needed
-      // New fields
+      false,
+      true,
       data.is_active !== undefined ? data.is_active : true,
       data.shift || null
     ]);
@@ -55,7 +53,6 @@ class CustomerModel {
       FROM customers c
       LEFT JOIN sub_areas sa ON c.sub_area_id = sa.id
       LEFT JOIN areas a ON sa.area_id = a.id
-      LEFT JOIN delivery_boys db ON c.delivery_boy_id = db.id
       WHERE c.id = $1
     `, [id]);
     return result.rows[0];
@@ -93,7 +90,9 @@ class CustomerModel {
       FROM customers c
       LEFT JOIN sub_areas sa ON c.sub_area_id = sa.id
       LEFT JOIN areas a ON sa.area_id = a.id
-      WHERE c.delivery_boy_id = $1 AND c.is_approved = true AND c.is_active = true
+      WHERE c.sub_area_id IN (
+        SELECT sub_area_id FROM delivery_boy_subareas WHERE delivery_boy_id = $1
+      ) AND c.is_approved = true AND c.is_active = true
     `;
 
     const params = [deliveryBoyId];
