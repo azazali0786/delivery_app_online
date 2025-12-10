@@ -85,7 +85,12 @@ class AdminModel {
            ORDER BY e.entry_date DESC 
            LIMIT 1),
           0
-        ) as last_time_pending_bottles
+        ) as last_time_pending_bottles,
+        (SELECT e.is_delivered 
+         FROM entries e 
+         WHERE e.customer_id = c.id 
+         AND e.entry_date = CURRENT_DATE
+         LIMIT 1) as today_delivery_status
       FROM customers c
       LEFT JOIN sub_areas sa ON c.sub_area_id = sa.id
       LEFT JOIN areas a ON sa.area_id = a.id

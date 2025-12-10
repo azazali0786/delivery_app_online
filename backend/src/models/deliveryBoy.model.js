@@ -132,8 +132,8 @@ class DeliveryBoyModel {
   }
 
   static async getDashboardStats(deliveryBoyId) {
-    const today = new Date().toISOString().split('T')[0];
-
+    const today = new Date().toLocaleDateString('en-CA');
+    console.log('Today:', today);
     // Get today's stock
     const stockResult = await pool.query(`
       SELECT half_ltr_bottles, one_ltr_bottles

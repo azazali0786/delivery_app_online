@@ -69,7 +69,6 @@ class AdminRepository {
         endDate: todayDate,
       );
 
-      print(todayEntries);
       // ---------------------------
       // ✅ UPDATED NEED CALCULATION (matching delivery boy logic)
       // ---------------------------
@@ -131,7 +130,7 @@ class AdminRepository {
       // Don't set negative values to 0 to show oversupply
       // if (leftHalf < 0) leftHalf = 0;
       // if (leftOne < 0) leftOne = 0;
-
+     print(customers.length);
       // Calculate Total Pending Money
       double totalPending = 0;
       for (var customer in customers) {

@@ -35,7 +35,6 @@ class CustomerModel {
         c.*,
         sa.name as sub_area_name,
         a.name as area_name,
-        db.name as delivery_boy_name,
         COALESCE(
           (SELECT SUM(e.milk_quantity * e.rate - e.collected_money) 
            FROM entries e 
@@ -123,6 +122,13 @@ class CustomerModel {
           SELECT 1 FROM entries e 
           WHERE e.customer_id = c.id 
           AND e.entry_date = CURRENT_DATE
+        )`;
+      } else if (filters.delivery_status === 'notDelivered') {
+        query += ` AND EXISTS (
+          SELECT 1 FROM entries e 
+          WHERE e.customer_id = c.id 
+          AND e.entry_date = CURRENT_DATE 
+          AND e.is_delivered = false
         )`;
       }
     }

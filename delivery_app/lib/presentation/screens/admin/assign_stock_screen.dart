@@ -187,7 +187,7 @@ class _AssignStockViewState extends State<AssignStockView> {
     DateTime dt = DateTime.parse(raw).toLocal();
 
 // Format: 2025-11-29 8:30 AM
-    final formatted = DateFormat('yyyy-MM-dd h:mm a').format(dt);
+    final formatted = DateFormat('yyyy-MM-dd').format(dt);
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(

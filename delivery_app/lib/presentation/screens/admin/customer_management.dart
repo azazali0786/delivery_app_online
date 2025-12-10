@@ -16,7 +16,8 @@ import '../../widgets/admin/edit_customer_dialog.dart';
 
 class CustomerManagement extends StatelessWidget {
   final bool unApproved;
-  const CustomerManagement({Key? key, required this.unApproved}) : super(key: key);
+  const CustomerManagement({Key? key, required this.unApproved})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -31,20 +32,16 @@ class CustomerManagement extends StatelessWidget {
         }
         return cubit;
       },
-      child: CustomerManagementView(
-        unApproved: unApproved,
-      ),
+      child: CustomerManagementView(unApproved: unApproved),
     );
   }
 }
 
 class CustomerManagementView extends StatefulWidget {
   final bool unApproved;
-  
-  const CustomerManagementView({
-    Key? key,
-    required this.unApproved,
-  }) : super(key: key);
+
+  const CustomerManagementView({Key? key, required this.unApproved})
+    : super(key: key);
 
   @override
   State<CustomerManagementView> createState() => _CustomerManagementViewState();
@@ -60,6 +57,9 @@ class _CustomerManagementViewState extends State<CustomerManagementView> {
   String? _areaFilter;
   String? _subAreaFilter;
   String? _shiftFilter;
+  String? _activeFilter; // 'active', 'inactive', or null for all
+  String?
+  _deliveryStatusFilter; // 'delivered', 'pending', 'notDelivered', or null for all
 
   Set<String> _allAreas = {};
   Set<String> _allSubAreas = {};
@@ -120,6 +120,28 @@ class _CustomerManagementViewState extends State<CustomerManagementView> {
         return false;
       }
 
+      // Active/Inactive filter
+      if (_activeFilter != null) {
+        final isActive = customer.isActive ?? true;
+        if (_activeFilter == 'active' && !isActive) return false;
+        if (_activeFilter == 'inactive' && isActive) return false;
+      }
+
+      // Today's delivery status filter
+      if (_deliveryStatusFilter != null) {
+        final todayDeliveryStatus = customer.todayDeliveryStatus;
+        if (_deliveryStatusFilter == 'delivered') {
+          // Show only customers with delivery today that was completed
+          if (todayDeliveryStatus != true) return false;
+        } else if (_deliveryStatusFilter == 'pending') {
+          // Show only customers with no entry for today (still waiting)
+          if (todayDeliveryStatus != null) return false;
+        } else if (_deliveryStatusFilter == 'notDelivered') {
+          // Show only customers with entry for today that was NOT delivered
+          if (todayDeliveryStatus != false) return false;
+        }
+      }
+
       return true;
     }).toList();
   }
@@ -131,6 +153,8 @@ class _CustomerManagementViewState extends State<CustomerManagementView> {
       _areaFilter = null;
       _subAreaFilter = null;
       _shiftFilter = null;
+      _activeFilter = null;
+      _deliveryStatusFilter = null;
       _searchController.clear();
       _minPendingController.clear();
     });
@@ -184,10 +208,7 @@ class _CustomerManagementViewState extends State<CustomerManagementView> {
                 context.read<AdminCubit>().loadCustomers();
               },
             ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _refreshList,
-          ),
+          IconButton(icon: const Icon(Icons.refresh), onPressed: _refreshList),
         ],
       ),
       body: BlocConsumer<AdminCubit, AdminState>(
@@ -213,9 +234,9 @@ class _CustomerManagementViewState extends State<CustomerManagementView> {
         builder: (context, state) {
           if (state is CustomersLoading) {
             return LoadingWidget(
-              message: _isPendingMode 
-                ? 'Loading pending approvals...' 
-                : 'Loading customers...',
+              message: _isPendingMode
+                  ? 'Loading pending approvals...'
+                  : 'Loading customers...',
             );
           }
 
@@ -283,9 +304,12 @@ class _CustomerManagementViewState extends State<CustomerManagementView> {
                     minPendingController: _minPendingController,
                     onSearchChanged: _applySearch,
                     onMinPendingChanged: _applyMinPending,
+                    listLength: filteredCustomers.length,
                     areaFilter: _areaFilter,
                     subAreaFilter: _subAreaFilter,
                     shiftFilter: _shiftFilter,
+                    activeFilter: _activeFilter,
+                    deliveryStatusFilter: _deliveryStatusFilter,
                     allAreas: _allAreas,
                     allSubAreas: _allSubAreas,
                     onAreaChanged: (value) =>
@@ -294,6 +318,10 @@ class _CustomerManagementViewState extends State<CustomerManagementView> {
                         setState(() => _subAreaFilter = value),
                     onShiftChanged: (value) =>
                         setState(() => _shiftFilter = value),
+                    onActiveChanged: (value) =>
+                        setState(() => _activeFilter = value),
+                    onDeliveryStatusChanged: (value) =>
+                        setState(() => _deliveryStatusFilter = value),
                     onClearFilters: _clearFilters,
                   ),
 
@@ -301,12 +329,12 @@ class _CustomerManagementViewState extends State<CustomerManagementView> {
                 Expanded(
                   child: filteredCustomers.isEmpty
                       ? EmptyStateWidget(
-                          message: _isPendingMode 
-                            ? 'No pending approvals.' 
-                            : 'No customers found.',
-                          icon: _isPendingMode 
-                            ? Icons.check_circle_outline 
-                            : Icons.people_outline,
+                          message: _isPendingMode
+                              ? 'No pending approvals.'
+                              : 'No customers found.',
+                          icon: _isPendingMode
+                              ? Icons.check_circle_outline
+                              : Icons.people_outline,
                         )
                       : RefreshIndicator(
                           onRefresh: () async {

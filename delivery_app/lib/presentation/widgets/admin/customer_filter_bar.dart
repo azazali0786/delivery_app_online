@@ -8,14 +8,19 @@ class CustomerFilterBar extends StatelessWidget {
   final TextEditingController minPendingController;
   final Function(String) onSearchChanged;
   final Function(String) onMinPendingChanged;
+  final int listLength; 
   final String? areaFilter;
   final String? subAreaFilter;
   final String? shiftFilter;
+  final String? activeFilter;
+  final String? deliveryStatusFilter;
   final Set<String> allAreas;
   final Set<String> allSubAreas;
   final Function(String?) onAreaChanged;
   final Function(String?) onSubAreaChanged;
   final Function(String?) onShiftChanged;
+  final Function(String?) onActiveChanged;
+  final Function(String?) onDeliveryStatusChanged;
   final VoidCallback onClearFilters;
 
   const CustomerFilterBar({
@@ -25,21 +30,29 @@ class CustomerFilterBar extends StatelessWidget {
     required this.onSearchChanged,
     required this.onMinPendingChanged,
     required this.areaFilter,
+    required this.listLength,
     required this.subAreaFilter,
     required this.shiftFilter,
+    required this.activeFilter,
+    required this.deliveryStatusFilter,
     required this.allAreas,
     required this.allSubAreas,
     required this.onAreaChanged,
     required this.onSubAreaChanged,
     required this.onShiftChanged,
+    required this.onActiveChanged,
+    required this.onDeliveryStatusChanged,
     required this.onClearFilters,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final hasActiveFilters = areaFilter != null ||
+    final hasActiveFilters =
+        areaFilter != null ||
         subAreaFilter != null ||
         shiftFilter != null ||
+        activeFilter != null ||
+        deliveryStatusFilter != null ||
         minPendingController.text.isNotEmpty;
 
     return Container(
@@ -48,66 +61,83 @@ class CustomerFilterBar extends StatelessWidget {
         children: [
           // Search Bar
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-            child: TextField(
-              controller: searchController,
-              decoration: InputDecoration(
-                hintText: 'Search by name or phone...',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          searchController.clear();
-                          onSearchChanged('');
-                        },
-                      )
-                    : null,
-                filled: true,
-                fillColor: Colors.grey[100],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
+            padding: const EdgeInsets.fromLTRB(16, 12, 16,0),
+            child: Row(
+              children: [
+                // Search Field
+                Expanded(
+                  flex: 4,
+                  child: TextField(
+                    controller: searchController,
+                    decoration: InputDecoration(
+                      hintText: 'Search by name or phone...',
+                      suffixIcon: searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                searchController.clear();
+                                onSearchChanged('');
+                              },
+                            )
+                          : null,
+                      filled: true,
+                      fillColor: Colors.grey[100],
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                    ),
+                    onChanged: onSearchChanged,
+                  ),
                 ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-              ),
-              onChanged: onSearchChanged,
-            ),
-          ),
 
-          // Min Pending Money Filter
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: TextField(
-              controller: minPendingController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                hintText: 'Min pending amount (e.g., 100)',
-                prefixIcon: const Icon(Icons.filter_list),
-                suffixIcon: minPendingController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          minPendingController.clear();
-                          onMinPendingChanged('');
-                        },
-                      )
-                    : null,
-                filled: true,
-                fillColor: Colors.grey[100],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
+                const SizedBox(width: 12), // space between fields
+                // Min Pending Field
+                Expanded(
+                  flex: 3,
+                  child: TextField(
+                    controller: minPendingController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      hintText: 'Min pending (e.g. 100)',
+                      suffixIcon: minPendingController.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                minPendingController.clear();
+                                onMinPendingChanged('');
+                              },
+                            )
+                          : null,
+                      filled: true,
+                      fillColor: Colors.grey[100],
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                    ),
+                    onChanged: onMinPendingChanged,
+                  ),
                 ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-              ),
-              onChanged: onMinPendingChanged,
+                const SizedBox(width: 12),
+                Container(
+                  //show box type label
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(listLength.toString()) // list length 
+                  ), // to keep height consistent
+              ],
             ),
           ),
 
@@ -133,6 +163,22 @@ class CustomerFilterBar extends StatelessWidget {
                         ),
                       ),
                     ),
+
+                  // Active/Inactive Filter
+                  _buildFilterChip(
+                    label: 'Status: ${_getActiveLabel()}',
+                    isSelected: activeFilter != null,
+                    onTap: () => _showActiveDialog(context),
+                  ),
+                  const SizedBox(width: 8),
+
+                  // Today's Delivery Status Filter
+                  _buildFilterChip(
+                    label: 'Today: ${_getDeliveryStatusLabel()}',
+                    isSelected: deliveryStatusFilter != null,
+                    onTap: () => _showDeliveryStatusDialog(context),
+                  ),
+                  const SizedBox(width: 8),
 
                   // Shift Filter
                   _buildFilterChip(
@@ -171,6 +217,25 @@ class CustomerFilterBar extends StatelessWidget {
   String _getShiftLabel() {
     if (shiftFilter == null) return 'All';
     return shiftFilter == 'morning' ? 'Morning' : 'Evening';
+  }
+
+  String _getActiveLabel() {
+    if (activeFilter == null) return 'All';
+    return activeFilter == 'active' ? 'Active' : 'Inactive';
+  }
+
+  String _getDeliveryStatusLabel() {
+    if (deliveryStatusFilter == null) return 'All';
+    switch (deliveryStatusFilter) {
+      case 'delivered':
+        return 'Delivered';
+      case 'pending':
+        return 'Pending';
+      case 'notDelivered':
+        return 'Not Delivered';
+      default:
+        return 'All';
+    }
   }
 
   Widget _buildFilterChip({
@@ -218,6 +283,77 @@ class CustomerFilterBar extends StatelessWidget {
               Navigator.pop(ctx);
             },
             child: const Text('Evening'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showActiveDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: const Text('Select Status'),
+        children: [
+          SimpleDialogOption(
+            onPressed: () {
+              onActiveChanged(null);
+              Navigator.pop(ctx);
+            },
+            child: const Text('All'),
+          ),
+          SimpleDialogOption(
+            onPressed: () {
+              onActiveChanged('active');
+              Navigator.pop(ctx);
+            },
+            child: const Text('Active'),
+          ),
+          SimpleDialogOption(
+            onPressed: () {
+              onActiveChanged('inactive');
+              Navigator.pop(ctx);
+            },
+            child: const Text('Inactive'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeliveryStatusDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: const Text('Select Today\'s Delivery Status'),
+        children: [
+          SimpleDialogOption(
+            onPressed: () {
+              onDeliveryStatusChanged(null);
+              Navigator.pop(ctx);
+            },
+            child: const Text('All'),
+          ),
+          SimpleDialogOption(
+            onPressed: () {
+              onDeliveryStatusChanged('delivered');
+              Navigator.pop(ctx);
+            },
+            child: const Text('Delivered'),
+          ),
+          SimpleDialogOption(
+            onPressed: () {
+              onDeliveryStatusChanged('pending');
+              Navigator.pop(ctx);
+            },
+            child: const Text('Pending'),
+          ),
+          SimpleDialogOption(
+            onPressed: () {
+              onDeliveryStatusChanged('notDelivered');
+              Navigator.pop(ctx);
+            },
+            child: const Text('Not Delivered'),
           ),
         ],
       ),

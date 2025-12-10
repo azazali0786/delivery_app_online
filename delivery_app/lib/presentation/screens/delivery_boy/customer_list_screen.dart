@@ -90,8 +90,6 @@ class _CustomerListViewState extends State<CustomerListView> {
     }).toList();
   }
 
-  
-
   void _showFilterBottomSheet() {
     // Capture the cubit before opening bottom sheet
     final cubit = context.read<DeliveryBoyCubit>();
@@ -135,7 +133,7 @@ class _CustomerListViewState extends State<CustomerListView> {
                     ],
                   ),
                   const SizedBox(height: 10),
-            
+
                   // Delivery Status Filter
                   const Text(
                     'Delivery Status',
@@ -174,6 +172,17 @@ class _CustomerListViewState extends State<CustomerListView> {
                           setState(() => _deliveryStatusFilter = 'pending');
                           setModalState(() {});
                           cubit.loadCustomers(deliveryStatus: 'pending');
+                        },
+                      ),
+                      _FilterChip(
+                        label: 'Not Delivered',
+                        selected: _deliveryStatusFilter == 'notDelivered',
+                        onSelected: () {
+                          setState(
+                            () => _deliveryStatusFilter = 'notDelivered',
+                          );
+                          setModalState(() {});
+                          cubit.loadCustomers(deliveryStatus: 'notDelivered');
                         },
                       ),
                     ],
@@ -217,7 +226,7 @@ class _CustomerListViewState extends State<CustomerListView> {
                       ),
                     ],
                   ),
-            
+
                   if (_allAreas.isNotEmpty) ...[
                     const SizedBox(height: 5),
                     const Text(
@@ -262,7 +271,7 @@ class _CustomerListViewState extends State<CustomerListView> {
                       ),
                     ),
                   ],
-            
+
                   if (_allSubAreas.isNotEmpty) ...[
                     const SizedBox(height: 5),
                     const Text(
@@ -510,12 +519,13 @@ class _CustomerListViewState extends State<CustomerListView> {
                               final customer = _filteredCustomers[index];
                               return _CustomerCard(
                                 customer: customer,
-                                onCall: () => Helpers.makePhoneCall(customer.phoneNumber),
+                                onCall: () =>
+                                    Helpers.makePhoneCall(customer.phoneNumber),
                                 onLocation: () => Helpers.openMap(
                                   customer.locationLink,
                                   customer.latitude,
                                   customer.longitude,
-                              ),
+                                ),
                               );
                             },
                           ),
@@ -733,7 +743,7 @@ class _CustomerCard extends StatelessWidget {
                     style: IconButton.styleFrom(
                       backgroundColor: AppColors.primary.withOpacity(0.1),
                       foregroundColor: AppColors.primary,
-                      padding: const EdgeInsets.all(8), 
+                      padding: const EdgeInsets.all(8),
                     ),
                   ),
                   const SizedBox(width: 6),
