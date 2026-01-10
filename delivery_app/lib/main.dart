@@ -61,7 +61,7 @@ class MyApp extends StatelessWidget {
           context.read<AuthRepository>(),
         )..checkAuthStatus(),
         child: MaterialApp(
-          title: 'Delivery Management',
+          title: 'Alive Delivery',
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
             primarySwatch: Colors.blue,
