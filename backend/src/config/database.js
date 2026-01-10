@@ -139,7 +139,7 @@ async function initializeDatabase() {
         half_ltr_bottles INTEGER DEFAULT 0,
         one_ltr_bottles INTEGER DEFAULT 0,
         collected_bottles INTEGER DEFAULT 0,
-        entry_date DATE NOT NULL,
+        entry_date TIMESTAMP NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);

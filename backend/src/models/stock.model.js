@@ -13,9 +13,9 @@ class StockModel {
       data.half_ltr_bottles || 0,
       data.one_ltr_bottles || 0,
       data.collected_bottles || 0,
-      data.entry_date || new Date().toISOString().split('T')[0]
+      data.entry_date || new Date().toISOString()
     ]);
-    
+
     return result.rows[0];
   }
 
@@ -36,18 +36,19 @@ class StockModel {
       SELECT * FROM stock_entries 
       WHERE delivery_boy_id = $1
     `;
-    
+
     const params = [deliveryBoyId];
     let paramCount = 2;
 
+    // compare only the date portion to avoid timezone shifts
     if (startDate) {
-      query += ` AND entry_date >= $${paramCount}`;
+      query += ` AND DATE(entry_date) >= $${paramCount}`;
       params.push(startDate);
       paramCount++;
     }
 
     if (endDate) {
-      query += ` AND entry_date <= $${paramCount}`;
+      query += ` AND DATE(entry_date) <= $${paramCount}`;
       params.push(endDate);
       paramCount++;
     }
@@ -67,7 +68,7 @@ class StockModel {
       LEFT JOIN delivery_boys db ON se.delivery_boy_id = db.id
       WHERE 1=1
     `;
-    
+
     const params = [];
     let paramCount = 1;
 
@@ -98,7 +99,7 @@ class StockModel {
   static async getTodayStock(deliveryBoyId) {
     const today = new Date().toISOString().split('T')[0];
     const result = await pool.query(
-      'SELECT * FROM stock_entries WHERE delivery_boy_id = $1 AND entry_date = $2',
+      'SELECT * FROM stock_entries WHERE delivery_boy_id = $1 AND DATE(entry_date) = $2',
       [deliveryBoyId, today]
     );
     return result.rows[0];

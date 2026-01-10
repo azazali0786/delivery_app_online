@@ -10,6 +10,7 @@ class CustomerCard extends StatelessWidget {
   final VoidCallback onApprove;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final VoidCallback? onTap;
 
   const CustomerCard({
     Key? key,
@@ -17,6 +18,7 @@ class CustomerCard extends StatelessWidget {
     required this.onApprove,
     required this.onEdit,
     required this.onDelete,
+    this.onTap,
   }) : super(key: key);
 
   @override
@@ -27,6 +29,7 @@ class CustomerCard extends StatelessWidget {
       shadowColor: Colors.black12,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
+        onTap: onTap,
         onLongPress: onApprove,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
@@ -83,14 +86,14 @@ class CustomerCard extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                             if (customer.sortNumber != null) ...[
-                            Text(
-                              '   (${customer.sortNumber})',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: AppColors.textSecondary,
+                              Text(
+                                '   (${customer.sortNumber})',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textSecondary,
+                                ),
                               ),
-                            ),
-                            ]
+                            ],
                           ],
                         ),
                         if (customer.areaName != null) ...[
@@ -122,7 +125,30 @@ class CustomerCard extends StatelessWidget {
                       ],
                     ),
                   ),
-
+                  // today delivery status
+                  if (customer.todayDeliveryStatus != null)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: customer.todayDeliveryStatus!
+                            ? AppColors.success.withOpacity(0.1)
+                            : AppColors.warning.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Icon(
+                        customer.todayDeliveryStatus!
+                            ? Icons.check_circle
+                            : Icons.pending,
+                        size: 16,
+                        color: customer.todayDeliveryStatus!
+                            ? AppColors.success
+                            : AppColors.warning,
+                      ),
+                    ),
+                  const SizedBox(width: 8),
                   // Status Badge
                   Container(
                     padding: const EdgeInsets.symmetric(
@@ -235,9 +261,16 @@ class CustomerCard extends StatelessWidget {
                         value: 'delete',
                         child: Row(
                           children: [
-                            Icon(Icons.delete, size: 18, color: AppColors.error),
+                            Icon(
+                              Icons.delete,
+                              size: 18,
+                              color: AppColors.error,
+                            ),
                             SizedBox(width: 8),
-                            Text('Delete', style: TextStyle(color: AppColors.error)),
+                            Text(
+                              'Delete',
+                              style: TextStyle(color: AppColors.error),
+                            ),
                           ],
                         ),
                       ),

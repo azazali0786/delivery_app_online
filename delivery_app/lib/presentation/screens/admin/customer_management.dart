@@ -13,6 +13,7 @@ import '../../widgets/admin/customer_card.dart';
 import '../../widgets/admin/customer_filter_bar.dart';
 import '../../widgets/admin/approve_customer_dialog.dart';
 import '../../widgets/admin/edit_customer_dialog.dart';
+import '../../screens/delivery_boy/entry_screen.dart';
 
 class CustomerManagement extends StatelessWidget {
   final bool unApproved;
@@ -409,6 +410,17 @@ class _CustomerManagementViewState extends State<CustomerManagementView> {
                                           ),
                                         ),
                                       ],
+                                    ),
+                                  );
+                                },
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => EntryScreen(
+                                        customer: customer,
+                                        isAdmin: true,
+                                      ),
                                     ),
                                   );
                                 },

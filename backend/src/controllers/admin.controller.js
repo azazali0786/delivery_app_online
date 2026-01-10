@@ -366,6 +366,15 @@ class AdminController {
     }
   }
 
+  static async createEntry(req, res, next) {
+    try {
+      const entry = await EntryModel.create(req.body);
+      res.status(201).json(entry);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   static async deleteEntry(req, res, next) {
     try {
       const entry = await EntryModel.delete(req.params.id);
@@ -373,6 +382,20 @@ class AdminController {
         return res.status(404).json({ error: 'Entry not found' });
       }
       res.json({ message: 'Entry deleted successfully' });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async updateEntry(req, res, next) {
+    try {
+      const entry = await EntryModel.findById(req.params.id);
+      if (!entry) {
+        return res.status(404).json({ error: 'Entry not found' });
+      }
+
+      const updated = await EntryModel.update(req.params.id, req.body);
+      res.json(updated);
     } catch (error) {
       next(error);
     }

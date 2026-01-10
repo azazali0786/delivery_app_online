@@ -10,6 +10,11 @@ class Helpers {
     return DateFormat('yyyy-MM-dd').format(date);
   }
 
+  /// Returns an ISO8601 datetime string suitable for API timestamps
+  static String formatDateTimeApi(DateTime date) {
+    return date.toIso8601String();
+  }
+
   static String formatCurrency(num amount) {
     final value = amount.toDouble();
     return '₹${value.toStringAsFixed(2)}';

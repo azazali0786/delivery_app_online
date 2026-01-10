@@ -130,7 +130,7 @@ class AdminRepository {
       // Don't set negative values to 0 to show oversupply
       // if (leftHalf < 0) leftHalf = 0;
       // if (leftOne < 0) leftOne = 0;
-     print(customers.length);
+      print(customers.length);
       // Calculate Total Pending Money
       double totalPending = 0;
       for (var customer in customers) {
@@ -404,6 +404,21 @@ class AdminRepository {
   // Entries
   Future<void> deleteEntry(int id) async {
     await _apiService.delete('${ApiConstants.adminEntries}/$id');
+  }
+
+  /// Create an entry via admin endpoint
+  Future<EntryModel> createEntry(Map<String, dynamic> data) async {
+    final response = await _apiService.post(ApiConstants.adminEntries, data);
+    return EntryModel.fromJson(response);
+  }
+
+  /// Update an entry via admin endpoint
+  Future<EntryModel> updateEntry(int id, Map<String, dynamic> data) async {
+    final response = await _apiService.put(
+      '${ApiConstants.adminEntries}/$id',
+      data,
+    );
+    return EntryModel.fromJson(response);
   }
 
   // Expenses

@@ -184,10 +184,20 @@ class _AssignStockViewState extends State<AssignStockView> {
 
   Widget _buildStockCard(dynamic stock, int index) {
     final raw = stock.entryDate ?? '';
-    DateTime dt = DateTime.parse(raw).toLocal();
+    DateTime dt;
 
-// Format: 2025-11-29 8:30 AM
-    final formatted = DateFormat('yyyy-MM-dd').format(dt);
+    // If entry_date contains a time portion parse it, otherwise fall back to created_at
+    if (raw.contains('T')) {
+      dt = DateTime.parse(raw).toLocal();
+    } else if ((stock.createdAt ?? '').contains('T')) {
+      dt = DateTime.parse(stock.createdAt).toLocal();
+    } else {
+      // fallback to parsing as date only (midnight)
+      dt = DateTime.parse(raw).toLocal();
+    }
+
+    // Format: 2025-11-29 8:30 PM
+    final formatted = DateFormat('yyyy-MM-dd h:mm a').format(dt);
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -238,12 +248,12 @@ class _AssignStockViewState extends State<AssignStockView> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                          formatted,
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 13,
+                            formatted,
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 13,
+                            ),
                           ),
-                        ),
                         ],
                       ),
                     ),
@@ -355,10 +365,7 @@ class _AssignStockViewState extends State<AssignStockView> {
           ),
           Text(
             label,
-            style: TextStyle(
-              fontSize: 11,
-              color: Colors.grey[600],
-            ),
+            style: TextStyle(fontSize: 11, color: Colors.grey[600]),
             textAlign: TextAlign.center,
           ),
         ],
@@ -383,20 +390,13 @@ class _AssignStockViewState extends State<AssignStockView> {
                 color: Colors.red[50],
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                icon,
-                size: 64,
-                color: Colors.red[400],
-              ),
+              child: Icon(icon, size: 64, color: Colors.red[400]),
             ),
             const SizedBox(height: 24),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[700],
-              ),
+              style: TextStyle(fontSize: 16, color: Colors.grey[700]),
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
@@ -448,17 +448,14 @@ class _AssignStockViewState extends State<AssignStockView> {
           const SizedBox(height: 8),
           Text(
             'Tap the button below to assign stock',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[500],
-            ),
+            style: TextStyle(fontSize: 14, color: Colors.grey[500]),
           ),
         ],
       ),
     );
   }
 
-    void _showAssignStockDialog() {
+  void _showAssignStockDialog() {
     // Load delivery boys
     context.read<AdminCubit>().loadDeliveryBoys();
 
@@ -546,9 +543,7 @@ class _AssignStockDialogState extends State<_AssignStockDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       title: Row(
         children: [
           Container(
@@ -582,10 +577,7 @@ class _AssignStockDialogState extends State<_AssignStockDialog> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      state.message,
-                      textAlign: TextAlign.center,
-                    ),
+                    Text(state.message, textAlign: TextAlign.center),
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: () =>
@@ -645,8 +637,10 @@ class _AssignStockDialogState extends State<_AssignStockDialog> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        prefixIcon:
-                            const Icon(Icons.local_drink, color: Colors.orange),
+                        prefixIcon: const Icon(
+                          Icons.local_drink,
+                          color: Colors.orange,
+                        ),
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -668,8 +662,10 @@ class _AssignStockDialogState extends State<_AssignStockDialog> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        prefixIcon: const Icon(Icons.local_drink_outlined,
-                            color: Colors.blue),
+                        prefixIcon: const Icon(
+                          Icons.local_drink_outlined,
+                          color: Colors.blue,
+                        ),
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -691,8 +687,10 @@ class _AssignStockDialogState extends State<_AssignStockDialog> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        prefixIcon:
-                            const Icon(Icons.recycling, color: Colors.green),
+                        prefixIcon: const Icon(
+                          Icons.recycling,
+                          color: Colors.green,
+                        ),
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -731,7 +729,8 @@ class _AssignStockDialogState extends State<_AssignStockDialog> {
                 'half_ltr_bottles': int.parse(_halfLtrController.text),
                 'one_ltr_bottles': int.parse(_oneLtrController.text),
                 'collected_bottles': int.parse(_collectedController.text),
-                'entry_date': Helpers.formatDateApi(DateTime.now()),
+                // store full datetime so UI can display the exact time
+                'entry_date': Helpers.formatDateTimeApi(DateTime.now()),
               });
               Navigator.pop(context);
             }
@@ -741,10 +740,7 @@ class _AssignStockDialogState extends State<_AssignStockDialog> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
-            padding: const EdgeInsets.symmetric(
-              horizontal: 24,
-              vertical: 12,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           ),
           child: const Text('Assign'),
         ),
@@ -771,12 +767,15 @@ class _EditStockDialogState extends State<_EditStockDialog> {
   @override
   void initState() {
     super.initState();
-    _halfLtrEditController =
-        TextEditingController(text: '${widget.stock.halfLtrBottles}');
-    _oneLtrEditController =
-        TextEditingController(text: '${widget.stock.oneLtrBottles}');
-    _collectedEditController =
-        TextEditingController(text: '${widget.stock.collectedBottles ?? 0}');
+    _halfLtrEditController = TextEditingController(
+      text: '${widget.stock.halfLtrBottles}',
+    );
+    _oneLtrEditController = TextEditingController(
+      text: '${widget.stock.oneLtrBottles}',
+    );
+    _collectedEditController = TextEditingController(
+      text: '${widget.stock.collectedBottles ?? 0}',
+    );
   }
 
   @override
@@ -844,14 +843,11 @@ class _EditStockDialogState extends State<_EditStockDialog> {
         ),
         ElevatedButton(
           onPressed: () {
-            context.read<AdminCubit>().updateStockEntry(
-              widget.stock.id,
-              {
-                'half_ltr_bottles': int.parse(_halfLtrEditController.text),
-                'one_ltr_bottles': int.parse(_oneLtrEditController.text),
-                'collected_bottles': int.parse(_collectedEditController.text),
-              },
-            );
+            context.read<AdminCubit>().updateStockEntry(widget.stock.id, {
+              'half_ltr_bottles': int.parse(_halfLtrEditController.text),
+              'one_ltr_bottles': int.parse(_oneLtrEditController.text),
+              'collected_bottles': int.parse(_collectedEditController.text),
+            });
             Navigator.pop(context);
           },
           style: ElevatedButton.styleFrom(

@@ -50,6 +50,8 @@ router.delete('/stock-entries/:id', AdminController.deleteStockEntry);
 
 // Entry Management
 router.get('/entries', AdminController.getAllEntries);
+router.post('/entries', AdminController.createEntry);
+router.put('/entries/:id', AdminController.updateEntry);
 router.delete('/entries/:id', AdminController.deleteEntry);
 
 // Expenses

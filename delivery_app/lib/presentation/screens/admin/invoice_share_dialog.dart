@@ -55,11 +55,12 @@ class _InvoiceShareDialogState extends State<InvoiceShareDialog> {
 
     return Scaffold(
       appBar: AppBar(
+        centerTitle: false,
         backgroundColor: Colors.white,
         elevation: 0,
         iconTheme: const IconThemeData(color: AppColors.textPrimary),
         title: const Text(
-          'Share Invoice',
+          'Invoice',
           style: TextStyle(
             color: AppColors.textPrimary,
             fontWeight: FontWeight.bold,
@@ -185,7 +186,7 @@ class _InvoiceShareDialogState extends State<InvoiceShareDialog> {
 
             // Customer List
             Container(
-              height: 200,
+              height: 350,
               decoration: BoxDecoration(
                 border: Border.all(color: AppColors.border),
                 borderRadius: BorderRadius.circular(10),
@@ -766,7 +767,7 @@ class _InvoiceShareDialogState extends State<InvoiceShareDialog> {
   void _sendWhatsAppToCustomer(Map<String, dynamic> customer) async {
     final phone = customer['phone_number'] ?? customer['whatsapp_number'] ?? '';
     final message =
-        'Hello, this is Alive Milk. Please find your invoice attached. Thank you.';
+        'Hey👋 ${customer['name']}, \nHope you are doing well. \nYour bill is shared below. \nKindly check and deposit the amount. \nThank you for choosing Alive Milk.';
 
     try {
       await Helpers.openWhatsApp(phone, message);

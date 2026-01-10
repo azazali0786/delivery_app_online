@@ -588,13 +588,16 @@ class _CustomerCard extends StatelessWidget {
       shadowColor: Colors.black12,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
-        onTap: () {
-          Navigator.push(
+        onTap: () async {
+          final result = await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => EntryScreen(customer: customer),
             ),
           );
+          if (result == true) {
+            context.read<DeliveryBoyCubit>().loadCustomers();
+          }
         },
         borderRadius: BorderRadius.circular(12),
         child: Padding(

@@ -6,11 +6,15 @@ import '../../../../core/utils/helpers.dart';
 class EntryHistoryCard extends StatelessWidget {
   final dynamic entry;
   final double cumulativePending;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   const EntryHistoryCard({
     Key? key,
     required this.entry,
     required this.cumulativePending,
+    this.onEdit,
+    this.onDelete,
   }) : super(key: key);
 
   @override
@@ -155,6 +159,27 @@ class EntryHistoryCard extends StatelessWidget {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
+                    ),
+
+                  // Admin edit/delete actions
+                  if (onEdit != null || onDelete != null)
+                    PopupMenuButton<String>(
+                      onSelected: (v) {
+                        if (v == 'edit' && onEdit != null) onEdit!();
+                        if (v == 'delete' && onDelete != null) onDelete!();
+                      },
+                      itemBuilder: (ctx) => [
+                        if (onEdit != null)
+                          const PopupMenuItem(
+                            value: 'edit',
+                            child: Text('Edit'),
+                          ),
+                        if (onDelete != null)
+                          const PopupMenuItem(
+                            value: 'delete',
+                            child: Text('Delete'),
+                          ),
+                      ],
                     ),
                 ],
               ),
