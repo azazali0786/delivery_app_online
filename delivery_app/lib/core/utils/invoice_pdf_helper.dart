@@ -240,14 +240,19 @@ class InvoicePdfHelper {
     required String subAreaName,
     required double permanentQuantity,
     required List<Map<String, dynamic>> entries,
+    double openingBalance = 0.0,
   }) async {
-    if (entries.isEmpty) {
+    // allow generation even if no entries, as opening balance may exist
+    if (entries.isEmpty && openingBalance == 0.0) {
       throw Exception('No entries found for the selected period');
     }
 
     final doc = pw.Document();
-    entries.sort((a, b) =>
-    DateTime.parse(a['entry_date']).compareTo(DateTime.parse(b['entry_date'])));
+    entries.sort(
+      (a, b) => DateTime.parse(
+        a['entry_date'],
+      ).compareTo(DateTime.parse(b['entry_date'])),
+    );
     final logoData = await _loadLogo();
     final logo = logoData != null ? pw.MemoryImage(logoData) : null;
 
@@ -267,10 +272,10 @@ class InvoicePdfHelper {
       totalCollected += collected;
     }
 
-    final balance = totalAmount - totalCollected;
+    // Include opening balance into overall balance
+    final balance = openingBalance + (totalAmount - totalCollected);
     final invoiceNo = 'INV-${DateTime.now().millisecondsSinceEpoch}';
-    double cumulativeBalance = 0;
-    
+    double cumulativeBalance = openingBalance;
 
     doc.addPage(
       pw.MultiPage(
@@ -280,6 +285,9 @@ class InvoicePdfHelper {
         footer: (context) =>
             _buildFooter(context, context.pageNumber, context.pagesCount),
         build: (context) {
+          final periodText = entries.isNotEmpty
+              ? '${DateFormat('dd/MM/yy').format(DateTime.parse(entries.first['entry_date']).toLocal())} - ${DateFormat('dd/MM/yy').format(DateTime.parse(entries.last['entry_date']).toLocal())}'
+              : 'N/A';
           return [
             pw.SizedBox(height: 20),
 
@@ -307,7 +315,7 @@ class InvoicePdfHelper {
                       ),
                     ),
                     pw.Text(
-                      'Date: ${DateFormat('dd MMM yyyy').format(DateTime.now())}',
+                      'Date: ${DateFormat('dd MMM yyyy').format(DateTime.now().toLocal())}',
                       style: const pw.TextStyle(
                         fontSize: 10,
                         color: PdfColors.grey700,
@@ -422,11 +430,12 @@ class InvoicePdfHelper {
                           ),
                         ),
                         pw.SizedBox(height: 8),
-                        _buildInfoRow(
-                          'Period',
-                          '${DateFormat('dd/MM/yy').format(DateTime.parse(entries.first['entry_date']))} - ${DateFormat('dd/MM/yy').format(DateTime.parse(entries.last['entry_date']))}',
-                        ),
+                        _buildInfoRow('Period', periodText),
                         _buildInfoRow('Total Deliveries', '${entries.length}'),
+                        _buildInfoRow(
+                          'Opening Balance',
+                          '${openingBalance.toStringAsFixed(2)}',
+                        ),
                         _buildInfoRow(
                           'Permanent Qty',
                           '${permanentQuantity.toStringAsFixed(1)} L',
@@ -476,45 +485,47 @@ class InvoicePdfHelper {
                 ),
                 // Rows
                 ...entries.asMap().entries.map((entry) {
-  final index = entry.key;
-  final data = entry.value;
+                  final index = entry.key;
+                  final data = entry.value;
 
-  final milkQty =
-      double.tryParse(data['milk_quantity'].toString()) ?? 0.0;
-  final rate =
-      double.tryParse(data['rate'].toString()) ?? 0.0;
-  final collected =
-      double.tryParse(data['collected_money'].toString()) ?? 0.0;
+                  final milkQty =
+                      double.tryParse(data['milk_quantity'].toString()) ?? 0.0;
+                  final rate = double.tryParse(data['rate'].toString()) ?? 0.0;
+                  final collected =
+                      double.tryParse(data['collected_money'].toString()) ??
+                      0.0;
 
-  final amount = milkQty * rate;
+                  final amount = milkQty * rate;
 
-  final pending = amount - collected;
-  cumulativeBalance += pending;
-  final totalBalance = cumulativeBalance;
+                  final pending = amount - collected;
+                  cumulativeBalance += pending;
+                  final totalBalance = cumulativeBalance;
 
-  return pw.TableRow(
-    decoration: pw.BoxDecoration(
-      color: index % 2 == 0 ? PdfColors.white : PdfColors.grey100,
-    ),
-    children: [
-      _buildTableCell(
-        DateFormat('dd MMM yyyy')
-            .format(DateTime.parse(data['entry_date'])),
-      ),
-      _buildTableCell(milkQty.toStringAsFixed(1)),
-      _buildTableCell(rate.toStringAsFixed(0)),
-      _buildTableCell(amount.toStringAsFixed(2)),
-      _buildTableCell(collected.toStringAsFixed(2)),
-      _buildTableCell(
-        totalBalance.toStringAsFixed(2),
-        color: totalBalance > 0
-            ? PdfColors.red700
-            : PdfColors.green700,
-      ),
-    ],
-  );
-}).toList(),
-
+                  return pw.TableRow(
+                    decoration: pw.BoxDecoration(
+                      color: index % 2 == 0
+                          ? PdfColors.white
+                          : PdfColors.grey100,
+                    ),
+                    children: [
+                      _buildTableCell(
+                        DateFormat(
+                          'dd MMM yyyy',
+                        ).format(DateTime.parse(data['entry_date']).toLocal()),
+                      ),
+                      _buildTableCell(milkQty.toStringAsFixed(1)),
+                      _buildTableCell(rate.toStringAsFixed(0)),
+                      _buildTableCell(amount.toStringAsFixed(2)),
+                      _buildTableCell(collected.toStringAsFixed(2)),
+                      _buildTableCell(
+                        totalBalance.toStringAsFixed(2),
+                        color: totalBalance > 0
+                            ? PdfColors.red700
+                            : PdfColors.green700,
+                      ),
+                    ],
+                  );
+                }).toList(),
               ],
             ),
 

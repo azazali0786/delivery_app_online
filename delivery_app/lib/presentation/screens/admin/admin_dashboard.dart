@@ -1,40 +1,40 @@
-  import 'package:delivery_app/presentation/screens/admin/admin_dashboard_Report.dart';
-  import 'package:delivery_app/presentation/screens/delivery_boy/add_customer_screen.dart';
-  import 'package:flutter/material.dart';
-  import 'package:flutter_bloc/flutter_bloc.dart';
-  import '../../../core/constants/app_colors.dart';
-  import '../../../business_logic/cubits/auth/auth_cubit.dart';
-  import '../../../business_logic/cubits/admin/admin_cubit.dart';
-  import '../../../business_logic/cubits/admin/admin_state.dart';
-  import '../../../data/repositories/admin_repository.dart';
-  import '../../widgets/common/loading_widget.dart';
-  import 'delivery_boy_management.dart';
-  import 'customer_management.dart';
-  import 'area_management.dart';
-  import 'reason_management.dart';
-  import 'assign_stock_screen.dart';
-  import 'invoice_share_dialog.dart';
+import 'package:delivery_app/presentation/screens/admin/admin_dashboard_Report.dart';
+import 'package:delivery_app/presentation/screens/delivery_boy/add_customer_screen.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/constants/app_colors.dart';
+import '../../../business_logic/cubits/auth/auth_cubit.dart';
+import '../../../business_logic/cubits/admin/admin_cubit.dart';
+import '../../../business_logic/cubits/admin/admin_state.dart';
+import '../../../data/repositories/admin_repository.dart';
+import '../../widgets/common/loading_widget.dart';
+import 'delivery_boy_management.dart';
+import 'customer_management.dart';
+import 'area_management.dart';
+import 'reason_management.dart';
+import 'assign_stock_screen.dart';
+import 'invoice_share_dialog.dart';
 
-  class AdminDashboard extends StatelessWidget {
-    const AdminDashboard({Key? key}) : super(key: key);
+class AdminDashboard extends StatelessWidget {
+  const AdminDashboard({Key? key}) : super(key: key);
 
-    @override
-    Widget build(BuildContext context) {
-      return BlocProvider(
-        create: (context) =>
-            AdminCubit(context.read<AdminRepository>())..loadDashboard(),
-        child: const AdminDashboardView(),
-      );
-    }
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) =>
+          AdminCubit(context.read<AdminRepository>())..loadDashboard(),
+      child: const AdminDashboardView(),
+    );
   }
+}
 
-  class AdminDashboardView extends StatelessWidget {
-    const AdminDashboardView({Key? key}) : super(key: key);
+class AdminDashboardView extends StatelessWidget {
+  const AdminDashboardView({Key? key}) : super(key: key);
 
-    @override
-    Widget build(BuildContext context) {
-      return Scaffold(
-        floatingActionButton: FloatingActionButton.extended(
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      floatingActionButton: FloatingActionButton.extended(
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.person_add_rounded),
@@ -43,25 +43,23 @@
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         onPressed: () async {
-  final result = await Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (_) => BlocProvider.value(
-        value: context.read<AdminCubit>(),
-        child: const AddCustomerScreen(),
-      ),
-    ),
-  );
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => BlocProvider.value(
+                value: context.read<AdminCubit>(),
+                child: const AddCustomerScreen(),
+              ),
+            ),
+          );
 
-  if (result == true) {
-    context.read<AdminCubit>().loadDashboard(); // refresh UI
-  }
-}
-
-
+          if (result == true) {
+            context.read<AdminCubit>().loadDashboard(); // refresh UI
+          }
+        },
       ),
 
-        backgroundColor: const Color(0xfff7f8fc),
+      backgroundColor: const Color(0xfff7f8fc),
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.white,
@@ -138,7 +136,9 @@
                       color: AppColors.primary,
                       onTap: () => Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const DeliveryBoyManagement()),
+                        MaterialPageRoute(
+                          builder: (_) => const DeliveryBoyManagement(),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -149,7 +149,10 @@
                       color: AppColors.secondary,
                       onTap: () => Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const CustomerManagement(unApproved: false,)),
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              const CustomerManagement(unApproved: false),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -160,7 +163,9 @@
                       color: AppColors.info,
                       onTap: () => Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const AreaManagement()),
+                        MaterialPageRoute(
+                          builder: (_) => const AreaManagement(),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -171,7 +176,9 @@
                       color: Colors.teal,
                       onTap: () => Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const ReasonManagement()),
+                        MaterialPageRoute(
+                          builder: (_) => const ReasonManagement(),
+                        ),
                       ),
                     ),
 
@@ -238,9 +245,11 @@
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const CustomerManagement(unApproved: true,)),
+                MaterialPageRoute(
+                  builder: (_) => const CustomerManagement(unApproved: true),
+                ),
               );
-            }, 
+            },
           ),
         ),
       ],
@@ -289,27 +298,32 @@
   }
 
   void _showInvoiceDialog(BuildContext context) async {
-  final adminRepository = context.read<AdminRepository>();
-  final customers = await adminRepository.getAllCustomers();
+    final adminRepository = context.read<AdminRepository>();
+    final customers = await adminRepository.getAllCustomers();
 
-  if (context.mounted) {
-    showDialog(
-      context: context,
-      builder: (ctx) => InvoiceShareDialog(
-        customers: customers.map((c) => {
-          'id': c.id,
-          'name': c.name,
-          'phone_number': c.phoneNumber,
-          'address': c.address,
-          'area_name': c.areaName,
-          'sub_area_name': c.subAreaName,
-          'permanent_quantity': c.permanentQuantity,
-        }).toList(),
-      ),
-    );
+    if (context.mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => InvoiceShareDialog(
+            customers: customers
+                .map(
+                  (c) => {
+                    'id': c.id,
+                    'name': c.name,
+                    'phone_number': c.phoneNumber,
+                    'address': c.address,
+                    'area_name': c.areaName,
+                    'sub_area_name': c.subAreaName,
+                    'permanent_quantity': c.permanentQuantity,
+                  },
+                )
+                .toList(),
+          ),
+        ),
+      );
+    }
   }
-}
-
 }
 
 // ---------------- Custom Buttons & Cards ----------------

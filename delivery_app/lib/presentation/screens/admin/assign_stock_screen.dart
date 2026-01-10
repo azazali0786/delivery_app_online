@@ -458,34 +458,7 @@ class _AssignStockViewState extends State<AssignStockView> {
     );
   }
 
-  
-
-  Widget _buildDetailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 15,
-              color: Colors.grey[600],
-            ),
-          ),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showAssignStockDialog() {
+    void _showAssignStockDialog() {
     // Load delivery boys
     context.read<AdminCubit>().loadDeliveryBoys();
 

@@ -189,14 +189,16 @@ class CustomerModel {
     const params = [customerId];
     let paramCount = 2;
 
+    // Use DATE(entry_date) to compare only the date portion. This avoids timezone shifts
+    // where timestamps might be converted across zones and include previous day entries.
     if (startDate) {
-      query += ` AND entry_date >= $${paramCount}`;
+      query += ` AND DATE(entry_date) >= $${paramCount}`;
       params.push(startDate);
       paramCount++;
     }
 
     if (endDate) {
-      query += ` AND entry_date <= $${paramCount}`;
+      query += ` AND DATE(entry_date) <= $${paramCount}`;
       params.push(endDate);
       paramCount++;
     }
@@ -205,6 +207,17 @@ class CustomerModel {
 
     const result = await pool.query(query, params);
     return result.rows;
+  }
+
+  static async getOpeningBalance(customerId, startDate) {
+    // Compare only the date portion to ensure opening balance is correctly computed
+    // for the day before startDate, avoiding timezone-related shifts.
+    const result = await pool.query(
+      `SELECT COALESCE(SUM(milk_quantity * rate - collected_money), 0) AS opening_balance FROM entries WHERE customer_id = $1 AND DATE(entry_date) < $2`,
+      [customerId, startDate]
+    );
+
+    return result.rows[0].opening_balance;
   }
 }
 

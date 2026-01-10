@@ -17,37 +17,44 @@ class EntryHistoryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     // Extract entry data
     final rawDate = (entry is Map)
-    ? (entry['entry_date'] ?? 'N/A')
-    : (entry.entryDate ?? 'N/A');
+        ? (entry['entry_date'] ?? 'N/A')
+        : (entry.entryDate ?? 'N/A');
 
-    final entryDate = rawDate.toString().split('T').first;
-    
+    String entryDate;
+    try {
+      entryDate = DateFormat(
+        'dd MMM yyyy',
+      ).format(DateTime.parse(rawDate.toString()).toLocal());
+    } catch (e) {
+      entryDate = rawDate.toString().split('T').first;
+    }
+
     final createdAt = (entry is Map)
         ? entry['created_at'] ?? ''
         : (entry.createdAt ?? '');
-    
+
     final timeWithAmPm = _formatTimeWithAmPm(createdAt);
-    
+
     final milkQty = (entry is Map
         ? entry['milk_quantity'] ?? 0
         : entry.milkQuantity ?? 0);
-    
+
     final rate = (entry is Map
         ? entry['rate']?.toDouble() ?? 0
         : entry.rate?.toDouble() ?? 0);
-    
+
     final collected = (entry is Map
         ? entry['collected_money']?.toDouble() ?? 0
         : entry.collectedMoney?.toDouble() ?? 0);
-    
+
     final pendingBottles = (entry is Map
         ? entry['pending_bottles'] ?? 0
         : entry.pendingBottles ?? 0);
-    
+
     final isDelivered = (entry is Map
         ? entry['is_delivered'] ?? true
         : entry.isDelivered ?? true);
-    
+
     final paymentMethod = (entry is Map
         ? entry['payment_method'] ?? 'cash'
         : entry.paymentMethod ?? 'cash');
@@ -58,8 +65,8 @@ class EntryHistoryCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDelivered 
-              ? Colors.transparent 
+          color: isDelivered
+              ? Colors.transparent
               : AppColors.error.withOpacity(0.3),
           width: 1,
         ),
@@ -152,7 +159,7 @@ class EntryHistoryCard extends StatelessWidget {
                 ],
               ),
             ),
-            
+
             // Entry details
             if (isDelivered)
               Padding(
@@ -287,8 +294,8 @@ class EntryHistoryCard extends StatelessWidget {
                     Expanded(
                       child: Text(
                         (entry is Map
-                            ? entry['not_delivered_reason']
-                            : entry.notDeliveredReason) ??
+                                ? entry['not_delivered_reason']
+                                : entry.notDeliveredReason) ??
                             'No reason provided',
                         style: TextStyle(
                           fontSize: 12,
@@ -308,9 +315,9 @@ class EntryHistoryCard extends StatelessWidget {
 
   String _formatTimeWithAmPm(String createdAt) {
     if (createdAt.isEmpty) return 'N/A';
-    
+
     try {
-      final dateTime = DateTime.parse(createdAt);
+      final dateTime = DateTime.parse(createdAt).toLocal();
       final formatter = DateFormat('hh:mm a');
       return formatter.format(dateTime);
     } catch (e) {
@@ -365,11 +372,7 @@ class _DetailItem extends StatelessWidget {
               color: iconColor.withOpacity(0.12),
               borderRadius: BorderRadius.circular(5),
             ),
-            child: Icon(
-              icon,
-              size: 12,
-              color: iconColor,
-            ),
+            child: Icon(icon, size: 12, color: iconColor),
           ),
           const SizedBox(width: 6),
           Expanded(
@@ -378,10 +381,7 @@ class _DetailItem extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style: TextStyle(
-                    fontSize: 9,
-                    color: AppColors.textSecondary,
-                  ),
+                  style: TextStyle(fontSize: 9, color: AppColors.textSecondary),
                 ),
                 const SizedBox(height: 1),
                 Text(

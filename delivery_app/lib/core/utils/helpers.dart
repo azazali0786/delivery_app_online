@@ -27,13 +27,41 @@ class Helpers {
     }
   }
 
-  static Future<void> openWhatsApp(String phoneNumber, String message) async {
+  static String cleanWhatsAppNumber(String? raw) {
+    if (raw == null) return '';
+    String phone = raw.replaceAll(RegExp(r'[^0-9]'), '');
+    // Remove leading zeros
+    while (phone.startsWith('0')) {
+      phone = phone.substring(1);
+    }
+
+    // If 10 digits assume India phone number and add country code 91
+    if (phone.length == 10) {
+      phone = '91$phone';
+    }
+
+    return phone;
+  }
+
+  static Future<void> openWhatsApp(
+    String? rawPhoneNumber,
+    String message,
+  ) async {
+    final phoneNumber = cleanWhatsAppNumber(rawPhoneNumber);
+
+    if (phoneNumber.isEmpty) {
+      throw Exception('Phone number missing');
+    }
+
     final Uri launchUri = Uri.parse(
       'https://wa.me/$phoneNumber?text=${Uri.encodeComponent(message)}',
     );
-    if (await canLaunchUrl(launchUri)) {
-      await launchUrl(launchUri, mode: LaunchMode.externalApplication);
+
+    if (!await canLaunchUrl(launchUri)) {
+      throw Exception('Cannot open WhatsApp');
     }
+
+    await launchUrl(launchUri, mode: LaunchMode.externalApplication);
   }
 
   static Future<void> openMap(
