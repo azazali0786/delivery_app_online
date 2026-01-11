@@ -132,11 +132,13 @@ class DeliveryBoyModel {
   }
 
   static async getDashboardStats(deliveryBoyId) {
-    // Determine current period based on 2 PM cutoff
+    // Determine current period using local date and hour cutoffs: morning = 00:00-13:59, evening = 14:00-23:59
     const now = new Date();
-    const todayDate = now.toISOString().split('T')[0]; // YYYY-MM-DD
-    const cutoff = new Date(`${todayDate}T14:00:00`);
-    const isEvening = now >= cutoff; // before 2pm -> morning (isEvening=false), after -> evening
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const todayDate = `${year}-${month}-${day}`; // YYYY-MM-DD in local timezone
+    const isEvening = now.getHours() >= 14; // hour >= 14 => evening, else morning (00:00-13:59)
 
     // Get stock entry for the appropriate period (latest before/after 2pm)
     // Use hour extraction to avoid timezone mismatches with ISO strings
@@ -153,7 +155,7 @@ class DeliveryBoyModel {
         c.id,
         c.permanent_quantity,
         COALESCE((SELECT SUM(e.milk_quantity * e.rate - e.collected_money) FROM entries e WHERE e.customer_id = c.id), 0) as total_pending_money,
-        COALESCE((SELECT e.pending_bottles FROM entries e WHERE e.customer_id = c.id ORDER BY e.entry_date DESC LIMIT 1), 0) as last_time_pending_bottles
+        COALESCE((SELECT e.pending_bottles FROM entries e WHERE e.customer_id = c.id ORDER BY e.created_at DESC LIMIT 1), 0) as last_time_pending_bottles
       FROM customers c
       WHERE c.sub_area_id IN (SELECT sub_area_id FROM delivery_boy_subareas WHERE delivery_boy_id = $1)
         AND c.is_approved = true AND c.is_active = true

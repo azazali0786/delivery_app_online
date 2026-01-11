@@ -461,11 +461,23 @@ class _MoneySection extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 10),
-            Text(
-              "Today's Collections",
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                    Text(
+                  "Today's Collections",
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  stats['period'] == 'evening' ? 'Evening' : 'Morning',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
             ),
           ],
         ),

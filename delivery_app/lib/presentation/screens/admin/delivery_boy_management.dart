@@ -11,6 +11,7 @@ import '../../widgets/common/loading_widget.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/custom_button.dart';
 import '../../widgets/common/custom_textfield.dart';
+import 'delivery_boy_stats_screen.dart';
 
 class DeliveryBoyManagement extends StatelessWidget {
   const DeliveryBoyManagement({Key? key}) : super(key: key);
@@ -74,15 +75,17 @@ class _DeliveryBoyManagementViewState extends State<DeliveryBoyManagementView> {
   }
 
   void _showDeliveryBoyStatsDialog(DeliveryBoyModel deliveryBoy) {
-    showDialog(
-      context: context,
-      builder: (ctx) => BlocProvider.value(
-        value: context.read<AdminCubit>(),
-        child: _DeliveryBoyStatsDialog(deliveryBoy: deliveryBoy),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => BlocProvider.value(
+          value: context.read<AdminCubit>(),
+          child: DeliveryBoyStatsScreen(deliveryBoy: deliveryBoy),
+        ),
       ),
     );
   }
-  
+
   void _showDeleteDeliveryBoyDialog(DeliveryBoyModel deliveryBoy) {
     showDialog(
       context: context,
@@ -1036,10 +1039,12 @@ class _DeliveryBoyStatsDialog extends StatefulWidget {
 
 class _DeliveryBoyStatsDialogState extends State<_DeliveryBoyStatsDialog> {
   late Future<Map<String, dynamic>> _statsFuture;
+  DateTime? _selectedDate;
 
   @override
   void initState() {
     super.initState();
+    _selectedDate = null;
     _statsFuture = context.read<AdminRepository>().calculateDeliveryBoyStats(
       widget.deliveryBoy.id,
     );
@@ -1048,14 +1053,14 @@ class _DeliveryBoyStatsDialogState extends State<_DeliveryBoyStatsDialog> {
   @override
   Widget build(BuildContext context) {
     String _formatNumber(dynamic value) {
-  if (value == null) return '0';
-  final num number = num.tryParse(value.toString()) ?? 0;
-  return number.toStringAsFixed(0); // removes .00
-}
+      if (value == null) return '0';
+      final num number = num.tryParse(value.toString()) ?? 0;
+      return number.toStringAsFixed(0); // removes .00
+    }
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: FutureBuilder<Map<String, dynamic>>( 
+      child: FutureBuilder<Map<String, dynamic>>(
         future: _statsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -1105,7 +1110,62 @@ class _DeliveryBoyStatsDialogState extends State<_DeliveryBoyStatsDialog> {
                       color: AppColors.textPrimary,
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          _selectedDate == null
+                              ? "Today's Overview"
+                              : 'Date: ${_selectedDate!.toString().split(' ')[0]}',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      TextButton.icon(
+                        onPressed: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: _selectedDate ?? DateTime.now(),
+                            firstDate: DateTime.now().subtract(
+                              const Duration(days: 365),
+                            ),
+                            lastDate: DateTime.now(),
+                          );
+                          if (picked != null) {
+                            setState(() {
+                              _selectedDate = picked;
+                              _statsFuture = context
+                                  .read<AdminRepository>()
+                                  .calculateDeliveryBoyStats(
+                                    widget.deliveryBoy.id,
+                                    date: picked.toString().split(' ')[0],
+                                  );
+                            });
+                          }
+                        },
+                        icon: const Icon(Icons.calendar_today),
+                        label: const Text('Select Date'),
+                      ),
+                      if (_selectedDate != null)
+                        TextButton(
+                          onPressed: () {
+                            setState(() {
+                              _selectedDate = null;
+                              _statsFuture = context
+                                  .read<AdminRepository>()
+                                  .calculateDeliveryBoyStats(
+                                    widget.deliveryBoy.id,
+                                  );
+                            });
+                          },
+                          child: const Text('Reset'),
+                        ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 12),
 
                   // Today's Stock Section
                   const Text(
@@ -1230,21 +1290,24 @@ class _DeliveryBoyStatsDialogState extends State<_DeliveryBoyStatsDialog> {
                         Row(
                           children: [
                             Expanded(
-  child: Center(
-    child: Text(_formatNumber(stats["today_online"])),
-  ),
-),
-Expanded(
-  child: Center(
-    child: Text(_formatNumber(stats["today_cash"])),
-  ),
-),
-Expanded(
-  child: Center(
-    child: Text(_formatNumber(stats["today_pending"])),
-  ),
-),
-
+                              child: Center(
+                                child: Text(
+                                  _formatNumber(stats["today_online"]),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Center(
+                                child: Text(_formatNumber(stats["today_cash"])),
+                              ),
+                            ),
+                            Expanded(
+                              child: Center(
+                                child: Text(
+                                  _formatNumber(stats["today_pending"]),
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ],

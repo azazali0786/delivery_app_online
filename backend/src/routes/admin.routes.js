@@ -14,6 +14,7 @@ router.get('/dashboard/report', AdminController.getDashboardReport);
 // Delivery Boy Management
 router.post('/delivery-boys', AdminController.createDeliveryBoy);
 router.get('/delivery-boys', AdminController.getAllDeliveryBoys);
+router.get('/delivery-boys/:id/stats', AdminController.getDeliveryBoyStats);
 router.put('/delivery-boys/:id', AdminController.updateDeliveryBoy);
 router.delete('/delivery-boys/:id', AdminController.deleteDeliveryBoy);
 router.patch('/delivery-boys/:id/toggle-active', AdminController.toggleDeliveryBoyActive);

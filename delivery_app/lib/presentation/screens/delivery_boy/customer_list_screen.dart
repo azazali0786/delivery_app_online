@@ -1,3 +1,4 @@
+import 'package:delivery_app/data/repositories/admin_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/constants/app_colors.dart';
@@ -42,6 +43,14 @@ class _CustomerListViewState extends State<CustomerListView> {
   List<CustomerModel> _filteredCustomers = [];
   Set<String> _allAreas = {};
   Set<String> _allSubAreas = {};
+  Map<String, Set<String>> _areaToSubAreas = {};
+
+  @override
+  void initState() {
+    super.initState();
+    // Load areas to populate filters even if no customers exist in an area
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadAreas());
+  }
 
   @override
   void dispose() {
@@ -49,15 +58,50 @@ class _CustomerListViewState extends State<CustomerListView> {
     super.dispose();
   }
 
+  Future<void> _loadAreas() async {
+    try {
+      final areas = await context.read<AdminRepository>().getAllAreas();
+      setState(() {
+        _allAreas = areas.map<String>((a) => a.name).toSet();
+        _allSubAreas = areas
+            .expand<String>((a) => (a.subAreas ?? []).map((s) => s.name))
+            .toSet();
+        _areaToSubAreas = {};
+        for (final a in areas) {
+          final subs = (a.subAreas ?? []).map<String>((s) => s.name).toSet();
+          if (subs.isNotEmpty) _areaToSubAreas[a.name] = subs;
+        }
+    
+        
+      });
+    } catch (e) {
+      // ignore errors for now
+    }
+  }
+
   void _updateFilters(List<CustomerModel> customers) {
-    _allAreas = customers
+    final customerAreas = customers
         .where((c) => c.areaName != null)
         .map((c) => c.areaName!)
         .toSet();
-    _allSubAreas = customers
+    final customerSubAreas = customers
         .where((c) => c.subAreaName != null)
         .map((c) => c.subAreaName!)
         .toSet();
+
+    // Merge with existing sets loaded from Areas (so areas with no customers still appear)
+    _allAreas = {..._allAreas, ...customerAreas};
+    _allSubAreas = {..._allSubAreas, ...customerSubAreas};
+
+    for (final c in customers) {
+      if (c.areaName != null && c.subAreaName != null) {
+        _areaToSubAreas.putIfAbsent(c.areaName!, () => {}).add(c.subAreaName!);
+      }
+    }
+    // Debug log to inspect merged filter sets after updating from customers
+    debugPrint(
+      '[DEBUG] CustomerList - updateFilters: _allAreas=$_allAreas _allSubAreas=$_allSubAreas _areaToSubAreas=$_areaToSubAreas',
+    );
   }
 
   List<CustomerModel> _filterCustomers(List<CustomerModel> customers) {
@@ -272,10 +316,12 @@ class _CustomerListViewState extends State<CustomerListView> {
                     ),
                   ],
 
-                  if (_allSubAreas.isNotEmpty) ...[
+                  if (_areaFilter != null &&
+                      _areaToSubAreas[_areaFilter!] != null &&
+                      _areaToSubAreas[_areaFilter!]!.isNotEmpty) ...[
                     const SizedBox(height: 5),
                     const Text(
-                      'Sub Area',
+                      'Sub-Area',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -289,14 +335,14 @@ class _CustomerListViewState extends State<CustomerListView> {
                         spacing: 8,
                         children: [
                           _FilterChip(
-                            label: 'All Sub Areas',
+                            label: 'All Sub-Areas',
                             selected: _subAreaFilter == null,
                             onSelected: () {
                               setState(() => _subAreaFilter = null);
                               setModalState(() {});
                             },
                           ),
-                          ..._allSubAreas.map(
+                          ..._areaToSubAreas[_areaFilter!]!.map(
                             (subArea) => _FilterChip(
                               label: subArea,
                               selected: _subAreaFilter == subArea,
@@ -310,6 +356,7 @@ class _CustomerListViewState extends State<CustomerListView> {
                       ),
                     ),
                   ],
+
                   SizedBox(height: 10),
                   SizedBox(
                     width: double.infinity,
@@ -454,7 +501,6 @@ class _CustomerListViewState extends State<CustomerListView> {
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
-                      vertical: 8,
                     ),
                     color: Colors.white,
                     child: Row(

@@ -8,7 +8,7 @@ class CustomerFilterBar extends StatelessWidget {
   final TextEditingController minPendingController;
   final Function(String) onSearchChanged;
   final Function(String) onMinPendingChanged;
-  final int listLength; 
+  final int listLength;
   final String? areaFilter;
   final String? subAreaFilter;
   final String? shiftFilter;
@@ -61,7 +61,7 @@ class CustomerFilterBar extends StatelessWidget {
         children: [
           // Search Bar
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16,0),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
             child: Row(
               children: [
                 // Search Field
@@ -130,13 +130,16 @@ class CustomerFilterBar extends StatelessWidget {
                 const SizedBox(width: 12),
                 Container(
                   //show box type label
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.grey[200],
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Text(listLength.toString()) // list length 
-                  ), // to keep height consistent
+                  child: Text(listLength.toString()), // list length
+                ), // to keep height consistent
               ],
             ),
           ),
@@ -368,7 +371,9 @@ class CustomerFilterBar extends StatelessWidget {
         children: [
           SimpleDialogOption(
             onPressed: () {
+              // Clear sub-area when resetting area to All
               onAreaChanged(null);
+              onSubAreaChanged(null);
               Navigator.pop(ctx);
             },
             child: const Text('All Areas'),
@@ -377,6 +382,8 @@ class CustomerFilterBar extends StatelessWidget {
             return SimpleDialogOption(
               onPressed: () {
                 onAreaChanged(area);
+                // Clear sub-area when a new area is selected
+                onSubAreaChanged(null);
                 Navigator.pop(ctx);
               },
               child: Text(area),
@@ -390,27 +397,46 @@ class CustomerFilterBar extends StatelessWidget {
   void _showSubAreaDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (ctx) => SimpleDialog(
-        title: const Text('Select Sub-Area'),
-        children: [
-          SimpleDialogOption(
-            onPressed: () {
-              onSubAreaChanged(null);
-              Navigator.pop(ctx);
-            },
-            child: const Text('All Sub-Areas'),
-          ),
-          ...allSubAreas.map((subArea) {
-            return SimpleDialogOption(
+      builder: (ctx) {
+        // If no sub-areas available, show a helpful message
+        if (allSubAreas.isEmpty) {
+          return SimpleDialog(
+            title: const Text('Select Sub-Area'),
+            children: [
+              const Padding(
+                padding: EdgeInsets.all(16),
+                child: Text('No sub-areas available for selected area.'),
+              ),
+              SimpleDialogOption(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Close'),
+              ),
+            ],
+          );
+        }
+
+        return SimpleDialog(
+          title: const Text('Select Sub-Area'),
+          children: [
+            SimpleDialogOption(
               onPressed: () {
-                onSubAreaChanged(subArea);
+                onSubAreaChanged(null);
                 Navigator.pop(ctx);
               },
-              child: Text(subArea),
-            );
-          }).toList(),
-        ],
-      ),
+              child: const Text('All Sub-Areas'),
+            ),
+            ...allSubAreas.map((subArea) {
+              return SimpleDialogOption(
+                onPressed: () {
+                  onSubAreaChanged(subArea);
+                  Navigator.pop(ctx);
+                },
+                child: Text(subArea),
+              );
+            }).toList(),
+          ],
+        );
+      },
     );
   }
 }

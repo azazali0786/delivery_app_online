@@ -27,8 +27,17 @@ class InvoicePdfHelper {
     }
   }
 
-  // Build company header
-  static pw.Widget _buildHeader(pw.MemoryImage? logo) {
+  static Future<Uint8List?> _loadQr() async {
+    try {
+      final ByteData data = await rootBundle.load('assets/images/qr.png');
+      return data.buffer.asUint8List();
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Build company header (logo left, company details center, qr right)
+  static pw.Widget _buildHeader(pw.MemoryImage? logo, pw.MemoryImage? qr) {
     return pw.Container(
       padding: const pw.EdgeInsets.all(20),
       decoration: pw.BoxDecoration(
@@ -254,7 +263,9 @@ class InvoicePdfHelper {
       ).compareTo(DateTime.parse(b['entry_date'])),
     );
     final logoData = await _loadLogo();
+    final qrData = await _loadQr();
     final logo = logoData != null ? pw.MemoryImage(logoData) : null;
+    final qr = qrData != null ? pw.MemoryImage(qrData) : null;
 
     // Calculate totals
     double totalMilk = 0;
@@ -276,12 +287,13 @@ class InvoicePdfHelper {
     final balance = openingBalance + (totalAmount - totalCollected);
     final invoiceNo = 'INV-${DateTime.now().millisecondsSinceEpoch}';
     double cumulativeBalance = openingBalance;
-
+    final qrImage = qr ?? pw.MemoryImage(Uint8List(0));
     doc.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(30),
-        header: (context) => _buildHeader(logo),
+        header: (context) =>
+            context.pageNumber == 1 ? _buildHeader(logo, qr) : pw.Container(),
         footer: (context) =>
             _buildFooter(context, context.pageNumber, context.pagesCount),
         build: (context) {
@@ -532,44 +544,101 @@ class InvoicePdfHelper {
             pw.SizedBox(height: 20),
 
             // Total Summary
-            pw.Row(
-              mainAxisAlignment: pw.MainAxisAlignment.end,
-              children: [
-                pw.Container(
-                  width: 250,
-                  padding: const pw.EdgeInsets.all(15),
-                  decoration: pw.BoxDecoration(
-                    color: PdfColors.grey100,
-                    borderRadius: pw.BorderRadius.circular(8),
-                  ),
-                  child: pw.Column(
-                    children: [
-                      _buildSummaryRow(
-                        'Total Milk',
-                        '${totalMilk.toStringAsFixed(1)} L',
-                      ),
-                      pw.Divider(color: PdfColors.grey400),
-                      _buildSummaryRow(
-                        'Total Amount',
-                        '${totalAmount.toStringAsFixed(2)}',
-                        isBold: true,
-                      ),
-                      _buildSummaryRow(
-                        'Total Paid',
-                        '${totalCollected.toStringAsFixed(2)}',
-                      ),
-                      pw.Divider(color: PdfColors.grey400),
-                      _buildSummaryRow(
-                        balance > 0 ? 'Balance Due' : 'Overpaid',
-                        '${balance.abs().toStringAsFixed(2)}',
-                        isBold: true,
-                        color: balance > 0 ? PdfColors.red : PdfColors.green,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+           pw.Row(
+  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+  children: [
+    pw.Container(
+      width: 160,
+      padding: const pw.EdgeInsets.all(10),
+      decoration: pw.BoxDecoration(
+        color: PdfColors.white,
+        border: pw.Border.all(color: PdfColors.grey400),
+        borderRadius: pw.BorderRadius.circular(8),
+      ),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.center,
+        children: [
+          pw.Text(
+            'Pay Using QR',
+            style: pw.TextStyle(
+              fontSize: 11,
+              fontWeight: pw.FontWeight.bold,
             ),
+          ),
+          pw.SizedBox(height: 8),
+
+          // QR IMAGE
+          pw.Container(
+            width: 90,
+            height: 90,
+            padding: const pw.EdgeInsets.all(4),
+            decoration: pw.BoxDecoration(
+              border: pw.Border.all(color: PdfColors.grey400),
+              borderRadius: pw.BorderRadius.circular(4),
+            ),
+            child: pw.Image(qrImage, fit: pw.BoxFit.contain),
+          ),
+
+          pw.SizedBox(height: 8),
+
+          pw.Text(
+            'Please scan to pay',
+            style: const pw.TextStyle(fontSize: 9),
+            textAlign: pw.TextAlign.center,
+          ),
+          pw.SizedBox(height: 2),
+          pw.Text(
+            'Share confirmation after payment',
+            style: pw.TextStyle(
+              fontSize: 8,
+              color: PdfColors.grey700,
+            ),
+            textAlign: pw.TextAlign.center,
+          ),
+        ],
+      ),
+    ),
+    pw.Container(
+      width: 280,
+      padding: const pw.EdgeInsets.all(15),
+      decoration: pw.BoxDecoration(
+        color: PdfColors.grey100,
+        borderRadius: pw.BorderRadius.circular(8),
+      ),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+        children: [
+          // ===== SUMMARY =====
+          _buildSummaryRow(
+            'Total Milk',
+            '${totalMilk.toStringAsFixed(1)} L',
+          ),
+          pw.Divider(color: PdfColors.grey400),
+          _buildSummaryRow(
+            'Total Amount',
+            '${totalAmount.toStringAsFixed(2)}',
+            isBold: true,
+          ),
+          _buildSummaryRow(
+            'Total Paid',
+            '${totalCollected.toStringAsFixed(2)}',
+          ),
+          pw.Divider(color: PdfColors.grey400),
+          _buildSummaryRow(
+            balance > 0 ? 'Balance Due' : 'Overpaid',
+            '${balance.abs().toStringAsFixed(2)}',
+            isBold: true,
+            color: balance > 0 ? PdfColors.red : PdfColors.green,
+          ),
+
+          pw.SizedBox(height: 14),
+          
+        ],
+      ),
+    ),
+  ],
+),
+
 
             pw.SizedBox(height: 30),
 

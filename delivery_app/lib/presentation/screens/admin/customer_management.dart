@@ -64,6 +64,7 @@ class _CustomerManagementViewState extends State<CustomerManagementView> {
 
   Set<String> _allAreas = {};
   Set<String> _allSubAreas = {};
+  Map<String, Set<String>> _areaToSubAreas = {};
 
   @override
   void initState() {
@@ -79,14 +80,24 @@ class _CustomerManagementViewState extends State<CustomerManagementView> {
   }
 
   void _updateFilters(List<CustomerModel> customers) {
-    _allAreas = customers
+    final customerAreas = customers
         .where((c) => c.areaName != null)
         .map((c) => c.areaName!)
         .toSet();
-    _allSubAreas = customers
+    final customerSubAreas = customers
         .where((c) => c.subAreaName != null)
         .map((c) => c.subAreaName!)
         .toSet();
+
+    // Merge with existing sets loaded from Areas (so areas with no customers still appear)
+    _allAreas = {..._allAreas, ...customerAreas};
+    _allSubAreas = {..._allSubAreas, ...customerSubAreas};
+
+    for (final c in customers) {
+      if (c.areaName != null && c.subAreaName != null) {
+        _areaToSubAreas.putIfAbsent(c.areaName!, () => {}).add(c.subAreaName!);
+      }
+    }
   }
 
   List<CustomerModel> _filterCustomers(List<CustomerModel> customers) {
@@ -300,30 +311,45 @@ class _CustomerManagementViewState extends State<CustomerManagementView> {
 
                 // Filter Bar (only for non-pending mode)
                 if (!_isPendingMode)
-                  CustomerFilterBar(
-                    searchController: _searchController,
-                    minPendingController: _minPendingController,
-                    onSearchChanged: _applySearch,
-                    onMinPendingChanged: _applyMinPending,
-                    listLength: filteredCustomers.length,
-                    areaFilter: _areaFilter,
-                    subAreaFilter: _subAreaFilter,
-                    shiftFilter: _shiftFilter,
-                    activeFilter: _activeFilter,
-                    deliveryStatusFilter: _deliveryStatusFilter,
-                    allAreas: _allAreas,
-                    allSubAreas: _allSubAreas,
-                    onAreaChanged: (value) =>
-                        setState(() => _areaFilter = value),
-                    onSubAreaChanged: (value) =>
-                        setState(() => _subAreaFilter = value),
-                    onShiftChanged: (value) =>
-                        setState(() => _shiftFilter = value),
-                    onActiveChanged: (value) =>
-                        setState(() => _activeFilter = value),
-                    onDeliveryStatusChanged: (value) =>
-                        setState(() => _deliveryStatusFilter = value),
-                    onClearFilters: _clearFilters,
+                  Builder(
+                    builder: (context) {
+                      final availableSubAreas = _areaFilter == null
+                          ? _allSubAreas
+                          : (_areaToSubAreas[_areaFilter] ?? {});
+                      return CustomerFilterBar(
+                        searchController: _searchController,
+                        minPendingController: _minPendingController,
+                        onSearchChanged: _applySearch,
+                        onMinPendingChanged: _applyMinPending,
+                        listLength: filteredCustomers.length,
+                        areaFilter: _areaFilter,
+                        subAreaFilter: _subAreaFilter,
+                        shiftFilter: _shiftFilter,
+                        activeFilter: _activeFilter,
+                        deliveryStatusFilter: _deliveryStatusFilter,
+                        allAreas: _allAreas,
+                        allSubAreas: availableSubAreas,
+                        onAreaChanged: (value) => setState(() {
+                          _areaFilter = value;
+                          if (_subAreaFilter != null) {
+                            final validSubAreas = value == null
+                                ? _allSubAreas
+                                : (_areaToSubAreas[value] ?? {});
+                            if (!validSubAreas.contains(_subAreaFilter))
+                              _subAreaFilter = null;
+                          }
+                        }),
+                        onSubAreaChanged: (value) =>
+                            setState(() => _subAreaFilter = value),
+                        onShiftChanged: (value) =>
+                            setState(() => _shiftFilter = value),
+                        onActiveChanged: (value) =>
+                            setState(() => _activeFilter = value),
+                        onDeliveryStatusChanged: (value) =>
+                            setState(() => _deliveryStatusFilter = value),
+                        onClearFilters: _clearFilters,
+                      );
+                    },
                   ),
 
                 // Customer List

@@ -57,6 +57,7 @@ class _EntryScreenViewState extends State<EntryScreenView> {
   bool _isLoadingReasons = true;
   bool _isLoadingEntries = true;
   bool _isFormExpanded = false;
+  int? _latestPendingBottles;
 
   @override
   void initState() {
@@ -99,24 +100,54 @@ class _EntryScreenViewState extends State<EntryScreenView> {
 
   Future<void> _loadEntries() async {
     try {
+      List<dynamic> entries;
       if (widget.isAdmin) {
         // Admin should use the admin/customer endpoint to view full history
-        final entries = await context
-            .read<CustomerRepository>()
-            .getCustomerEntries(widget.customer.id);
-        setState(() {
-          _entries = entries;
-          _isLoadingEntries = false;
-        });
+        entries = await context.read<CustomerRepository>().getCustomerEntries(
+          widget.customer.id,
+        );
       } else {
-        final entries = await context
+        entries = await context
             .read<DeliveryBoyRepository>()
             .getCustomerEntries(widget.customer.id);
-        setState(() {
-          _entries = entries;
-          _isLoadingEntries = false;
-        });
       }
+
+      // Sort entries so latest entry shows first (by created_at or entry_date)
+      entries.sort((a, b) {
+        DateTime _parseCreated(dynamic e) {
+          final created = (e is Map)
+              ? (e['created_at'] ?? e['entry_date'] ?? '')
+              : (e.createdAt ?? e.entryDate ?? '');
+          try {
+            return DateTime.parse(created.toString()).toUtc();
+          } catch (_) {
+            return DateTime.fromMillisecondsSinceEpoch(0);
+          }
+        }
+
+        return _parseCreated(
+          b,
+        ).compareTo(_parseCreated(a)); // descending: latest first
+      });
+
+      // Use latest entry's pending bottles for display (if present)
+      int? latestPending;
+      if (entries.isNotEmpty) {
+        final first = entries.first;
+        latestPending = (first is Map)
+            ? (first['pending_bottles'] is int
+                  ? first['pending_bottles'] as int
+                  : (first['pending_bottles'] != null
+                        ? int.tryParse(first['pending_bottles'].toString())
+                        : null))
+            : first.pendingBottles;
+      }
+
+      setState(() {
+        _entries = entries;
+        _latestPendingBottles = latestPending;
+        _isLoadingEntries = false;
+      });
     } catch (e) {
       setState(() {
         _isLoadingEntries = false;
@@ -533,7 +564,10 @@ class _EntryScreenViewState extends State<EntryScreenView> {
           return SingleChildScrollView(
             child: Column(
               children: [
-                CustomerInfoCard(customer: widget.customer),
+                CustomerInfoCard(
+                  customer: widget.customer,
+                  overrideLastTimePendingBottles: _latestPendingBottles,
+                ),
 
                 // Entry Form Section
                 Container(
@@ -866,10 +900,9 @@ class _EntryScreenViewState extends State<EntryScreenView> {
                           itemBuilder: (context, index) {
                             final entry = _entries[index];
 
-                            // FIXED: Calculate cumulative pending correctly
-                            // Start from the beginning and add up to current entry
+                            // Calculate cumulative pending from newest to current entry (entries are sorted latest-first)
                             double cumulativePending = 0;
-                            for (int i = _entries.length - 1; i >= index; i--) {
+                            for (int i = 0; i <= index; i++) {
                               final e = _entries[i];
                               final isDelivered = (e is Map
                                   ? e['is_delivered'] ?? true
@@ -880,13 +913,17 @@ class _EntryScreenViewState extends State<EntryScreenView> {
                                     ? e['milk_quantity'] ?? 0
                                     : e.milkQuantity ?? 0);
                                 final rate = (e is Map
-                                    ? e['rate']?.toDouble() ?? 0
+                                    ? (e['rate'] != null
+                                          ? (e['rate']?.toDouble() ?? 0)
+                                          : 0)
                                     : e.rate?.toDouble() ?? 0);
                                 final collected = (e is Map
-                                    ? e['collected_money']?.toDouble() ?? 0
+                                    ? (e['collected_money'] != null
+                                          ? (e['collected_money']?.toDouble() ??
+                                                0)
+                                          : 0)
                                     : e.collectedMoney?.toDouble() ?? 0);
 
-                                // Add today's pending to the running total
                                 cumulativePending +=
                                     (milkQty * rate - collected);
                               }

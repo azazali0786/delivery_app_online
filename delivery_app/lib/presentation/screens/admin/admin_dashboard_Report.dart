@@ -1,10 +1,10 @@
 // admin_dashboard_page.dart
 import 'package:delivery_app/data/models/dashboard_report_model.dart';
 import 'package:delivery_app/presentation/widgets/admin/data_row_widget.dart';
-import 'package:delivery_app/presentation/widgets/admin/expense_dialog.dart';
-import 'package:delivery_app/presentation/widgets/admin/edit_expense_dialog.dart';
 import 'package:delivery_app/presentation/widgets/admin/milk_calculator_dialog.dart';
 import 'package:delivery_app/presentation/widgets/admin/milk_inventory.dart';
+import 'package:delivery_app/presentation/screens/admin/expense_screen.dart';
+import 'package:delivery_app/presentation/screens/admin/edit_expense_screen.dart';
 import 'package:delivery_app/presentation/widgets/admin/stats_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -144,51 +144,49 @@ class _AdminDashboardReportState extends State<AdminDashboardReport> {
     }
   }
 
-  void _showExpenseDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => ExpenseDialog(
-        onExpenseAdded: (expenses) {
-          // Persist to backend and refresh
-          () async {
-            final repo = context.read<AdminRepository>();
-            final List<Map<String, dynamic>> toSend = [];
-            final useDate = startDate ?? DateTime.now();
-            for (var expense in expenses) {
-              toSend.add({
-                'name': expense['name'],
-                'amount': expense['amount'],
-                'expense_date': _fmtDate(useDate),
-              });
-            }
+  Future<void> _showExpenseDialog() async {
+    // Open full-screen expense screen and wait for result
+    final result = await Navigator.of(context)
+        .push<List<Map<String, dynamic>>?>(
+          MaterialPageRoute(builder: (c) => const ExpenseScreen()),
+        );
+
+    if (result != null && result.isNotEmpty) {
+      // Persist to backend and refresh
+      final repo = context.read<AdminRepository>();
+      final List<Map<String, dynamic>> toSend = [];
+      final useDate = startDate ?? DateTime.now();
+      for (var expense in result) {
+        toSend.add({
+          'name': expense['name'],
+          'amount': expense['amount'],
+          'expense_date': _fmtDate(useDate),
+        });
+      }
+      try {
+        final inserted = await repo.createExpenses(toSend);
+        setState(() {
+          for (final e in inserted) {
             try {
-              final inserted = await repo.createExpenses(toSend);
-              setState(() {
-                for (final e in inserted) {
-                  try {
-                    final date = DateTime.parse(e['expense_date']);
-                    data.expenseList.add(
-                      Expense(
-                        id: e['id'],
-                        name: e['name'],
-                        amount: (e['amount'] is num)
-                            ? (e['amount'].toDouble())
-                            : double.parse(e['amount'].toString()),
-                        date: date,
-                      ),
-                    );
-                  } catch (_) {}
-                }
-              });
-              // Reload to get updated stats
-              _loadData(startDate: startDate, endDate: endDate);
-            } catch (e) {
-              // ignore errors for now
-            }
-          }();
-        },
-      ),
-    );
+              final date = DateTime.parse(e['expense_date']);
+              data.expenseList.add(
+                Expense(
+                  id: e['id'],
+                  name: e['name'],
+                  amount: (e['amount'] is num)
+                      ? (e['amount'].toDouble())
+                      : double.parse(e['amount'].toString()),
+                  date: date,
+                ),
+              );
+            } catch (_) {}
+          }
+        });
+        await _loadData(startDate: startDate, endDate: endDate);
+      } catch (e) {
+        // ignore
+      }
+    }
   }
 
   void _showMilkCalculator() {
@@ -288,102 +286,90 @@ class _AdminDashboardReportState extends State<AdminDashboardReport> {
     );
   }
 
-  void _showEditExpenseDialog(DailyExpenseGroup group) {
-    // Get repository reference before showing dialog
-    final repo = context.read<AdminRepository>();
+  Future<void> _showEditExpenseDialog(DailyExpenseGroup group) async {
+    // Open full-screen edit screen and wait for updated expenses
+    final updated = await Navigator.of(context)
+        .push<List<Map<String, dynamic>>?>(
+          MaterialPageRoute(
+            builder: (c) => EditExpenseScreen(expenseGroup: group),
+          ),
+        );
 
-    showDialog(
-      context: context,
-      builder: (dialogContext) => EditExpenseDialog(
-        expenseGroup: group,
-        onExpensesUpdated: (updatedExpenses) async {
-          try {
-            // Format the date properly - should be YYYY-MM-DD
-            final dateStr = _fmtDate(group.date);
+    if (updated != null) {
+      try {
+        final repo = context.read<AdminRepository>();
+        final dateStr = _fmtDate(group.date);
 
-            print('Deleting expenses for date: $dateStr'); // Debug log
+        // Delete existing expenses for this date
+        await repo.deleteExpensesByDate(dateStr);
 
-            // Delete existing expenses for this date
-            await repo.deleteExpensesByDate(dateStr);
+        final toSend = updated
+            .map(
+              (e) => {
+                'name': e['name'],
+                'amount': e['amount'],
+                'expense_date': dateStr,
+              },
+            )
+            .toList();
 
-            print(
-              'Creating ${updatedExpenses.length} new expenses',
-            ); // Debug log
+        final inserted = await repo.createExpenses(
+          List<Map<String, dynamic>>.from(toSend),
+        );
 
-            // Create new expenses with updated values
-            final toSend = updatedExpenses
-                .map(
-                  (e) => {
-                    'name': e['name'],
-                    'amount': e['amount'],
-                    'expense_date': dateStr,
-                  },
-                )
-                .toList();
-
-            final inserted = await repo.createExpenses(
-              List<Map<String, dynamic>>.from(toSend),
-            );
-
-            // Update local data - remove old expenses for this date
-            if (mounted) {
-              setState(() {
-                data.expenseList.removeWhere((expense) {
-                  final expenseDate = DateTime(
-                    expense.date.year,
-                    expense.date.month,
-                    expense.date.day,
-                  );
-                  final targetDate = DateTime(
-                    group.date.year,
-                    group.date.month,
-                    group.date.day,
-                  );
-                  return expenseDate.isAtSameMomentAs(targetDate);
-                });
-
-                // Add new expenses
-                for (final e in inserted) {
-                  try {
-                    final date = DateTime.parse(e['expense_date']);
-                    data.expenseList.add(
-                      Expense(
-                        id: e['id'],
-                        name: e['name'],
-                        amount: (e['amount'] is num)
-                            ? (e['amount'].toDouble())
-                            : double.parse(e['amount'].toString()),
-                        date: date,
-                      ),
-                    );
-                  } catch (_) {}
-                }
-              });
-
-              // Reload data to refresh stats
-              await _loadData(startDate: startDate, endDate: endDate);
-
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Expenses updated successfully'),
-                  backgroundColor: Color(0xFF48BB78),
-                ),
+        if (mounted) {
+          setState(() {
+            data.expenseList.removeWhere((expense) {
+              final expenseDate = DateTime(
+                expense.date.year,
+                expense.date.month,
+                expense.date.day,
               );
-            }
-          } catch (e) {
-            print('Error updating expenses: $e'); // Debug log
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Error updating expenses: $e'),
-                  backgroundColor: const Color(0xFFF56565),
-                ),
+              final targetDate = DateTime(
+                group.date.year,
+                group.date.month,
+                group.date.day,
               );
+              return expenseDate.isAtSameMomentAs(targetDate);
+            });
+
+            for (final e in inserted) {
+              try {
+                final date = DateTime.parse(e['expense_date']);
+                data.expenseList.add(
+                  Expense(
+                    id: e['id'],
+                    name: e['name'],
+                    amount: (e['amount'] is num)
+                        ? (e['amount'].toDouble())
+                        : double.parse(e['amount'].toString()),
+                    date: date,
+                  ),
+                );
+              } catch (_) {}
             }
-          }
-        },
-      ),
-    );
+          });
+
+          await _loadData(startDate: startDate, endDate: endDate);
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Expenses updated successfully'),
+              backgroundColor: Color(0xFF48BB78),
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error updating expenses: $e'),
+              backgroundColor: const Color(0xFFF56565),
+            ),
+          );
+        }
+      }
+    }
   }
 
   @override
@@ -415,47 +401,53 @@ class _AdminDashboardReportState extends State<AdminDashboardReport> {
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Total Data Section
-                  _buildSectionHeader('Total Overview'),
-                  const SizedBox(height: 16),
-                  MilkInventorySection(
-                    inventoryData: {
-                      'total_active_milk': totalActiveMilk,
-                      'total_half_liter_bottles': halfLiterBottles,
-                      'total_one_liter_bottles': oneLiterBottles,
-                    },
-                  ),
-
-                  const SizedBox(height: 16),
-                  _buildTotalDataCards(),
-                  const SizedBox(height: 32),
-
-                  // Today's Data Section
-                  _buildSectionHeader('Day\'s Summary'),
-                  const SizedBox(height: 8),
-                  _buildDateFilter(),
-                  const SizedBox(height: 16),
-                  _buildTodayDataCards(),
-                  const SizedBox(height: 24),
-
-                  // Expense section for selected date
-                  if (_hasExpensesForSelectedDate()) ...[
-                    _buildSectionHeader('Expenses'),
-                    const SizedBox(height: 16),
-                    _buildExpenseList(),
-                    const SizedBox(height: 24),
-                  ],
-
-                  _buildAddExpenseButton(),
-                  const SizedBox(height: 32),
-                ],
+          : RefreshIndicator(
+              onRefresh: () => _loadData(
+                startDate: startDate,
+                endDate: endDate,
               ),
-            ),
+            child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Total Data Section
+                    _buildSectionHeader('Total Overview'),
+                    const SizedBox(height: 16),
+                    MilkInventorySection(
+                      inventoryData: {
+                        'total_active_milk': totalActiveMilk,
+                        'total_half_liter_bottles': halfLiterBottles,
+                        'total_one_liter_bottles': oneLiterBottles,
+                      },
+                    ),
+            
+                    const SizedBox(height: 16),
+                    _buildTotalDataCards(),
+                    const SizedBox(height: 32),
+            
+                    // Today's Data Section
+                    _buildSectionHeader('Day\'s Summary'),
+                    const SizedBox(height: 8),
+                    _buildDateFilter(),
+                    const SizedBox(height: 16),
+                    _buildTodayDataCards(),
+                    const SizedBox(height: 24),
+            
+                    // Expense section for selected date
+                    if (_hasExpensesForSelectedDate()) ...[
+                      _buildSectionHeader('Expenses'),
+                      const SizedBox(height: 16),
+                      _buildExpenseList(),
+                      const SizedBox(height: 24),
+                    ],
+            
+                    _buildAddExpenseButton(),
+                    const SizedBox(height: 32),
+                  ],
+                ),
+              ),
+          ),
     );
   }
 
@@ -593,7 +585,7 @@ class _AdminDashboardReportState extends State<AdminDashboardReport> {
           const Spacer(),
           TextButton(
             onPressed: _selectDateRange,
-            child: const Text('Change Range'),
+            child: const Text('Range'),
           ),
         ],
       ),
@@ -680,7 +672,7 @@ class _AdminDashboardReportState extends State<AdminDashboardReport> {
         onPressed: _showExpenseDialog,
         icon: const Icon(Icons.add_circle_outline),
         label: Text(
-          'Add Expense for ${_fmtRange()}',
+          'Add Expense',
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
         style: ElevatedButton.styleFrom(

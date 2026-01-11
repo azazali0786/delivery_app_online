@@ -5,8 +5,13 @@ import '../../../../data/models/customer_model.dart';
 
 class CustomerInfoCard extends StatelessWidget {
   final CustomerModel customer;
+  final int? overrideLastTimePendingBottles;
 
-  const CustomerInfoCard({Key? key, required this.customer}) : super(key: key);
+  const CustomerInfoCard({
+    Key? key,
+    required this.customer,
+    this.overrideLastTimePendingBottles,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -14,10 +19,7 @@ class CustomerInfoCard extends StatelessWidget {
       margin: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            AppColors.primary,
-            AppColors.primary.withOpacity(0.85),
-          ],
+          colors: [AppColors.primary, AppColors.primary.withOpacity(0.85)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -143,7 +145,11 @@ class CustomerInfoCard extends StatelessWidget {
                     child: _StatItem(
                       icon: Icons.local_drink_outlined,
                       label: 'Bottles',
-                      value: customer.lastTimePendingBottles?.toString() ?? '0',
+                      value:
+                          (overrideLastTimePendingBottles ??
+                                  customer.lastTimePendingBottles ??
+                                  0)
+                              .toString(),
                     ),
                   ),
                 ],
@@ -193,10 +199,7 @@ class _StatItem extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           label,
-          style: TextStyle(
-            fontSize: 9,
-            color: Colors.white.withOpacity(0.8),
-          ),
+          style: TextStyle(fontSize: 9, color: Colors.white.withOpacity(0.8)),
           textAlign: TextAlign.center,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,

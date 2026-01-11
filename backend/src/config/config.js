@@ -11,8 +11,4 @@ module.exports = {
     secret: process.env.JWT_SECRET || 'your-secret-key',
     expiresIn: '30d',
   },
-  admin: {
-    email: process.env.ADMIN_EMAIL || 'azazwinner786@gmail.com',
-    password: process.env.ADMIN_PASSWORD || 'Azaz@123',
-  },
 };

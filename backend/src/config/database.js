@@ -153,14 +153,6 @@ async function initializeDatabase() {
       )
     `);
 
-    // Insert default admin if not exists
-    const hashedPassword = await bcrypt.hash(config.admin.password, 10);
-    await client.query(`
-      INSERT INTO admins (email, password, name)
-      VALUES ($1, $2, $3)
-      ON CONFLICT (email) DO NOTHING
-    `, [config.admin.email, hashedPassword, 'Admin']);
-
     // Insert default reasons if not exists
     const defaultReasons = [
       'Not present in home',

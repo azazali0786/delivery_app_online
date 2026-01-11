@@ -32,146 +32,26 @@ class AdminRepository {
 
   // Calculate Stats for Specific Delivery Boy
   Future<Map<String, dynamic>> calculateDeliveryBoyStats(
-    int deliveryBoyId,
-  ) async {
+    int deliveryBoyId, {
+    String? date,
+    String? startDate,
+    String? endDate,
+  }) async {
     try {
-      // Fetch delivery boy with their assigned sub-areas
-      final deliveryBoys = await getAllDeliveryBoys();
-      final deliveryBoy = deliveryBoys.firstWhere(
-        (db) => db.id == deliveryBoyId,
-        orElse: () => throw Exception('Delivery boy not found'),
-      );
+      String endpoint = '${ApiConstants.deliveryBoys}/$deliveryBoyId/stats';
+      List<String> qp = [];
+      if (date != null) qp.add('date=$date');
+      if (startDate != null) qp.add('start_date=$startDate');
+      if (endDate != null) qp.add('end_date=$endDate');
+      if (qp.isNotEmpty) endpoint += '?${qp.join('&')}';
 
-      // Get list of sub-area IDs assigned to this delivery boy
-      final assignedSubAreaIds =
-          deliveryBoy.subAreas?.map((sa) => sa.subAreaId).toList() ?? [];
+      final response = await _apiService.get(endpoint);
 
-      // Fetch customers assigned to this delivery boy
-      final allCustomers = await getAllCustomers(deliveryBoyId: deliveryBoyId);
-
-      // Filter customers to only those in the same sub-areas as delivery boy
-      final customers = allCustomers
-          .where(
-            (c) =>
-                c.subAreaId != null && assignedSubAreaIds.contains(c.subAreaId),
-          )
-          .toList();
-
-      final activeCustomers = customers
-          .where((c) => c.isActive ?? false)
-          .toList();
-
-      // Fetch entries for today for this delivery boy
-      final todayEntries = await getEntries(
-        deliveryBoyId: deliveryBoyId,
-        date: DateTime.now().toString().split(' ')[0],
-      );
-
-      // Fetch today's stock entry for this delivery boy
-      final todayDate = DateTime.now().toString().split(' ')[0];
-      final stockEntries = await getAllStockEntries(
-        deliveryBoyId: deliveryBoyId,
-        startDate: todayDate,
-        endDate: todayDate,
-      );
-
-      // ---------------------------
-      // ✅ UPDATED NEED CALCULATION (matching delivery boy logic)
-      // ---------------------------
-      int needHalf = 0;
-      int needOne = 0;
-
-      for (var customer in activeCustomers) {
-        final double qty = customer.permanentQuantity;
-
-        needOne += qty ~/ 1; // full 1-liter bottles
-        double remaining = qty % 1; // leftover
-
-        if (remaining >= 0.5) needHalf += 1; // half bottle if >= 0.5
-      }
-
-      // ---------------------------
-      // Calculate Dispatched Stock from today's stock entries
-      // ---------------------------
-      double dispatchedHalf = 0;
-      double dispatchedOne = 0;
-
-      for (var stock in stockEntries) {
-        dispatchedHalf += stock.halfLtrBottles;
-        dispatchedOne += stock.oneLtrBottles;
-      }
-
-      // ---------------------------
-      // Calculate Assign (Today Delivered) from today's entries
-      // ---------------------------
-      double assignHalf = 0;
-      double assignOne = 0;
-      double todayOnline = 0;
-      double todayCash = 0;
-      double todayPending = 0;
-
-      for (var entry in todayEntries) {
-        double quantity = entry.milkQuantity;
-
-        assignOne += quantity ~/ 1;
-        double remaining = quantity % 1;
-        if (remaining >= 0.5) assignHalf += 1;
-
-        // Calculate money collections
-        if (entry.paymentMethod.toLowerCase() == 'online') {
-          todayOnline += entry.collectedMoney;
-        } else if (entry.paymentMethod.toLowerCase() == 'cash') {
-          todayCash += entry.collectedMoney;
-        }
-
-        // Fixed: Calculate today's pending correctly
-        todayPending +=
-            (entry.milkQuantity * entry.rate) - entry.collectedMoney;
-      }
-
-      // Calculate Left in Market = Dispatched - Delivered
-      double leftHalf = dispatchedHalf - assignHalf;
-      double leftOne = dispatchedOne - assignOne;
-
-      // Don't set negative values to 0 to show oversupply
-      // if (leftHalf < 0) leftHalf = 0;
-      // if (leftOne < 0) leftOne = 0;
-      print(customers.length);
-      // Calculate Total Pending Money
-      double totalPending = 0;
-      for (var customer in customers) {
-        if (customer.totalPendingMoney != null) {
-          totalPending += customer.totalPendingMoney!;
-        }
-      }
-      return {
-        'need_half': needHalf,
-        'need_one': needOne,
-        'stock_half_ltr_bottles': dispatchedHalf.toInt(),
-        'stock_one_ltr_bottles': dispatchedOne.toInt(),
-        'assign_half': assignHalf.toInt(),
-        'assign_one': assignOne.toInt(),
-        'left_half': leftHalf.toInt(),
-        'left_one': leftOne.toInt(),
-        'today_online': todayOnline.toStringAsFixed(2),
-        'today_cash': todayCash.toStringAsFixed(2),
-        'today_pending': todayPending.toStringAsFixed(2),
-        'total_pending': totalPending.toStringAsFixed(2),
-      };
+      // Normalize response and types
+      return Map<String, dynamic>.from(response);
     } catch (e) {
-      print('Error calculating delivery boy stats: $e');
-      return {
-        'need_half': 0,
-        'need_one': 0,
-        'assign_half': 0,
-        'assign_one': 0,
-        'left_half': 0,
-        'left_one': 0,
-        'today_online': '0.00',
-        'today_cash': '0.00',
-        'today_pending': '0.00',
-        'total_pending': '0.00',
-      };
+      print('Error fetching delivery boy stats: $e');
+      return {};
     }
   }
 

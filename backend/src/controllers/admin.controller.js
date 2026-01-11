@@ -676,6 +676,183 @@ class AdminController {
       next(error);
     }
   }
+
+  // New: Delivery boy stats for a date or date range
+  static async getDeliveryBoyStats(req, res, next) {
+    try {
+      const deliveryBoyId = req.params.id;
+      const startDate = req.query.start_date;
+      const endDate = req.query.end_date;
+      const date = req.query.date;
+
+      const { pool } = require('../config/database');
+
+      // Validate delivery boy
+      const db = await DeliveryBoyModel.findById(deliveryBoyId);
+      if (!db) return res.status(404).json({ error: 'Delivery boy not found' });
+
+      // Get assigned sub_area ids
+      const assigned = await DeliveryBoyModel.getAssignedSubAreas(deliveryBoyId);
+      const subAreaIds = assigned.map(a => a.sub_area_id);
+
+      // Build customer filter based on assigned sub-areas
+      let customers = [];
+      if (subAreaIds.length > 0) {
+        const custRes = await pool.query(
+          `SELECT id, permanent_quantity FROM customers WHERE sub_area_id = ANY($1::int[]) AND is_active = true`,
+          [subAreaIds]
+        );
+        customers = custRes.rows;
+      }
+
+      // Calculate needs from active customers (static per-day values)
+      let needHalf = 0;
+      let needOne = 0;
+      let totalActiveMilk = 0;
+      for (const c of customers) {
+        const qty = parseFloat(c.permanent_quantity) || 0;
+        totalActiveMilk += qty;
+        needOne += Math.floor(qty);
+        const rem = qty - Math.floor(qty);
+        if (rem >= 0.5) needHalf += 1;
+      }
+
+      // Prepare date filters
+      let entryWhere = 'e.delivery_boy_id = $1';
+      const params = [deliveryBoyId];
+      if (startDate && endDate) {
+        params.push(startDate, endDate);
+        entryWhere += ' AND DATE(e.entry_date) BETWEEN $2 AND $3';
+      } else if (date) {
+        params.push(date);
+        entryWhere += ' AND DATE(e.entry_date) = $2';
+      }
+
+      // Aggregate totals over the range or single date
+      const entriesAggQuery = `
+        SELECT
+          COALESCE(SUM(FLOOR(e.milk_quantity)),0)::int as assign_one,
+          COALESCE(SUM(CASE WHEN (e.milk_quantity - FLOOR(e.milk_quantity)) >= 0.5 THEN 1 ELSE 0 END),0)::int as assign_half,
+          COALESCE(SUM(e.collected_money),0)::numeric as collected_money,
+          COALESCE(SUM(e.milk_quantity * e.rate - e.collected_money),0)::numeric as pending_money
+        FROM entries e
+        WHERE ${entryWhere}
+      `;
+
+      const entriesAggRes = await pool.query(entriesAggQuery, params);
+      const assignOne = parseInt(entriesAggRes.rows[0].assign_one) || 0;
+      const assignHalf = parseInt(entriesAggRes.rows[0].assign_half) || 0;
+      const collectedMoney = parseFloat(entriesAggRes.rows[0].collected_money) || 0;
+      const pendingMoney = parseFloat(entriesAggRes.rows[0].pending_money) || 0;
+
+      // Stock dispatched aggregation
+      let stockParams = [deliveryBoyId];
+      let stockWhere = 'delivery_boy_id = $1';
+      if (startDate && endDate) {
+        stockParams.push(startDate, endDate);
+        stockWhere += ' AND DATE(entry_date) BETWEEN $2 AND $3';
+      } else if (date) {
+        stockParams.push(date);
+        stockWhere += ' AND DATE(entry_date) = $2';
+      }
+
+      const stockAggRes = await pool.query(
+        `SELECT COALESCE(SUM(half_ltr_bottles),0) as dispatched_half, COALESCE(SUM(one_ltr_bottles),0) as dispatched_one FROM stock_entries WHERE ${stockWhere}`,
+        stockParams
+      );
+
+      const dispatchedHalf = parseInt(stockAggRes.rows[0].dispatched_half) || 0;
+      const dispatchedOne = parseInt(stockAggRes.rows[0].dispatched_one) || 0;
+
+      // Left in market = dispatched - assigned
+      const leftHalf = dispatchedHalf - assignHalf;
+      const leftOne = dispatchedOne - assignOne;
+
+      // Build per-day time series when range provided (or single date)
+      const timeSeries = [];
+
+      if (startDate && endDate) {
+        // Entries grouped by date
+        const entriesByDateQuery = `
+          SELECT DATE(e.entry_date) as date,
+            COALESCE(SUM(FLOOR(e.milk_quantity)),0)::int as assign_one,
+            COALESCE(SUM(CASE WHEN (e.milk_quantity - FLOOR(e.milk_quantity)) >= 0.5 THEN 1 ELSE 0 END),0)::int as assign_half,
+            COALESCE(SUM(e.collected_money),0)::numeric as collected_money,
+            COALESCE(SUM(e.milk_quantity * e.rate - e.collected_money),0)::numeric as pending_money
+          FROM entries e
+          WHERE ${entryWhere}
+          GROUP BY DATE(e.entry_date)
+          ORDER BY DATE(e.entry_date) ASC
+        `;
+
+        const entriesByDateRes = await pool.query(entriesByDateQuery, params);
+
+        const stockByDateQuery = `
+          SELECT DATE(entry_date) as date,
+            COALESCE(SUM(half_ltr_bottles),0)::int as dispatched_half,
+            COALESCE(SUM(one_ltr_bottles),0)::int as dispatched_one
+          FROM stock_entries
+          WHERE ${stockWhere}
+          GROUP BY DATE(entry_date)
+          ORDER BY DATE(entry_date) ASC
+        `;
+
+        const stockByDateRes = await pool.query(stockByDateQuery, stockParams);
+
+        // Map stock by date for easy lookup
+        const stockMap = {};
+        for (const r of stockByDateRes.rows) stockMap[r.date.toISOString().split('T')[0]] = r;
+
+        for (const r of entriesByDateRes.rows) {
+          const d = r.date.toISOString().split('T')[0];
+          const s = stockMap[d] || { dispatched_half: 0, dispatched_one: 0 };
+          timeSeries.push({
+            date: d,
+            assign_one: parseInt(r.assign_one) || 0,
+            assign_half: parseInt(r.assign_half) || 0,
+            dispatched_one: parseInt(s.dispatched_one) || 0,
+            dispatched_half: parseInt(s.dispatched_half) || 0,
+            collected_money: Number(parseFloat(r.collected_money || 0).toFixed(2)),
+            pending_money: Number(parseFloat(r.pending_money || 0).toFixed(2)),
+            need_one: needOne,
+            need_half: needHalf,
+            total_active_milk: totalActiveMilk
+          });
+        }
+      } else if (date) {
+        const d = date;
+        timeSeries.push({
+          date: d,
+          assign_one: assignOne,
+          assign_half: assignHalf,
+          dispatched_one: dispatchedOne,
+          dispatched_half: dispatchedHalf,
+          collected_money: Number(collectedMoney.toFixed(2)),
+          pending_money: Number(pendingMoney.toFixed(2)),
+          need_one: needOne,
+          need_half: needHalf,
+          total_active_milk: totalActiveMilk
+        });
+      }
+
+      return res.json({
+        need_half: needHalf,
+        need_one: needOne,
+        stock_half_ltr_bottles: dispatchedHalf,
+        stock_one_ltr_bottles: dispatchedOne,
+        assign_half: assignHalf,
+        assign_one: assignOne,
+        left_half: leftHalf,
+        left_one: leftOne,
+        collected_money: Number(collectedMoney.toFixed(2)),
+        pending_money: Number(pendingMoney.toFixed(2)),
+        total_active_milk: totalActiveMilk,
+        time_series: timeSeries
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = AdminController;
