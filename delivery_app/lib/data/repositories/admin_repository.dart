@@ -16,11 +16,17 @@ class AdminRepository {
     return await _apiService.get(ApiConstants.adminDashboard);
   }
 
-  Future<Map<String, dynamic>> getDashboardReport({String? date}) async {
+  Future<Map<String, dynamic>> getDashboardReport({
+    String? date,
+    String? startDate,
+    String? endDate,
+  }) async {
     String endpoint = ApiConstants.adminDashboardReport;
-    if (date != null) {
-      endpoint += '?date=$date';
-    }
+    List<String> params = [];
+    if (date != null) params.add('date=$date');
+    if (startDate != null) params.add('start_date=$startDate');
+    if (endDate != null) params.add('end_date=$endDate');
+    if (params.isNotEmpty) endpoint += '?${params.join('&')}';
     return await _apiService.get(endpoint);
   }
 

@@ -132,47 +132,148 @@ class DeliveryBoyModel {
   }
 
   static async getDashboardStats(deliveryBoyId) {
-    const today = new Date().toLocaleDateString('en-CA');
-    console.log('Today:', today);
-    // Get today's stock
-    const stockResult = await pool.query(`
-      SELECT half_ltr_bottles, one_ltr_bottles
-      FROM stock_entries
-      WHERE delivery_boy_id = $1 AND entry_date = $2
-    `, [deliveryBoyId, today]);
+    // Determine current period based on 2 PM cutoff
+    const now = new Date();
+    const todayDate = now.toISOString().split('T')[0]; // YYYY-MM-DD
+    const cutoff = new Date(`${todayDate}T14:00:00`);
+    const isEvening = now >= cutoff; // before 2pm -> morning (isEvening=false), after -> evening
 
+    // Get stock entry for the appropriate period (latest before/after 2pm)
+    // Use hour extraction to avoid timezone mismatches with ISO strings
+    const stockQuery = isEvening
+      ? `SELECT half_ltr_bottles, one_ltr_bottles FROM stock_entries WHERE delivery_boy_id = $1 AND DATE(entry_date) = $2 AND EXTRACT(HOUR FROM entry_date) >= 14 ORDER BY entry_date DESC LIMIT 1`
+      : `SELECT half_ltr_bottles, one_ltr_bottles FROM stock_entries WHERE delivery_boy_id = $1 AND DATE(entry_date) = $2 AND EXTRACT(HOUR FROM entry_date) < 14 ORDER BY entry_date DESC LIMIT 1`;
+
+    const stockResult = await pool.query(stockQuery, [deliveryBoyId, todayDate]);
     const stock = stockResult.rows[0] || { half_ltr_bottles: 0, one_ltr_bottles: 0 };
 
-    // Get today's deliveries
-    const deliveriesResult = await pool.query(`
+    // Get customers assigned to this delivery boy for the current period (include last pending and total pending money)
+    const customersResult = await pool.query(`
       SELECT 
-        COUNT(*) as total_deliveries,
-        COALESCE(SUM(milk_quantity), 0) as total_milk,
-        COALESCE(SUM(collected_money), 0) as total_collected_money,
-        COALESCE(SUM(CASE WHEN is_delivered = false THEN milk_quantity ELSE 0 END), 0) as pending_deliveries
-      FROM entries
-      WHERE delivery_boy_id = $1 AND entry_date = $2
-    `, [deliveryBoyId, today]);
+        c.id,
+        c.permanent_quantity,
+        COALESCE((SELECT SUM(e.milk_quantity * e.rate - e.collected_money) FROM entries e WHERE e.customer_id = c.id), 0) as total_pending_money,
+        COALESCE((SELECT e.pending_bottles FROM entries e WHERE e.customer_id = c.id ORDER BY e.entry_date DESC LIMIT 1), 0) as last_time_pending_bottles
+      FROM customers c
+      WHERE c.sub_area_id IN (SELECT sub_area_id FROM delivery_boy_subareas WHERE delivery_boy_id = $1)
+        AND c.is_approved = true AND c.is_active = true
+        AND (c.shift IS NULL OR LOWER(c.shift) LIKE $2)
+    `, [deliveryBoyId, isEvening ? '%e%' : '%m%']);
+    const customers = customersResult.rows;
 
-    // Get total left bottles
-    const bottlesResult = await pool.query(`
-      SELECT COALESCE(SUM(pending_bottles), 0) as total_left_bottles
+    // Calculate need (based on permanent_quantity) and total pending values
+    let needHalf = 0;
+    let needOne = 0;
+    let totalPending = 0;
+    let totalPendingBottles = 0;
+
+    for (const c of customers) {
+      const qty = parseFloat(c.permanent_quantity) || 0;
+      needOne += Math.floor(qty);
+      const rem = qty - Math.floor(qty);
+      if (rem >= 0.5) needHalf += 1;
+
+      totalPending += parseFloat(c.total_pending_money) || 0;
+      totalPendingBottles += parseInt(c.last_time_pending_bottles) || 0;
+    }
+
+    // First: Get the last pending_bottles from before today for each customer
+    const lastPendingBeforeTodayQuery = `
+      SELECT e.customer_id, e.pending_bottles
       FROM entries e
       WHERE e.delivery_boy_id = $1
-      AND e.id IN (
-        SELECT MAX(id) FROM entries GROUP BY customer_id
-      )
-    `, [deliveryBoyId]);
+        AND DATE(e.entry_date) < $2
+      ORDER BY e.entry_date DESC, e.created_at DESC
+    `;
+    const lastPendingResult = await pool.query(lastPendingBeforeTodayQuery, [deliveryBoyId, todayDate]);
+    const lastPendingByCustomer = {};
+    for (const row of lastPendingResult.rows) {
+      if (!lastPendingByCustomer[row.customer_id]) {
+        lastPendingByCustomer[row.customer_id] = row.pending_bottles;
+      }
+    }
 
-    return {
-      half_ltr_bottles: stock.half_ltr_bottles,
-      one_ltr_bottles: stock.one_ltr_bottles,
-      total_milk_for_delivery: stock.half_ltr_bottles * 0.5 + stock.one_ltr_bottles,
-      today_total_delivered: parseFloat(deliveriesResult.rows[0].total_milk),
-      today_pending_delivery: parseFloat(deliveriesResult.rows[0].pending_deliveries),
-      today_collected_money: parseFloat(deliveriesResult.rows[0].total_collected_money),
-      total_left_bottles: parseInt(bottlesResult.rows[0].total_left_bottles)
+    // Fetch entries for this delivery boy for today and limited to the chosen period
+    const entriesQuery = `
+      SELECT e.*
+      FROM entries e
+      WHERE e.delivery_boy_id = $1
+        AND DATE(e.entry_date) = $2
+        AND (${isEvening ? "EXTRACT(HOUR FROM e.created_at) >= 14" : "EXTRACT(HOUR FROM e.created_at) < 14"})
+      ORDER BY e.customer_id ASC, e.created_at ASC
+    `;
+
+    const entriesResult = await pool.query(entriesQuery, [deliveryBoyId, todayDate]);
+    const entries = entriesResult.rows;
+
+    // Track previous pending for each customer in today's entries
+    const prevPendingByCustomer = {};
+    for (const e of entries) {
+      // Use yesterday's pending for first entry, else chain from previous entry today
+      if (!prevPendingByCustomer[e.customer_id]) {
+        prevPendingByCustomer[e.customer_id] = lastPendingByCustomer[e.customer_id] || 0;
+      }
+      e.prev_pending = prevPendingByCustomer[e.customer_id];
+      prevPendingByCustomer[e.customer_id] = e.pending_bottles;
+    }
+
+    // Aggregations for assigned bottles, payments, and collected bottles
+    let assignHalf = 0;
+    let assignOne = 0;
+    let todayOnline = 0;
+    let todayCash = 0;
+    let todayPending = 0;
+    let todayBottles = 0;
+    let todayCollectedBottles = 0;
+
+    for (const e of entries) {
+      const qty = parseFloat(e.milk_quantity) || 0;
+      assignOne += Math.floor(qty);
+      const rem = qty - Math.floor(qty);
+      if (rem >= 0.5) assignHalf += 1;
+
+      // bottles derived from quantity
+      const bottlesFromQty = Math.floor(qty) + (rem >= 0.5 ? 1 : 0);
+      todayBottles += bottlesFromQty;
+
+      const pm = (e.payment_method || '').toLowerCase();
+      if (pm === 'online') todayOnline += parseFloat(e.collected_money) || 0;
+      else if (pm === 'cash') todayCash += parseFloat(e.collected_money) || 0;
+
+      todayPending += (parseFloat(e.milk_quantity) || 0) * (parseFloat(e.rate) || 0) - (parseFloat(e.collected_money) || 0);
+
+      const prevPending = parseInt(e.prev_pending) || 0;
+      const currPending = parseInt(e.pending_bottles) || 0;
+      const collectedForEntry = bottlesFromQty + prevPending - currPending;
+      todayCollectedBottles += collectedForEntry > 0 ? collectedForEntry : 0;
+    }
+
+    // Left in market
+    let leftHalf = needHalf - assignHalf;
+    let leftOne = needOne - assignOne;
+    if (leftHalf < 0) leftHalf = 0;
+    if (leftOne < 0) leftOne = 0;
+
+    const result = {
+      half_ltr_bottles: stock.half_ltr_bottles || 0,
+      one_ltr_bottles: stock.one_ltr_bottles || 0,
+      need_half: needHalf,
+      need_one: needOne,
+      assign_half: assignHalf,
+      assign_one: assignOne,
+      left_half: leftHalf,
+      left_one: leftOne,
+      today_online: Number(todayOnline.toFixed(2)),
+      today_cash: Number(todayCash.toFixed(2)),
+      today_pending: Number(todayPending.toFixed(2)),
+      total_pending: Number(totalPending.toFixed(2)),
+      total_pending_bottles: totalPendingBottles,
+      today_collected_bottles: todayCollectedBottles,
+      today_bottles: todayBottles,
+      period: isEvening ? 'evening' : 'morning'
     };
+
+    return result;
   }
 }
 

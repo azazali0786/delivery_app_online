@@ -47,6 +47,18 @@ app.get('/api/debug/api-calls', (req, res) => {
   res.json(apiCallCount);
 });
 
+// Temporary: Debug delivery boy dashboard by id (UNPROTECTED) — remove in production
+const DeliveryBoyModel = require('./models/deliveryBoy.model');
+app.get('/api/debug/delivery-boy/:id/dashboard', async (req, res, next) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const stats = await DeliveryBoyModel.getDashboardStats(id);
+    res.json(stats);
+  } catch (err) {
+    next(err);
+  }
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Server is running' });

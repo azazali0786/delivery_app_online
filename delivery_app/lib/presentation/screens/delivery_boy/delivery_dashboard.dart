@@ -16,7 +16,9 @@ class DeliveryDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => DeliveryBoyCubit(context.read<DeliveryBoyRepository>())..loadDashboard(),
+      create: (_) =>
+          DeliveryBoyCubit(context.read<DeliveryBoyRepository>())
+            ..loadDashboard(),
       child: const _DeliveryDashboardView(),
     );
   }
@@ -50,22 +52,20 @@ class _DeliveryDashboardView extends StatelessWidget {
         icon: const Icon(Icons.person_add_rounded),
         label: const Text('Add Customer'),
         onPressed: () async {
-        final result = await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => BlocProvider.value(
-              value: context.read<DeliveryBoyCubit>(),
-              child: const AddCustomerScreen(),
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => BlocProvider.value(
+                value: context.read<DeliveryBoyCubit>(),
+                child: const AddCustomerScreen(),
+              ),
             ),
-          ),
-        );
+          );
 
-        if (result == true) {
-          context.read<DeliveryBoyCubit>().loadDashboard(); // refresh UI
-        }
-      }
-
-
+          if (result == true) {
+            context.read<DeliveryBoyCubit>().loadDashboard(); // refresh UI
+          }
+        },
       ),
       body: BlocBuilder<DeliveryBoyCubit, DeliveryBoyState>(
         builder: (context, state) {
@@ -89,7 +89,7 @@ class _DeliveryDashboardView extends StatelessWidget {
 
   Widget _buildError(BuildContext context, String message) {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -137,17 +137,20 @@ class _DeliveryDashboardView extends StatelessWidget {
           children: [
             // Stock Section
             _StockSection(stats: stats),
-            
+
             const SizedBox(height: 20),
 
             // Money Section
             _MoneySection(stats: stats),
-            
+
             const SizedBox(height: 20),
 
             // Total Pending
-            _TotalPendingCard(amount: stats['total_pending'] ?? 0),
-            
+            _TotalPendingCard(
+              amount: stats['total_pending'] ?? 0,
+              pendingBottles: stats['total_pending_bottles'] ?? 0,
+            ),
+
             const SizedBox(height: 24),
 
             // View Customers Button
@@ -174,15 +177,11 @@ class _DeliveryDashboardView extends StatelessWidget {
 
   void _showLogoutDialog(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        icon: Icon(
-          Icons.logout_rounded,
-          color: colorScheme.error,
-          size: 32,
-        ),
+        icon: Icon(Icons.logout_rounded, color: colorScheme.error, size: 32),
         title: const Text('Logout'),
         content: const Text('Are you sure you want to logout?'),
         actions: [
@@ -195,9 +194,7 @@ class _DeliveryDashboardView extends StatelessWidget {
               Navigator.pop(ctx);
               context.read<AuthCubit>().logout();
             },
-            style: FilledButton.styleFrom(
-              backgroundColor: colorScheme.error,
-            ),
+            style: FilledButton.styleFrom(backgroundColor: colorScheme.error),
             child: const Text('Logout'),
           ),
         ],
@@ -235,11 +232,23 @@ class _StockSection extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            Text(
-              "Today's Stock",
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Today's Stock",
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  stats['period'] == 'evening' ? 'Evening' : 'Morning',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -302,19 +311,19 @@ class _StockSection extends StatelessWidget {
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 16),
                 const Divider(height: 1),
-                
+
                 // Rows
                 _buildStockRow(
                   context,
                   'Required',
                   stats['need_half']?.toString() ?? '0',
                   stats['need_one']?.toString() ?? '0',
-                  Icons.inventory_rounded
+                  Icons.inventory_rounded,
                 ),
-                
+
                 _buildStockRow(
                   context,
                   'Dispatched',
@@ -322,7 +331,7 @@ class _StockSection extends StatelessWidget {
                   stats['stock_one_ltr_bottles']?.toString() ?? '0',
                   Icons.local_shipping_rounded,
                 ),
-                
+
                 _buildStockRow(
                   context,
                   'Delivered',
@@ -330,7 +339,7 @@ class _StockSection extends StatelessWidget {
                   stats['assign_one']?.toString() ?? '0',
                   Icons.check_circle_rounded,
                 ),
-                
+
                 _buildStockRow(
                   context,
                   'pending',
@@ -356,26 +365,22 @@ class _StockSection extends StatelessWidget {
     bool isLast = false,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return Column(
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 12),
           child: Row(
             children: [
-              Icon(
-                icon,
-                size: 18,
-                color: colorScheme.primary,
-              ),
+              Icon(icon, size: 18, color: colorScheme.primary),
               const SizedBox(width: 8),
               SizedBox(
                 width: 96,
                 child: Text(
                   label,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
                 ),
               ),
               Expanded(
@@ -444,7 +449,7 @@ class _MoneySection extends StatelessWidget {
         Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
                 color: Colors.green.shade100,
                 borderRadius: BorderRadius.circular(8),
@@ -452,15 +457,15 @@ class _MoneySection extends StatelessWidget {
               child: Icon(
                 Icons.currency_rupee_rounded,
                 color: Colors.green.shade700,
-                size: 20,
+                size: 18,
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 10),
             Text(
               "Today's Collections",
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -468,29 +473,43 @@ class _MoneySection extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: _MoneyCard(
+              child: _CollectionCard(
                 label: 'Online',
                 amount: stats['today_online'] ?? 0,
                 icon: Icons.credit_card_rounded,
                 color: Colors.blue,
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
             Expanded(
-              child: _MoneyCard(
+              child: _CollectionCard(
                 label: 'Cash',
                 amount: stats['today_cash'] ?? 0,
                 icon: Icons.payments_rounded,
                 color: Colors.green,
               ),
             ),
-            const SizedBox(width: 12),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
             Expanded(
-              child: _MoneyCard(
+              child: _CollectionCard(
                 label: 'Pending',
                 amount: stats['today_pending'] ?? 0,
                 icon: Icons.schedule_rounded,
                 color: Colors.orange,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _CollectionCard(
+                label: 'Bottles',
+                bottles: stats['today_collected_bottles'] ?? 0,
+                icon: Icons.local_drink_rounded,
+                color: Colors.purple,
+                isBottleCard: true,
               ),
             ),
           ],
@@ -500,21 +519,28 @@ class _MoneySection extends StatelessWidget {
   }
 }
 
-class _MoneyCard extends StatelessWidget {
+class _CollectionCard extends StatelessWidget {
   final String label;
   final dynamic amount;
+  final int? bottles;
   final IconData icon;
   final Color color;
+  final bool isBottleCard;
 
-  const _MoneyCard({
+  const _CollectionCard({
     required this.label,
-    required this.amount,
     required this.icon,
     required this.color,
+    this.amount,
+    this.bottles,
+    this.isBottleCard = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final int parsedAmount =
+        double.tryParse(amount?.toString() ?? '0')?.toInt() ?? 0;
+
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -523,27 +549,43 @@ class _MoneyCard extends StatelessWidget {
       ),
       color: color.withOpacity(0.1),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: color, size: 24),
-            const SizedBox(height: 12),
-            Text(
-            '₹${double.tryParse(amount.toString())?.toInt() ?? 0}',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: color,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Icon(icon, color: color, size: 20),
+                if (!isBottleCard)
+                  Text(
+                    label,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: color.withOpacity(0.8),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 11,
+                    ),
+                  ),
+                if (isBottleCard) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    label,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: color.withOpacity(0.8),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ],
             ),
-          ),
-
-
-            const SizedBox(height: 4),
+            const SizedBox(height: 8),
             Text(
-              label,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: color.withOpacity(0.8),
-                fontWeight: FontWeight.w600,
+              isBottleCard ? '${bottles ?? 0}' : '₹$parsedAmount',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: color,
               ),
             ),
           ],
@@ -557,12 +599,19 @@ class _MoneyCard extends StatelessWidget {
 
 class _TotalPendingCard extends StatelessWidget {
   final dynamic amount;
+  final int pendingBottles;
 
-  const _TotalPendingCard({required this.amount});
+  const _TotalPendingCard({
+    Key? key,
+    required this.amount,
+    required this.pendingBottles,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+
+    final int pendingAmount = double.tryParse(amount.toString())?.toInt() ?? 0;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -586,6 +635,7 @@ class _TotalPendingCard extends StatelessWidget {
       ),
       child: Row(
         children: [
+          // Icon container
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -598,7 +648,10 @@ class _TotalPendingCard extends StatelessWidget {
               size: 32,
             ),
           ),
+
           const SizedBox(width: 16),
+
+          // Text section
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -620,12 +673,27 @@ class _TotalPendingCard extends StatelessWidget {
               ],
             ),
           ),
-          Text(
-            '₹${double.tryParse(amount.toString())?.toInt() ?? 0}',
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: colorScheme.onErrorContainer,
-            ),
+
+          // Amount + Bottles
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '₹$pendingAmount',
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onErrorContainer,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '$pendingBottles ${pendingBottles == 1 ? "Bottle" : "Bottles"}',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onErrorContainer.withOpacity(0.9),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
           ),
         ],
       ),

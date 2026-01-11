@@ -105,7 +105,10 @@ class DeliveryBoyCubit extends Cubit<DeliveryBoyState> {
     try {
       await _deliveryBoyRepository.createEntry(data);
       emit(const DeliveryBoyOperationSuccess('Entry created successfully'));
-      loadDashboard();
+      // Guard against emitting new states if the cubit has been closed
+      if (!isClosed) {
+        loadDashboard();
+      }
     } catch (e) {
       emit(
         DeliveryBoyOperationError(e.toString().replaceAll('Exception: ', '')),
@@ -130,7 +133,10 @@ class DeliveryBoyCubit extends Cubit<DeliveryBoyState> {
     try {
       await _deliveryBoyRepository.markNotDelivered(entryId, reason);
       emit(const DeliveryBoyOperationSuccess('Marked as not delivered'));
-      loadDashboard();
+      // Guard against emitting new states if the cubit has been closed
+      if (!isClosed) {
+        loadDashboard();
+      }
     } catch (e) {
       emit(
         DeliveryBoyOperationError(e.toString().replaceAll('Exception: ', '')),

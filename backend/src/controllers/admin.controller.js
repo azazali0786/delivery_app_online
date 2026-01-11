@@ -524,39 +524,73 @@ class AdminController {
   // New: Dashboard report combining entries and expenses
   static async getDashboardReport(req, res, next) {
     try {
-      const date = req.query.date || new Date().toISOString().split('T')[0];
+      // Support single-date (date) or range (start_date & end_date)
+      const date = req.query.date;
+      const startDate = req.query.start_date;
+      const endDate = req.query.end_date;
 
       // We'll compute using queries directly via pool to avoid changing EntryModel
       const { pool } = require('../config/database');
 
-      // Selected date's online and cash collection
-      const datePayments = await pool.query(
-        `SELECT payment_method, COALESCE(SUM(collected_money),0) as total
-         FROM entries
-         WHERE entry_date = $1
-         GROUP BY payment_method`, [date]
-      );
-
+      // Determine date filter for entries
+      let paymentsRows = [];
       let online = 0, cash = 0;
-      for (const row of datePayments.rows) {
-        if ((row.payment_method || '').toLowerCase().includes('cash')) cash += parseFloat(row.total);
-        else online += parseFloat(row.total);
+      let dateTotal = 0;
+      let datePending = 0;
+      let dateExpenses = 0;
+
+      if (startDate && endDate) {
+        // Range: aggregate payments between start and end
+        const datePayments = await pool.query(
+          `SELECT payment_method, COALESCE(SUM(collected_money),0) as total
+           FROM entries
+           WHERE entry_date BETWEEN $1 AND $2
+           GROUP BY payment_method`, [startDate, endDate]
+        );
+
+        for (const row of datePayments.rows) {
+          if ((row.payment_method || '').toLowerCase().includes('cash')) cash += parseFloat(row.total);
+          else online += parseFloat(row.total);
+        }
+
+        dateTotal = online + cash;
+
+        const pendingRes = await pool.query(
+          `SELECT COALESCE(SUM(milk_quantity * rate - collected_money), 0) as pending
+           FROM entries
+           WHERE entry_date BETWEEN $1 AND $2`, [startDate, endDate]
+        );
+        datePending = parseFloat(pendingRes.rows[0].pending);
+
+        dateExpenses = await ExpenseModel.getTotalAmount(startDate, endDate);
+      } else {
+        // Single date (default to today if not provided)
+        const singleDate = date || new Date().toISOString().split('T')[0];
+
+        const datePayments = await pool.query(
+          `SELECT payment_method, COALESCE(SUM(collected_money),0) as total
+           FROM entries
+           WHERE entry_date = $1
+           GROUP BY payment_method`, [singleDate]
+        );
+
+        for (const row of datePayments.rows) {
+          if ((row.payment_method || '').toLowerCase().includes('cash')) cash += parseFloat(row.total);
+          else online += parseFloat(row.total);
+        }
+
+        dateTotal = online + cash;
+
+        const pendingRes = await pool.query(
+          `SELECT COALESCE(SUM(milk_quantity * rate - collected_money), 0) as pending
+           FROM entries
+           WHERE entry_date = $1`, [singleDate]
+        );
+        datePending = parseFloat(pendingRes.rows[0].pending);
+
+        dateExpenses = await ExpenseModel.getTotalAmount(singleDate, singleDate);
       }
 
-      const dateTotal = online + cash;
-
-      // Selected date's pending: sum(milk_quantity*rate - collected_money) for date's entries
-      const pendingRes = await pool.query(
-        `SELECT COALESCE(SUM(milk_quantity * rate - collected_money), 0) as pending
-         FROM entries
-         WHERE entry_date = $1`, [date]
-      );
-      const datePending = parseFloat(pendingRes.rows[0].pending);
-
-      // Selected date's expenses
-      const dateExpenses = await ExpenseModel.getTotalAmount(date, date);
-
-      // Selected date's profit = collected - expenses
       const dateProfit = dateTotal - dateExpenses;
 
       // Total collection overall
@@ -598,6 +632,24 @@ class AdminController {
       );
       const totalPendingMoney = parseFloat(totalPendingMoneyRes.rows[0].total);
 
+      // New: Total active milk and bottle needs from active customers
+      const activeCustRes = await pool.query(
+        `SELECT permanent_quantity FROM customers WHERE is_active = true`
+      );
+
+      let totalActiveMilk = 0;
+      let needHalf = 0;
+      let needOne = 0;
+
+      for (const row of activeCustRes.rows) {
+        const qty = parseFloat(row.permanent_quantity) || 0;
+        totalActiveMilk += qty;
+
+        needOne += Math.floor(qty);
+        const remaining = qty % 1;
+        if (remaining >= 0.5) needHalf += 1;
+      }
+
       res.json({
         total: {
           collection: totalCollection,
@@ -606,7 +658,10 @@ class AdminController {
           total_expenses: totalExpenses,
           delivery_boys: totalDeliveryBoys,
           customers: totalCustomers,
-          pending_money: totalPendingMoney
+          pending_money: totalPendingMoney,
+          total_active_milk: totalActiveMilk,
+          total_half_liter_bottles: needHalf,
+          total_one_liter_bottles: needOne
         },
         date: {
           online,

@@ -1,5 +1,6 @@
 import 'package:delivery_app/presentation/screens/admin/admin_dashboard_Report.dart';
 import 'package:delivery_app/presentation/screens/delivery_boy/add_customer_screen.dart';
+import 'package:delivery_app/presentation/widgets/admin/milk_inventory.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/constants/app_colors.dart';
@@ -110,7 +111,6 @@ class AdminDashboardView extends StatelessWidget {
           if (state is AdminDashboardLoaded) {
             final stats = state.stats;
             final unapproved = stats['pending_approvals'] ?? 0;
-
             return RefreshIndicator(
               onRefresh: () async {
                 context.read<AdminCubit>().loadDashboard();
@@ -121,13 +121,13 @@ class AdminDashboardView extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildSectionTitle('Quick Actions'),
+                    _buildSectionTitle(context, 'Quick Actions'),
                     const SizedBox(height: 16),
 
                     _buildQuickActions(context, unapproved),
 
                     const SizedBox(height: 30),
-                    _buildSectionTitle('Management'),
+                    _buildSectionTitle(context, 'Management'),
                     const SizedBox(height: 16),
 
                     _ManagementCard(
@@ -197,16 +197,17 @@ class AdminDashboardView extends StatelessWidget {
 
   // ---------------- UI Components ----------------
 
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontSize: 22,
-        fontWeight: FontWeight.bold,
-        color: AppColors.textPrimary,
-      ),
-    );
-  }
+  Widget _buildSectionTitle(BuildContext context, String title) {
+  return Text(
+    title,
+   style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        color: AppColors.textPrimary,
+                      ),
+  );
+}
+
 
   /// UPDATED — includes Unapproved inside Quick Action tiles
   Widget _buildQuickActions(BuildContext context, int unapproved) {

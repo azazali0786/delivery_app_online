@@ -4,6 +4,7 @@ import 'package:delivery_app/presentation/widgets/admin/data_row_widget.dart';
 import 'package:delivery_app/presentation/widgets/admin/expense_dialog.dart';
 import 'package:delivery_app/presentation/widgets/admin/edit_expense_dialog.dart';
 import 'package:delivery_app/presentation/widgets/admin/milk_calculator_dialog.dart';
+import 'package:delivery_app/presentation/widgets/admin/milk_inventory.dart';
 import 'package:delivery_app/presentation/widgets/admin/stats_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -17,7 +18,8 @@ class AdminDashboardReport extends StatefulWidget {
 }
 
 class _AdminDashboardReportState extends State<AdminDashboardReport> {
-  DateTime selectedDate = DateTime.now();
+  DateTime? startDate = DateTime.now();
+  DateTime? endDate = DateTime.now();
   final DashboardData data = DashboardData();
   bool _loading = false;
 
@@ -25,68 +27,67 @@ class _AdminDashboardReportState extends State<AdminDashboardReport> {
     return '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
   }
 
+  String _fmtRange() {
+    if (startDate == null || endDate == null) return '';
+    if (startDate!.isAtSameMomentAs(endDate!)) {
+      return '${startDate!.day}/${startDate!.month}/${startDate!.year}';
+    }
+    return '${startDate!.day}/${startDate!.month}/${startDate!.year} - ${endDate!.day}/${endDate!.month}/${endDate!.year}';
+  }
+
   bool _hasExpensesForSelectedDate() {
-    final selectedDayStart = DateTime(
-      selectedDate.year,
-      selectedDate.month,
-      selectedDate.day,
-    );
-    final selectedDayEnd = DateTime(
-      selectedDate.year,
-      selectedDate.month,
-      selectedDate.day,
-      23,
-      59,
-      59,
-    );
+    final start = startDate ?? DateTime.now();
+    final end = endDate ?? start;
+
+    final rangeStart = DateTime(start.year, start.month, start.day);
+    final rangeEnd = DateTime(end.year, end.month, end.day, 23, 59, 59);
 
     return data.expenseList.any((expense) {
       return expense.date.isAfter(
-            selectedDayStart.subtract(const Duration(seconds: 1)),
+            rangeStart.subtract(const Duration(seconds: 1)),
           ) &&
-          expense.date.isBefore(selectedDayEnd.add(const Duration(seconds: 1)));
+          expense.date.isBefore(rangeEnd.add(const Duration(seconds: 1)));
     });
-  }
-
-  // Get total expenses for selected date
-  double _getSelectedDateExpenses() {
-    final selectedDayStart = DateTime(
-      selectedDate.year,
-      selectedDate.month,
-      selectedDate.day,
-    );
-    final selectedDayEnd = DateTime(
-      selectedDate.year,
-      selectedDate.month,
-      selectedDate.day,
-      23,
-      59,
-      59,
-    );
-
-    return data.expenseList
-        .where((expense) =>
-            expense.date.isAfter(
-              selectedDayStart.subtract(const Duration(seconds: 1)),
-            ) &&
-            expense.date.isBefore(selectedDayEnd.add(const Duration(seconds: 1))))
-        .fold(0.0, (sum, expense) => sum + expense.amount);
   }
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _loadData());
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _loadData(startDate: startDate, endDate: endDate),
+    );
   }
 
-  Future<void> _loadData({String? dateStr}) async {
+  double totalActiveMilk = 0.0;
+  int halfLiterBottles = 0;
+  int oneLiterBottles = 0;
+
+  Future<void> _loadData({
+    DateTime? startDate,
+    DateTime? endDate,
+    DateTime? singleDate,
+  }) async {
     setState(() {
       _loading = true;
     });
     try {
       final repo = context.read<AdminRepository>();
-      // fetch report with optional date parameter
-      final report = await repo.getDashboardReport(date: dateStr);
+
+      String? startStr;
+      String? endStr;
+      String? dateStr;
+      if (startDate != null && endDate != null) {
+        startStr = _fmtDate(startDate);
+        endStr = _fmtDate(endDate);
+      } else if (singleDate != null) {
+        dateStr = _fmtDate(singleDate);
+      }
+
+      final report = await repo.getDashboardReport(
+        date: dateStr,
+        startDate: startStr,
+        endDate: endStr,
+      );
       if (report != null) {
         final total = report['total'] ?? {};
         final dateData = report['date'] ?? {};
@@ -99,7 +100,12 @@ class _AdminDashboardReportState extends State<AdminDashboardReport> {
           data.totalData.customers = (total['customers'] ?? 0).toInt();
           data.totalData.pendingMoney = (total['pending_money'] ?? 0).toInt();
 
-          // Selected date data
+          // Milk inventory data returned by API
+          totalActiveMilk = (total['total_active_milk'] ?? 0).toDouble();
+          halfLiterBottles = (total['total_half_liter_bottles'] ?? 0).toInt();
+          oneLiterBottles = (total['total_one_liter_bottles'] ?? 0).toInt();
+
+          // Selected date/range data
           data.todayData.online = (dateData['online'] ?? 0).toInt();
           data.todayData.cash = (dateData['cash'] ?? 0).toInt();
           data.todayData.total = (dateData['total'] ?? 0).toInt();
@@ -116,14 +122,16 @@ class _AdminDashboardReportState extends State<AdminDashboardReport> {
         for (final e in expenses) {
           try {
             final date = DateTime.parse(e['expense_date']);
-            data.expenseList.add(Expense(
-              id: e['id'],
-              name: e['name'],
-              amount: (e['amount'] is num)
-                  ? (e['amount'].toDouble())
-                  : double.parse(e['amount'].toString()),
-              date: date,
-            ));
+            data.expenseList.add(
+              Expense(
+                id: e['id'],
+                name: e['name'],
+                amount: (e['amount'] is num)
+                    ? (e['amount'].toDouble())
+                    : double.parse(e['amount'].toString()),
+                date: date,
+              ),
+            );
           } catch (_) {}
         }
       });
@@ -145,11 +153,12 @@ class _AdminDashboardReportState extends State<AdminDashboardReport> {
           () async {
             final repo = context.read<AdminRepository>();
             final List<Map<String, dynamic>> toSend = [];
+            final useDate = startDate ?? DateTime.now();
             for (var expense in expenses) {
               toSend.add({
                 'name': expense['name'],
                 'amount': expense['amount'],
-                'expense_date': _fmtDate(selectedDate),
+                'expense_date': _fmtDate(useDate),
               });
             }
             try {
@@ -158,19 +167,21 @@ class _AdminDashboardReportState extends State<AdminDashboardReport> {
                 for (final e in inserted) {
                   try {
                     final date = DateTime.parse(e['expense_date']);
-                    data.expenseList.add(Expense(
-                      id: e['id'],
-                      name: e['name'],
-                      amount: (e['amount'] is num)
-                          ? (e['amount'].toDouble())
-                          : double.parse(e['amount'].toString()),
-                      date: date,
-                    ));
+                    data.expenseList.add(
+                      Expense(
+                        id: e['id'],
+                        name: e['name'],
+                        amount: (e['amount'] is num)
+                            ? (e['amount'].toDouble())
+                            : double.parse(e['amount'].toString()),
+                        date: date,
+                      ),
+                    );
                   } catch (_) {}
                 }
               });
               // Reload to get updated stats
-              _loadData(dateStr: _fmtDate(selectedDate));
+              _loadData(startDate: startDate, endDate: endDate);
             } catch (e) {
               // ignore errors for now
             }
@@ -183,32 +194,14 @@ class _AdminDashboardReportState extends State<AdminDashboardReport> {
   void _showMilkCalculator() {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => const MilkCalculatorDialog(),
-      ),
+      MaterialPageRoute(builder: (context) => const MilkCalculatorDialog()),
     );
-  }
-
-  Future<void> _selectDate() async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: selectedDate,
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2030),
-    );
-    if (picked != null && picked != selectedDate) {
-      setState(() {
-        selectedDate = picked;
-      });
-      // Reload data for the selected date
-      _loadData(dateStr: _fmtDate(picked));
-    }
   }
 
   void _showDeleteDayConfirmation(DateTime date) {
     // Get repository reference before showing dialog
     final repo = context.read<AdminRepository>();
-    
+
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -235,11 +228,11 @@ class _AdminDashboardReportState extends State<AdminDashboardReport> {
           ElevatedButton(
             onPressed: () async {
               Navigator.of(dialogContext).pop(); // Close dialog first
-              
+
               try {
                 // Delete from backend
                 await repo.deleteExpensesByDate(_fmtDate(date));
-                
+
                 // Remove from local data
                 setState(() {
                   data.expenseList.removeWhere((expense) {
@@ -248,14 +241,18 @@ class _AdminDashboardReportState extends State<AdminDashboardReport> {
                       expense.date.month,
                       expense.date.day,
                     );
-                    final targetDate = DateTime(date.year, date.month, date.day);
+                    final targetDate = DateTime(
+                      date.year,
+                      date.month,
+                      date.day,
+                    );
                     return expenseDate.isAtSameMomentAs(targetDate);
                   });
                 });
-                
+
                 // Reload data to refresh stats
-                await _loadData(dateStr: _fmtDate(selectedDate));
-                
+                await _loadData(startDate: startDate, endDate: endDate);
+
                 // Show success message
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -294,7 +291,7 @@ class _AdminDashboardReportState extends State<AdminDashboardReport> {
   void _showEditExpenseDialog(DailyExpenseGroup group) {
     // Get repository reference before showing dialog
     final repo = context.read<AdminRepository>();
-    
+
     showDialog(
       context: context,
       builder: (dialogContext) => EditExpenseDialog(
@@ -303,21 +300,25 @@ class _AdminDashboardReportState extends State<AdminDashboardReport> {
           try {
             // Format the date properly - should be YYYY-MM-DD
             final dateStr = _fmtDate(group.date);
-            
+
             print('Deleting expenses for date: $dateStr'); // Debug log
-            
+
             // Delete existing expenses for this date
             await repo.deleteExpensesByDate(dateStr);
-            
-            print('Creating ${updatedExpenses.length} new expenses'); // Debug log
-            
+
+            print(
+              'Creating ${updatedExpenses.length} new expenses',
+            ); // Debug log
+
             // Create new expenses with updated values
             final toSend = updatedExpenses
-                .map((e) => {
-                      'name': e['name'],
-                      'amount': e['amount'],
-                      'expense_date': dateStr,
-                    })
+                .map(
+                  (e) => {
+                    'name': e['name'],
+                    'amount': e['amount'],
+                    'expense_date': dateStr,
+                  },
+                )
                 .toList();
 
             final inserted = await repo.createExpenses(
@@ -345,20 +346,22 @@ class _AdminDashboardReportState extends State<AdminDashboardReport> {
                 for (final e in inserted) {
                   try {
                     final date = DateTime.parse(e['expense_date']);
-                    data.expenseList.add(Expense(
-                      id: e['id'],
-                      name: e['name'],
-                      amount: (e['amount'] is num)
-                          ? (e['amount'].toDouble())
-                          : double.parse(e['amount'].toString()),
-                      date: date,
-                    ));
+                    data.expenseList.add(
+                      Expense(
+                        id: e['id'],
+                        name: e['name'],
+                        amount: (e['amount'] is num)
+                            ? (e['amount'].toDouble())
+                            : double.parse(e['amount'].toString()),
+                        date: date,
+                      ),
+                    );
                   } catch (_) {}
                 }
               });
 
               // Reload data to refresh stats
-              await _loadData(dateStr: _fmtDate(selectedDate));
+              await _loadData(startDate: startDate, endDate: endDate);
 
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
@@ -420,6 +423,15 @@ class _AdminDashboardReportState extends State<AdminDashboardReport> {
                   // Total Data Section
                   _buildSectionHeader('Total Overview'),
                   const SizedBox(height: 16),
+                  MilkInventorySection(
+                    inventoryData: {
+                      'total_active_milk': totalActiveMilk,
+                      'total_half_liter_bottles': halfLiterBottles,
+                      'total_one_liter_bottles': oneLiterBottles,
+                    },
+                  ),
+
+                  const SizedBox(height: 16),
                   _buildTotalDataCards(),
                   const SizedBox(height: 32),
 
@@ -430,17 +442,15 @@ class _AdminDashboardReportState extends State<AdminDashboardReport> {
                   const SizedBox(height: 16),
                   _buildTodayDataCards(),
                   const SizedBox(height: 24),
-                  
+
                   // Expense section for selected date
                   if (_hasExpensesForSelectedDate()) ...[
-                    _buildSectionHeader(
-                      'Expenses',
-                    ),
+                    _buildSectionHeader('Expenses'),
                     const SizedBox(height: 16),
                     _buildExpenseList(),
                     const SizedBox(height: 24),
                   ],
-                  
+
                   _buildAddExpenseButton(),
                   const SizedBox(height: 32),
                 ],
@@ -486,7 +496,8 @@ class _AdminDashboardReportState extends State<AdminDashboardReport> {
             Expanded(
               child: StatsCard(
                 title: 'Profit',
-                value: '₹${data.totalData.profit + data.totalData.pendingMoney}',
+                value:
+                    '₹${data.totalData.profit + data.totalData.pendingMoney}',
                 icon: Icons.trending_up,
                 color: const Color(0xFFED8936),
               ),
@@ -539,6 +550,26 @@ class _AdminDashboardReportState extends State<AdminDashboardReport> {
     );
   }
 
+  Future<void> _selectDateRange() async {
+    final DateTimeRange? picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+      initialDateRange: (startDate != null && endDate != null)
+          ? DateTimeRange(start: startDate!, end: endDate!)
+          : null,
+    );
+
+    if (picked != null) {
+      setState(() {
+        startDate = picked.start;
+        endDate = picked.end;
+      });
+      // Reload data for the selected range
+      await _loadData(startDate: startDate, endDate: endDate);
+    }
+  }
+
   Widget _buildDateFilter() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -552,7 +583,7 @@ class _AdminDashboardReportState extends State<AdminDashboardReport> {
           const Icon(Icons.calendar_today, size: 20, color: Color(0xFF4299E1)),
           const SizedBox(width: 12),
           Text(
-            '${selectedDate.day}/${selectedDate.month}/${selectedDate.year}',
+            _fmtRange(),
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -561,8 +592,8 @@ class _AdminDashboardReportState extends State<AdminDashboardReport> {
           ),
           const Spacer(),
           TextButton(
-            onPressed: _selectDate,
-            child: const Text('Change Date'),
+            onPressed: _selectDateRange,
+            child: const Text('Change Range'),
           ),
         ],
       ),
@@ -649,7 +680,7 @@ class _AdminDashboardReportState extends State<AdminDashboardReport> {
         onPressed: _showExpenseDialog,
         icon: const Icon(Icons.add_circle_outline),
         label: Text(
-          'Add Expense for ${selectedDate.day}/${selectedDate.month}/${selectedDate.year}',
+          'Add Expense for ${_fmtRange()}',
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
         style: ElevatedButton.styleFrom(
@@ -666,26 +697,18 @@ class _AdminDashboardReportState extends State<AdminDashboardReport> {
   }
 
   Widget _buildExpenseList() {
-    // Get expenses only for selected date
-    final selectedDayStart = DateTime(
-      selectedDate.year,
-      selectedDate.month,
-      selectedDate.day,
-    );
-    final selectedDayEnd = DateTime(
-      selectedDate.year,
-      selectedDate.month,
-      selectedDate.day,
-      23,
-      59,
-      59,
-    );
+    // Get expenses only for selected range
+    final start = startDate ?? DateTime.now();
+    final end = endDate ?? start;
+
+    final rangeStart = DateTime(start.year, start.month, start.day);
+    final rangeEnd = DateTime(end.year, end.month, end.day, 23, 59, 59);
 
     final expensesForSelectedDate = data.expenseList.where((expense) {
       return expense.date.isAfter(
-            selectedDayStart.subtract(const Duration(seconds: 1)),
+            rangeStart.subtract(const Duration(seconds: 1)),
           ) &&
-          expense.date.isBefore(selectedDayEnd.add(const Duration(seconds: 1)));
+          expense.date.isBefore(rangeEnd.add(const Duration(seconds: 1)));
     }).toList();
 
     if (expensesForSelectedDate.isEmpty) {
@@ -693,7 +716,7 @@ class _AdminDashboardReportState extends State<AdminDashboardReport> {
     }
 
     final group = DailyExpenseGroup(
-      date: selectedDate,
+      date: start,
       expenses: expensesForSelectedDate,
     );
 
@@ -762,37 +785,37 @@ class _AdminDashboardReportState extends State<AdminDashboardReport> {
                     ],
                   ),
                 ),
-                
+
                 const SizedBox(width: 12),
                 Column(
                   children: [
                     Text(
-                  '₹${group.totalAmount.toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFFED8936),
-                  ),
-                ),
+                      '₹${group.totalAmount.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFFED8936),
+                      ),
+                    ),
                     Row(
                       children: [
                         IconButton(
-                      onPressed: () => _showEditExpenseDialog(group),
-                      icon: const Icon(Icons.edit),
-                      color: const Color(0xFF4299E1),
-                      tooltip: 'Edit Day Expenses',
-                    ),
-                    IconButton(
-                      onPressed: () => _showDeleteDayConfirmation(group.date),
-                      icon: const Icon(Icons.delete_outline),
-                      color: const Color(0xFFF56565),
-                      tooltip: 'Delete All Day Expenses',
-                    ),
+                          onPressed: () => _showEditExpenseDialog(group),
+                          icon: const Icon(Icons.edit),
+                          color: const Color(0xFF4299E1),
+                          tooltip: 'Edit Day Expenses',
+                        ),
+                        IconButton(
+                          onPressed: () =>
+                              _showDeleteDayConfirmation(group.date),
+                          icon: const Icon(Icons.delete_outline),
+                          color: const Color(0xFFF56565),
+                          tooltip: 'Delete All Day Expenses',
+                        ),
                       ],
                     ),
                   ],
                 ),
-                
               ],
             ),
           ),
