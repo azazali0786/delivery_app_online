@@ -8,7 +8,7 @@ import '../../widgets/common/custom_button.dart';
 import '../../widgets/common/custom_textfield.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -30,9 +30,9 @@ class _LoginScreenState extends State<LoginScreen> {
   void _handleLogin() {
     if (_formKey.currentState!.validate()) {
       context.read<AuthCubit>().login(
-            _emailController.text.trim(),
-            _passwordController.text,
-          );
+        _emailController.text.trim(),
+        _passwordController.text,
+      );
     }
   }
 

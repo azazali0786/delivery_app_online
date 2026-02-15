@@ -10,12 +10,12 @@ class ManagementSection extends StatelessWidget {
   final VoidCallback onReasonManagement;
 
   const ManagementSection({
-    Key? key,
+    super.key,
     required this.onDeliveryBoyManagement,
     required this.onCustomerManagement,
     required this.onAreaManagement,
     required this.onReasonManagement,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -91,10 +91,7 @@ class _ManagementCard extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(
-          color: Colors.grey.shade200,
-          width: 1,
-        ),
+        side: BorderSide(color: Colors.grey.shade200, width: 1),
       ),
       child: InkWell(
         onTap: onTap,
@@ -106,10 +103,7 @@ class _ManagementCard extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
-                Colors.white,
-                color.withOpacity(0.02),
-              ],
+              colors: [Colors.white, color.withOpacity(0.02)],
             ),
           ),
           child: Row(
@@ -120,10 +114,7 @@ class _ManagementCard extends StatelessWidget {
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [
-                      color.withOpacity(0.8),
-                      color,
-                    ],
+                    colors: [color.withOpacity(0.8), color],
                   ),
                   borderRadius: BorderRadius.circular(14),
                   boxShadow: [
@@ -166,11 +157,7 @@ class _ManagementCard extends StatelessWidget {
                   color: color.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(
-                  Icons.arrow_forward_ios,
-                  size: 16,
-                  color: color,
-                ),
+                child: Icon(Icons.arrow_forward_ios, size: 16, color: color),
               ),
             ],
           ),

@@ -11,7 +11,7 @@ import 'customer_list_screen.dart';
 import 'add_customer_screen.dart';
 
 class DeliveryDashboard extends StatelessWidget {
-  const DeliveryDashboard({Key? key}) : super(key: key);
+  const DeliveryDashboard({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +25,7 @@ class DeliveryDashboard extends StatelessWidget {
 }
 
 class _DeliveryDashboardView extends StatelessWidget {
-  const _DeliveryDashboardView({Key? key}) : super(key: key);
+  const _DeliveryDashboardView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -391,7 +391,7 @@ class _StockSection extends StatelessWidget {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: colorScheme.surfaceVariant,
+                      color: colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -411,7 +411,7 @@ class _StockSection extends StatelessWidget {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: colorScheme.surfaceVariant,
+                      color: colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -464,11 +464,11 @@ class _MoneySection extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                    Text(
+                Text(
                   "Today's Collections",
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 2),
                 Text(
@@ -614,10 +614,10 @@ class _TotalPendingCard extends StatelessWidget {
   final int pendingBottles;
 
   const _TotalPendingCard({
-    Key? key,
+    super.key,
     required this.amount,
     required this.pendingBottles,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

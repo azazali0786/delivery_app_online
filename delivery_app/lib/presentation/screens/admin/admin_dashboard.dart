@@ -17,7 +17,7 @@ import 'assign_stock_screen.dart';
 import 'invoice_share_dialog.dart';
 
 class AdminDashboard extends StatelessWidget {
-  const AdminDashboard({Key? key}) : super(key: key);
+  const AdminDashboard({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +30,7 @@ class AdminDashboard extends StatelessWidget {
 }
 
 class AdminDashboardView extends StatelessWidget {
-  const AdminDashboardView({Key? key}) : super(key: key);
+  const AdminDashboardView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -198,16 +198,15 @@ class AdminDashboardView extends StatelessWidget {
   // ---------------- UI Components ----------------
 
   Widget _buildSectionTitle(BuildContext context, String title) {
-  return Text(
-    title,
-   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                        color: AppColors.textPrimary,
-                      ),
-  );
-}
-
+    return Text(
+      title,
+      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+        fontWeight: FontWeight.bold,
+        fontSize: 18,
+        color: AppColors.textPrimary,
+      ),
+    );
+  }
 
   /// UPDATED — includes Unapproved inside Quick Action tiles
   Widget _buildQuickActions(BuildContext context, int unapproved) {
@@ -336,12 +335,12 @@ class _RoundedButton extends StatelessWidget {
   final VoidCallback onTap;
 
   const _RoundedButton({
-    Key? key,
+    super.key,
     required this.color,
     required this.icon,
     required this.text,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -380,12 +379,12 @@ class _ManagementCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const _ManagementCard({
-    Key? key,
+    super.key,
     required this.title,
     required this.icon,
     required this.color,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

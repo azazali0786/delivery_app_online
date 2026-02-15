@@ -18,7 +18,7 @@ class CustomTextField extends StatelessWidget {
   final List<TextInputFormatter>? inputFormatters;
 
   const CustomTextField({
-    Key? key,
+    super.key,
     required this.label,
     this.hint,
     this.controller,
@@ -32,25 +32,23 @@ class CustomTextField extends StatelessWidget {
     this.onTap,
     this.onChanged,
     this.inputFormatters,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-
         /// LABEL (Smaller)
         Text(
           label,
           style: const TextStyle(
-            fontSize: 12,          // Smaller
+            fontSize: 12, // Smaller
             fontWeight: FontWeight.w500,
             color: AppColors.textPrimary,
           ),
         ),
         const SizedBox(height: 6), // Reduced space
-
         /// TEXT FIELD
         TextFormField(
           controller: controller,
@@ -64,7 +62,7 @@ class CustomTextField extends StatelessWidget {
           inputFormatters: inputFormatters,
 
           style: const TextStyle(
-            fontSize: 13,          // Smaller input text
+            fontSize: 13, // Smaller input text
             height: 1.2,
           ),
 
@@ -100,7 +98,10 @@ class CustomTextField extends StatelessWidget {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+              borderSide: const BorderSide(
+                color: AppColors.primary,
+                width: 1.5,
+              ),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),

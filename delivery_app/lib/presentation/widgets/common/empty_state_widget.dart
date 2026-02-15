@@ -7,11 +7,11 @@ class EmptyStateWidget extends StatelessWidget {
   final VoidCallback? onRefresh;
 
   const EmptyStateWidget({
-    Key? key,
+    super.key,
     required this.message,
     this.icon,
     this.onRefresh,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -13,8 +13,8 @@ class EditExpenseItem {
     required String name,
     required double amount,
     required this.originalIndex,
-  })  : nameController = TextEditingController(text: name),
-        amountController = TextEditingController(text: amount.toString());
+  }) : nameController = TextEditingController(text: name),
+       amountController = TextEditingController(text: amount.toString());
 
   void dispose() {
     nameController.dispose();
@@ -49,10 +49,10 @@ class EditExpenseDialog extends StatefulWidget {
   final Function(List<Map<String, dynamic>> updatedExpenses) onExpensesUpdated;
 
   const EditExpenseDialog({
-    Key? key,
+    super.key,
     required this.expenseGroup,
     required this.onExpensesUpdated,
-  }) : super(key: key);
+  });
 
   @override
   State<EditExpenseDialog> createState() => _EditExpenseDialogState();
@@ -68,11 +68,13 @@ class _EditExpenseDialogState extends State<EditExpenseDialog> {
     _expenses = widget.expenseGroup.expenses
         .asMap()
         .entries
-        .map((entry) => EditExpenseItem(
-              name: entry.value.name,
-              amount: entry.value.amount,
-              originalIndex: entry.key,
-            ))
+        .map(
+          (entry) => EditExpenseItem(
+            name: entry.value.name,
+            amount: entry.value.amount,
+            originalIndex: entry.key,
+          ),
+        )
         .toList();
   }
 
@@ -87,11 +89,13 @@ class _EditExpenseDialogState extends State<EditExpenseDialog> {
 
   void _addExpenseField() {
     setState(() {
-      _expenses.add(EditExpenseItem(
-        name: '',
-        amount: 0,
-        originalIndex: -1, // New expense
-      ));
+      _expenses.add(
+        EditExpenseItem(
+          name: '',
+          amount: 0,
+          originalIndex: -1, // New expense
+        ),
+      );
     });
     Future.delayed(const Duration(milliseconds: 100), () {
       _scrollController.animateTo(
@@ -138,9 +142,7 @@ class _EditExpenseDialogState extends State<EditExpenseDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Container(
         padding: const EdgeInsets.all(24),
         constraints: const BoxConstraints(maxWidth: 600, maxHeight: 700),
@@ -346,7 +348,11 @@ class _EditExpenseDialogState extends State<EditExpenseDialog> {
             decoration: InputDecoration(
               labelText: 'Expense Name',
               hintText: 'e.g., Pentrol, Bijli Bill',
-              prefixIcon: const Icon(Icons.edit, color: Color(0xFFED8936), size: 20),
+              prefixIcon: const Icon(
+                Icons.edit,
+                color: Color(0xFFED8936),
+                size: 20,
+              ),
               errorText: expense.nameError,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
@@ -358,11 +364,17 @@ class _EditExpenseDialogState extends State<EditExpenseDialog> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: Color(0xFFED8936), width: 2),
+                borderSide: const BorderSide(
+                  color: Color(0xFFED8936),
+                  width: 2,
+                ),
               ),
               filled: true,
               fillColor: const Color(0xFFF7FAFC),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 16,
+              ),
             ),
             onChanged: (_) {
               if (expense.nameError != null) {
@@ -379,7 +391,11 @@ class _EditExpenseDialogState extends State<EditExpenseDialog> {
             decoration: InputDecoration(
               labelText: 'Amount',
               hintText: 'e.g., 20, 35',
-              prefixIcon: const Icon(Icons.currency_rupee, color: Color(0xFF48BB78), size: 20),
+              prefixIcon: const Icon(
+                Icons.currency_rupee,
+                color: Color(0xFF48BB78),
+                size: 20,
+              ),
               errorText: expense.amountError,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
@@ -391,11 +407,17 @@ class _EditExpenseDialogState extends State<EditExpenseDialog> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: Color(0xFF48BB78), width: 2),
+                borderSide: const BorderSide(
+                  color: Color(0xFF48BB78),
+                  width: 2,
+                ),
               ),
               filled: true,
               fillColor: const Color(0xFFF7FAFC),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 16,
+              ),
             ),
             onChanged: (_) {
               setState(() {

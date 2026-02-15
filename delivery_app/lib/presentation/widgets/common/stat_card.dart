@@ -9,13 +9,13 @@ class StatCard extends StatelessWidget {
   final VoidCallback? onTap;
 
   const StatCard({
-    Key? key,
+    super.key,
     required this.title,
     required this.value,
     required this.icon,
     this.color,
     this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -24,9 +24,7 @@ class StatCard extends StatelessWidget {
     return Card(
       elevation: 2,
       shadowColor: Colors.black.withOpacity(0.1),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
@@ -49,11 +47,7 @@ class StatCard extends StatelessWidget {
                   color: cardColor.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(
-                  icon,
-                  color: cardColor,
-                  size: 28,
-                ),
+                child: Icon(icon, color: cardColor, size: 28),
               ),
               const SizedBox(height: 16),
               Text(

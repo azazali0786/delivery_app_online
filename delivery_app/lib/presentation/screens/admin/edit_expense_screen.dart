@@ -46,8 +46,7 @@ class EditExpenseItem {
 class EditExpenseScreen extends StatefulWidget {
   final DailyExpenseGroup expenseGroup;
 
-  const EditExpenseScreen({Key? key, required this.expenseGroup})
-    : super(key: key);
+  const EditExpenseScreen({super.key, required this.expenseGroup});
 
   @override
   State<EditExpenseScreen> createState() => _EditExpenseScreenState();
@@ -75,7 +74,9 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
 
   @override
   void dispose() {
-    for (var expense in _expenses) expense.dispose();
+    for (var expense in _expenses) {
+      expense.dispose();
+    }
     _scrollController.dispose();
     super.dispose();
   }
@@ -216,8 +217,9 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
                             ),
                           ),
                           onChanged: (_) {
-                            if (expense.nameError != null)
+                            if (expense.nameError != null) {
                               setState(() => expense.nameError = null);
+                            }
                           },
                         ),
                         const SizedBox(height: 12),
@@ -277,22 +279,22 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Cancel'),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       side: const BorderSide(color: Color(0xFFE2E8F0)),
                     ),
+                    child: const Text('Cancel'),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
                     onPressed: _submit,
-                    child: const Text('Update'),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       backgroundColor: const Color(0xFFED8936),
                     ),
+                    child: const Text('Update'),
                   ),
                 ),
               ],

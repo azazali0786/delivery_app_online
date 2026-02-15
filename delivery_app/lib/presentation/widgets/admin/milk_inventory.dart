@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 
 class MilkInventoryScreen extends StatefulWidget {
-  const MilkInventoryScreen({Key? key}) : super(key: key);
+  const MilkInventoryScreen({super.key});
 
   @override
   State<MilkInventoryScreen> createState() => _MilkInventoryScreenState();
@@ -29,10 +29,10 @@ class _MilkInventoryScreenState extends State<MilkInventoryScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             MilkInventorySection(inventoryData: inventoryData),
-            
+
             // Add more sections here if needed
             const SizedBox(height: 24),
-            
+
             // Example: Add buttons or additional features
             _buildActionButtons(),
           ],
@@ -74,7 +74,7 @@ class _MilkInventoryScreenState extends State<MilkInventoryScreen> {
 class MilkInventorySection extends StatelessWidget {
   final Map<String, dynamic> inventoryData;
 
-  const MilkInventorySection({Key? key, this.inventoryData = const {}}) : super(key: key);
+  const MilkInventorySection({super.key, this.inventoryData = const {}});
 
   @override
   Widget build(BuildContext context) {
@@ -111,25 +111,25 @@ class MilkInventorySection extends StatelessWidget {
                 child: Text(
                   'Total Active Milk',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey.shade700,
-                        fontSize: 15,
-                      ),
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey.shade700,
+                    fontSize: 15,
+                  ),
                 ),
               ),
               Text(
                 '${totalMilk.toStringAsFixed(1)} L',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue.shade700,
-                    ),
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue.shade700,
+                ),
               ),
             ],
           ),
         ),
-        
+
         const SizedBox(height: 8),
-        
+
         // Bottle Types Row - Compact
         Row(
           children: [
@@ -173,33 +173,26 @@ class _BottleTypeCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: color.withOpacity(0.3),
-          width: 1.5,
-        ),
+        border: Border.all(color: color.withOpacity(0.3), width: 1.5),
       ),
       child: Row(
         children: [
-          Icon(
-            Icons.water_drop_rounded,
-            color: color,
-            size: 20,
-          ),
+          Icon(Icons.water_drop_rounded, color: color, size: 20),
           const SizedBox(width: 6),
           Text(
             bottleSize,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: color,
-                ),
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
           ),
           const Spacer(),
           Text(
             '$count',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: color,
-                ),
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
           ),
         ],
       ),

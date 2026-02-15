@@ -11,7 +11,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:delivery_app/data/repositories/admin_repository.dart';
 
 class AdminDashboardReport extends StatefulWidget {
-  const AdminDashboardReport({Key? key}) : super(key: key);
+  const AdminDashboardReport({super.key});
 
   @override
   State<AdminDashboardReport> createState() => _AdminDashboardReportState();
@@ -88,32 +88,30 @@ class _AdminDashboardReportState extends State<AdminDashboardReport> {
         startDate: startStr,
         endDate: endStr,
       );
-      if (report != null) {
-        final total = report['total'] ?? {};
-        final dateData = report['date'] ?? {};
-        setState(() {
-          // Total data
-          data.totalData.collection = (total['collection'] ?? 0).toInt();
-          data.totalData.leftBottles = (total['leftBottles'] ?? 0).toInt();
-          data.totalData.profit = ((total['total_profit'] ?? 0)).toInt();
-          data.totalData.deliveryBoys = (total['delivery_boys'] ?? 0).toInt();
-          data.totalData.customers = (total['customers'] ?? 0).toInt();
-          data.totalData.pendingMoney = (total['pending_money'] ?? 0).toInt();
+      final total = report['total'] ?? {};
+      final dateData = report['date'] ?? {};
+      setState(() {
+        // Total data
+        data.totalData.collection = (total['collection'] ?? 0).toInt();
+        data.totalData.leftBottles = (total['leftBottles'] ?? 0).toInt();
+        data.totalData.profit = ((total['total_profit'] ?? 0)).toInt();
+        data.totalData.deliveryBoys = (total['delivery_boys'] ?? 0).toInt();
+        data.totalData.customers = (total['customers'] ?? 0).toInt();
+        data.totalData.pendingMoney = (total['pending_money'] ?? 0).toInt();
 
-          // Milk inventory data returned by API
-          totalActiveMilk = (total['total_active_milk'] ?? 0).toDouble();
-          halfLiterBottles = (total['total_half_liter_bottles'] ?? 0).toInt();
-          oneLiterBottles = (total['total_one_liter_bottles'] ?? 0).toInt();
+        // Milk inventory data returned by API
+        totalActiveMilk = (total['total_active_milk'] ?? 0).toDouble();
+        halfLiterBottles = (total['total_half_liter_bottles'] ?? 0).toInt();
+        oneLiterBottles = (total['total_one_liter_bottles'] ?? 0).toInt();
 
-          // Selected date/range data
-          data.todayData.online = (dateData['online'] ?? 0).toInt();
-          data.todayData.cash = (dateData['cash'] ?? 0).toInt();
-          data.todayData.total = (dateData['total'] ?? 0).toInt();
-          data.todayData.pending = (dateData['pending'] ?? 0).toInt();
-          data.todayData.expenses = (dateData['expenses'] ?? 0).toInt();
-          data.todayData.profit = (dateData['profit'] ?? 0).toInt();
-        });
-      }
+        // Selected date/range data
+        data.todayData.online = (dateData['online'] ?? 0).toInt();
+        data.todayData.cash = (dateData['cash'] ?? 0).toInt();
+        data.todayData.total = (dateData['total'] ?? 0).toInt();
+        data.todayData.pending = (dateData['pending'] ?? 0).toInt();
+        data.todayData.expenses = (dateData['expenses'] ?? 0).toInt();
+        data.todayData.profit = (dateData['profit'] ?? 0).toInt();
+      });
 
       // fetch expenses (all)
       final expenses = await repo.getExpenses();
@@ -402,11 +400,9 @@ class _AdminDashboardReportState extends State<AdminDashboardReport> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
-              onRefresh: () => _loadData(
-                startDate: startDate,
-                endDate: endDate,
-              ),
-            child: SingleChildScrollView(
+              onRefresh: () =>
+                  _loadData(startDate: startDate, endDate: endDate),
+              child: SingleChildScrollView(
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -421,11 +417,11 @@ class _AdminDashboardReportState extends State<AdminDashboardReport> {
                         'total_one_liter_bottles': oneLiterBottles,
                       },
                     ),
-            
+
                     const SizedBox(height: 16),
                     _buildTotalDataCards(),
                     const SizedBox(height: 32),
-            
+
                     // Today's Data Section
                     _buildSectionHeader('Day\'s Summary'),
                     const SizedBox(height: 8),
@@ -433,7 +429,7 @@ class _AdminDashboardReportState extends State<AdminDashboardReport> {
                     const SizedBox(height: 16),
                     _buildTodayDataCards(),
                     const SizedBox(height: 24),
-            
+
                     // Expense section for selected date
                     if (_hasExpensesForSelectedDate()) ...[
                       _buildSectionHeader('Expenses'),
@@ -441,13 +437,13 @@ class _AdminDashboardReportState extends State<AdminDashboardReport> {
                       _buildExpenseList(),
                       const SizedBox(height: 24),
                     ],
-            
+
                     _buildAddExpenseButton(),
                     const SizedBox(height: 32),
                   ],
                 ),
               ),
-          ),
+            ),
     );
   }
 
@@ -583,10 +579,7 @@ class _AdminDashboardReportState extends State<AdminDashboardReport> {
             ),
           ),
           const Spacer(),
-          TextButton(
-            onPressed: _selectDateRange,
-            child: const Text('Range'),
-          ),
+          TextButton(onPressed: _selectDateRange, child: const Text('Range')),
         ],
       ),
     );

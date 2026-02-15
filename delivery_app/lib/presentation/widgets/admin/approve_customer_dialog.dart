@@ -13,10 +13,10 @@ class ApproveCustomerDialog extends StatefulWidget {
   final AdminRepository repository;
 
   const ApproveCustomerDialog({
-    Key? key,
+    super.key,
     required this.customer,
     required this.repository,
-  }) : super(key: key);
+  });
 
   @override
   State<ApproveCustomerDialog> createState() => _ApproveCustomerDialogState();
@@ -52,7 +52,7 @@ class _ApproveCustomerDialogState extends State<ApproveCustomerDialog> {
         _areas = areas;
         _isLoading = false;
       });
-      
+
       // Auto-fill values after areas are loaded
       _autoFillValues();
     } catch (e) {
@@ -65,7 +65,7 @@ class _ApproveCustomerDialogState extends State<ApproveCustomerDialog> {
     if (widget.customer.subAreaId != null) {
       setState(() {
         _selectedSubAreaId = widget.customer.subAreaId;
-        
+
         // Find the area that contains this sub-area
         for (var area in _areas) {
           if (area.subAreas != null) {
@@ -113,10 +113,7 @@ class _ApproveCustomerDialogState extends State<ApproveCustomerDialog> {
     };
 
     try {
-      await widget.repository.updateCustomer(
-        widget.customer.id,
-        updateData,
-      );
+      await widget.repository.updateCustomer(widget.customer.id, updateData);
     } catch (e) {
       // Continue to approve even if update fails
     }
@@ -124,10 +121,10 @@ class _ApproveCustomerDialogState extends State<ApproveCustomerDialog> {
     Navigator.pop(context);
 
     context.read<AdminCubit>().approveCustomer(
-          widget.customer.id,
-          _selectedSubAreaId!,
-          double.parse(_sortNumberController.text),
-        );
+      widget.customer.id,
+      _selectedSubAreaId!,
+      double.parse(_sortNumberController.text),
+    );
   }
 
   @override
@@ -188,7 +185,7 @@ class _ApproveCustomerDialogState extends State<ApproveCustomerDialog> {
                 else ...[
                   // Area Dropdown
                   DropdownButtonFormField<int>(
-                    value: _selectedAreaId,
+                    initialValue: _selectedAreaId,
                     decoration: InputDecoration(
                       labelText: 'Select Area *',
                       prefixIcon: const Icon(Icons.public),
@@ -216,7 +213,7 @@ class _ApproveCustomerDialogState extends State<ApproveCustomerDialog> {
                   // Sub-Area Dropdown
                   if (_selectedAreaId != null)
                     DropdownButtonFormField<int>(
-                      value: _selectedSubAreaId,
+                      initialValue: _selectedSubAreaId,
                       decoration: InputDecoration(
                         labelText: 'Select Sub-Area *',
                         prefixIcon: const Icon(Icons.map),
@@ -228,11 +225,12 @@ class _ApproveCustomerDialogState extends State<ApproveCustomerDialog> {
                           .firstWhere((a) => a.id == _selectedAreaId)
                           .subAreas
                           ?.map((subArea) {
-                        return DropdownMenuItem<int>(
-                          value: subArea.id,
-                          child: Text(subArea.name),
-                        );
-                      }).toList(),
+                            return DropdownMenuItem<int>(
+                              value: subArea.id,
+                              child: Text(subArea.name),
+                            );
+                          })
+                          .toList(),
                       onChanged: (value) {
                         setState(() => _selectedSubAreaId = value);
                       },
@@ -270,10 +268,7 @@ class _ApproveCustomerDialogState extends State<ApproveCustomerDialog> {
                   // Shift Selection
                   const Text(
                     'Shift',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   Row(
@@ -282,8 +277,7 @@ class _ApproveCustomerDialogState extends State<ApproveCustomerDialog> {
                         child: ChoiceChip(
                           label: const Text('Morning'),
                           selected: _shift == 'morning',
-                          onSelected: (_) =>
-                              setState(() => _shift = 'morning'),
+                          onSelected: (_) => setState(() => _shift = 'morning'),
                           selectedColor: AppColors.primary.withOpacity(0.2),
                         ),
                       ),
@@ -292,8 +286,7 @@ class _ApproveCustomerDialogState extends State<ApproveCustomerDialog> {
                         child: ChoiceChip(
                           label: const Text('Evening'),
                           selected: _shift == 'evening',
-                          onSelected: (_) =>
-                              setState(() => _shift = 'evening'),
+                          onSelected: (_) => setState(() => _shift = 'evening'),
                           selectedColor: AppColors.primary.withOpacity(0.2),
                         ),
                       ),
@@ -304,10 +297,7 @@ class _ApproveCustomerDialogState extends State<ApproveCustomerDialog> {
                   // Active Status
                   const Text(
                     'Status',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   Row(

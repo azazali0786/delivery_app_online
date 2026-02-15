@@ -7,7 +7,7 @@ import '../../../data/repositories/admin_repository.dart';
 import '../../widgets/common/loading_widget.dart';
 
 class ReasonManagement extends StatelessWidget {
-  const ReasonManagement({Key? key}) : super(key: key);
+  const ReasonManagement({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +20,7 @@ class ReasonManagement extends StatelessWidget {
 }
 
 class ReasonManagementView extends StatefulWidget {
-  const ReasonManagementView({Key? key}) : super(key: key);
+  const ReasonManagementView({super.key});
 
   @override
   State<ReasonManagementView> createState() => _ReasonManagementViewState();

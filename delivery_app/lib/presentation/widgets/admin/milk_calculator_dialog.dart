@@ -2,10 +2,10 @@
 import 'package:flutter/material.dart';
 
 class MilkCalculatorDialog extends StatefulWidget {
-  const MilkCalculatorDialog({Key? key}) : super(key: key);
+  const MilkCalculatorDialog({super.key});
 
   @override
-  State<MilkCalculatorDialog> createState() => _MilkCalculatorDialogState(); 
+  State<MilkCalculatorDialog> createState() => _MilkCalculatorDialogState();
 }
 
 class _MilkCalculatorDialogState extends State<MilkCalculatorDialog> {
@@ -37,12 +37,12 @@ class _MilkCalculatorDialogState extends State<MilkCalculatorDialog> {
       final quantity = double.parse(_quantityController.text);
       final currentFat = double.parse(_fatController.text);
       final currentSnf = double.parse(_snfController.text);
-      
-      final requiredFat = _requiredFatController.text.isNotEmpty 
-          ? double.parse(_requiredFatController.text) 
+
+      final requiredFat = _requiredFatController.text.isNotEmpty
+          ? double.parse(_requiredFatController.text)
           : null;
-      final requiredSnf = _requiredSnfController.text.isNotEmpty 
-          ? double.parse(_requiredSnfController.text) 
+      final requiredSnf = _requiredSnfController.text.isNotEmpty
+          ? double.parse(_requiredSnfController.text)
           : null;
 
       if (requiredFat == null && requiredSnf == null) {
@@ -85,7 +85,7 @@ class _MilkCalculatorDialogState extends State<MilkCalculatorDialog> {
         }
         waterNeeded = (currentFat * quantity / requiredFat) - quantity;
         finalQuantity = quantity + waterNeeded;
-        
+
         // Calculate final fat and SNF
         finalFat = requiredFat;
         finalSnf = (currentSnf * quantity) / finalQuantity;
@@ -104,7 +104,7 @@ class _MilkCalculatorDialogState extends State<MilkCalculatorDialog> {
         }
         waterNeeded = (currentSnf * quantity / requiredSnf) - quantity;
         finalQuantity = quantity + waterNeeded;
-        
+
         // Calculate final fat and SNF
         finalFat = (currentFat * quantity) / finalQuantity;
         finalSnf = requiredSnf;
@@ -144,9 +144,7 @@ class _MilkCalculatorDialogState extends State<MilkCalculatorDialog> {
         backgroundColor: const Color(0xFF9F7AEA),
         elevation: 0,
         actions: [],
-      )
-      
-      ,
+      ),
       body: Container(
         padding: const EdgeInsets.all(24),
         constraints: const BoxConstraints(maxWidth: 500),
@@ -173,17 +171,14 @@ class _MilkCalculatorDialogState extends State<MilkCalculatorDialog> {
                     ),
                     const SizedBox(width: 12),
                     Text(
-                  'Calculate milk to balance Fat/SNF',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
-                ),
+                      'Calculate milk to balance Fat/SNF',
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                    ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 24),
-                
+
                 // Milk Quantity
                 TextFormField(
                   controller: _quantityController,
@@ -191,7 +186,10 @@ class _MilkCalculatorDialogState extends State<MilkCalculatorDialog> {
                   decoration: InputDecoration(
                     labelText: 'Total Milk Quantity (Ltr)',
                     hintText: 'e.g., 100',
-                    prefixIcon: const Icon(Icons.local_drink, color: Color(0xFF4299E1)),
+                    prefixIcon: const Icon(
+                      Icons.local_drink,
+                      color: Color(0xFF4299E1),
+                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -201,7 +199,10 @@ class _MilkCalculatorDialogState extends State<MilkCalculatorDialog> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFF4299E1), width: 2),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF4299E1),
+                        width: 2,
+                      ),
                     ),
                     filled: true,
                     fillColor: const Color(0xFFF7FAFC),
@@ -217,7 +218,7 @@ class _MilkCalculatorDialogState extends State<MilkCalculatorDialog> {
                   },
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Current Fat
                 TextFormField(
                   controller: _fatController,
@@ -225,7 +226,10 @@ class _MilkCalculatorDialogState extends State<MilkCalculatorDialog> {
                   decoration: InputDecoration(
                     labelText: 'Current Fat (gm/100ml)',
                     hintText: 'e.g., 7.7',
-                    prefixIcon: const Icon(Icons.opacity, color: Color(0xFFED8936)),
+                    prefixIcon: const Icon(
+                      Icons.opacity,
+                      color: Color(0xFFED8936),
+                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -235,7 +239,10 @@ class _MilkCalculatorDialogState extends State<MilkCalculatorDialog> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFFED8936), width: 2),
+                      borderSide: const BorderSide(
+                        color: Color(0xFFED8936),
+                        width: 2,
+                      ),
                     ),
                     filled: true,
                     fillColor: const Color(0xFFF7FAFC),
@@ -251,7 +258,7 @@ class _MilkCalculatorDialogState extends State<MilkCalculatorDialog> {
                   },
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Current SNF
                 TextFormField(
                   controller: _snfController,
@@ -259,7 +266,10 @@ class _MilkCalculatorDialogState extends State<MilkCalculatorDialog> {
                   decoration: InputDecoration(
                     labelText: 'Current SNF (gm/100ml)',
                     hintText: 'e.g., 9.2',
-                    prefixIcon: const Icon(Icons.water_drop, color: Color(0xFF48BB78)),
+                    prefixIcon: const Icon(
+                      Icons.water_drop,
+                      color: Color(0xFF48BB78),
+                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -269,7 +279,10 @@ class _MilkCalculatorDialogState extends State<MilkCalculatorDialog> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFF48BB78), width: 2),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF48BB78),
+                        width: 2,
+                      ),
                     ),
                     filled: true,
                     fillColor: const Color(0xFFF7FAFC),
@@ -285,7 +298,7 @@ class _MilkCalculatorDialogState extends State<MilkCalculatorDialog> {
                   },
                 ),
                 const SizedBox(height: 24),
-                
+
                 // Section Header
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 8),
@@ -312,7 +325,7 @@ class _MilkCalculatorDialogState extends State<MilkCalculatorDialog> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                
+
                 // Required Fat
                 TextFormField(
                   controller: _requiredFatController,
@@ -320,7 +333,10 @@ class _MilkCalculatorDialogState extends State<MilkCalculatorDialog> {
                   decoration: InputDecoration(
                     labelText: 'Required Fat (gm/100ml)',
                     hintText: 'Optional - Fill Fat OR SNF',
-                    prefixIcon: const Icon(Icons.opacity_outlined, color: Color(0xFFED8936)),
+                    prefixIcon: const Icon(
+                      Icons.opacity_outlined,
+                      color: Color(0xFFED8936),
+                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -330,14 +346,17 @@ class _MilkCalculatorDialogState extends State<MilkCalculatorDialog> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFFED8936), width: 2),
+                      borderSide: const BorderSide(
+                        color: Color(0xFFED8936),
+                        width: 2,
+                      ),
                     ),
                     filled: true,
                     fillColor: const Color(0xFFFFFAF5),
                   ),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Required SNF
                 TextFormField(
                   controller: _requiredSnfController,
@@ -345,7 +364,10 @@ class _MilkCalculatorDialogState extends State<MilkCalculatorDialog> {
                   decoration: InputDecoration(
                     labelText: 'Required SNF (gm/100ml)',
                     hintText: 'Optional - Fill Fat OR SNF',
-                    prefixIcon: const Icon(Icons.water_drop_outlined, color: Color(0xFF48BB78)),
+                    prefixIcon: const Icon(
+                      Icons.water_drop_outlined,
+                      color: Color(0xFF48BB78),
+                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -355,13 +377,16 @@ class _MilkCalculatorDialogState extends State<MilkCalculatorDialog> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFF48BB78), width: 2),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF48BB78),
+                        width: 2,
+                      ),
                     ),
                     filled: true,
                     fillColor: const Color(0xFFF5FFF9),
                   ),
                 ),
-                
+
                 if (_result.isNotEmpty) ...[
                   const SizedBox(height: 24),
                   Container(
@@ -486,7 +511,9 @@ class _MilkCalculatorDialogState extends State<MilkCalculatorDialog> {
                                   color: const Color(0xFFFFF5F5),
                                   borderRadius: BorderRadius.circular(8),
                                   border: Border.all(
-                                    color: const Color(0xFFED8936).withOpacity(0.2),
+                                    color: const Color(
+                                      0xFFED8936,
+                                    ).withOpacity(0.2),
                                   ),
                                 ),
                                 child: Column(
@@ -506,7 +533,7 @@ class _MilkCalculatorDialogState extends State<MilkCalculatorDialog> {
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      '${_finalFat.toStringAsFixed(2)}',
+                                      _finalFat.toStringAsFixed(2),
                                       style: const TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
@@ -532,7 +559,9 @@ class _MilkCalculatorDialogState extends State<MilkCalculatorDialog> {
                                   color: const Color(0xFFF0FFF4),
                                   borderRadius: BorderRadius.circular(8),
                                   border: Border.all(
-                                    color: const Color(0xFF48BB78).withOpacity(0.2),
+                                    color: const Color(
+                                      0xFF48BB78,
+                                    ).withOpacity(0.2),
                                   ),
                                 ),
                                 child: Column(
@@ -552,7 +581,7 @@ class _MilkCalculatorDialogState extends State<MilkCalculatorDialog> {
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      '${_finalSnf.toStringAsFixed(2)}',
+                                      _finalSnf.toStringAsFixed(2),
                                       style: const TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,

@@ -77,7 +77,7 @@ class CustomerModel extends Equatable {
                 : (json['is_active'].toString() == '1' ||
                       json['is_active'].toString().toLowerCase() == 'true'))
           : true,
-      shift: json['shift'] ?? json['shift_time'] ?? null,
+      shift: json['shift'] ?? json['shift_time'],
       totalPendingMoney: json['total_pending_money'] != null
           ? double.tryParse(json['total_pending_money'].toString())
           : null,

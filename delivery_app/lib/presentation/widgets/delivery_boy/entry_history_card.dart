@@ -10,12 +10,12 @@ class EntryHistoryCard extends StatelessWidget {
   final VoidCallback? onDelete;
 
   const EntryHistoryCard({
-    Key? key,
+    super.key,
     required this.entry,
     required this.cumulativePending,
     this.onEdit,
     this.onDelete,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -374,12 +374,12 @@ class _DetailItem extends StatelessWidget {
   final String value;
 
   const _DetailItem({
-    Key? key,
+    super.key,
     required this.icon,
     required this.iconColor,
     required this.label,
     required this.value,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

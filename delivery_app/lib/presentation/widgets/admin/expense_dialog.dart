@@ -8,8 +8,8 @@ class ExpenseItem {
   String? amountError;
 
   ExpenseItem()
-      : nameController = TextEditingController(),
-        amountController = TextEditingController();
+    : nameController = TextEditingController(),
+      amountController = TextEditingController();
 
   void dispose() {
     nameController.dispose();
@@ -42,10 +42,7 @@ class ExpenseItem {
 class ExpenseDialog extends StatefulWidget {
   final Function(List<Map<String, dynamic>> expenses) onExpenseAdded;
 
-  const ExpenseDialog({
-    Key? key,
-    required this.onExpenseAdded,
-  }) : super(key: key);
+  const ExpenseDialog({super.key, required this.onExpenseAdded});
 
   @override
   State<ExpenseDialog> createState() => _ExpenseDialogState();
@@ -113,9 +110,7 @@ class _ExpenseDialogState extends State<ExpenseDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Container(
         padding: const EdgeInsets.all(24),
         constraints: const BoxConstraints(maxWidth: 600, maxHeight: 700),
@@ -196,7 +191,7 @@ class _ExpenseDialogState extends State<ExpenseDialog> {
                   ),
                 ],
               ),
-            ),    
+            ),
             // Total Preview
             Row(
               children: [
@@ -252,7 +247,7 @@ class _ExpenseDialogState extends State<ExpenseDialog> {
 
   Widget _buildExpenseField(int index) {
     final expense = _expenses[index];
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
@@ -300,7 +295,11 @@ class _ExpenseDialogState extends State<ExpenseDialog> {
             decoration: InputDecoration(
               labelText: 'Expense Name',
               hintText: 'e.g., Pentrol, Bijli Bill',
-              prefixIcon: const Icon(Icons.edit, color: Color(0xFF4299E1), size: 20),
+              prefixIcon: const Icon(
+                Icons.edit,
+                color: Color(0xFF4299E1),
+                size: 20,
+              ),
               errorText: expense.nameError,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
@@ -312,11 +311,17 @@ class _ExpenseDialogState extends State<ExpenseDialog> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: Color(0xFF4299E1), width: 2),
+                borderSide: const BorderSide(
+                  color: Color(0xFF4299E1),
+                  width: 2,
+                ),
               ),
               filled: true,
               fillColor: const Color(0xFFF7FAFC),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 16,
+              ),
             ),
             onChanged: (_) {
               if (expense.nameError != null) {
@@ -333,7 +338,11 @@ class _ExpenseDialogState extends State<ExpenseDialog> {
             decoration: InputDecoration(
               labelText: 'Amount',
               hintText: 'e.g., 20, 35',
-              prefixIcon: const Icon(Icons.currency_rupee, color: Color(0xFF48BB78), size: 20),
+              prefixIcon: const Icon(
+                Icons.currency_rupee,
+                color: Color(0xFF48BB78),
+                size: 20,
+              ),
               errorText: expense.amountError,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
@@ -345,11 +354,17 @@ class _ExpenseDialogState extends State<ExpenseDialog> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: Color(0xFF48BB78), width: 2),
+                borderSide: const BorderSide(
+                  color: Color(0xFF48BB78),
+                  width: 2,
+                ),
               ),
               filled: true,
               fillColor: const Color(0xFFF7FAFC),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 16,
+              ),
             ),
             onChanged: (_) {
               setState(() {

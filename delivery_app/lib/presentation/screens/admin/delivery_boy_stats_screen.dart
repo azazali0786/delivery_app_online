@@ -8,8 +8,7 @@ import '../../../data/repositories/admin_repository.dart';
 class DeliveryBoyStatsScreen extends StatefulWidget {
   final DeliveryBoyModel deliveryBoy;
 
-  const DeliveryBoyStatsScreen({Key? key, required this.deliveryBoy})
-      : super(key: key);
+  const DeliveryBoyStatsScreen({super.key, required this.deliveryBoy});
 
   @override
   State<DeliveryBoyStatsScreen> createState() => _DeliveryBoyStatsScreenState();
@@ -68,7 +67,7 @@ class _DeliveryBoyStatsScreenState extends State<DeliveryBoyStatsScreen> {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
-        title: Text('${widget.deliveryBoy.name}'),
+        title: Text(widget.deliveryBoy.name),
         elevation: 0,
         backgroundColor: Colors.blue.shade700,
       ),
@@ -84,7 +83,11 @@ class _DeliveryBoyStatsScreenState extends State<DeliveryBoyStatsScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.error_outline, size: 64, color: Colors.red.shade300),
+                  Icon(
+                    Icons.error_outline,
+                    size: 64,
+                    color: Colors.red.shade300,
+                  ),
                   const SizedBox(height: 16),
                   Text('Error: ${snapshot.error}'),
                   const SizedBox(height: 16),
@@ -227,15 +230,12 @@ class _DeliveryBoyStatsScreenState extends State<DeliveryBoyStatsScreen> {
               const SizedBox(width: 12),
               const Text(
                 'Milk Inventory',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          
+
           // Total Active Milk
           Container(
             padding: const EdgeInsets.all(12),
@@ -248,10 +248,7 @@ class _DeliveryBoyStatsScreenState extends State<DeliveryBoyStatsScreen> {
               children: [
                 const Text(
                   'Total Active Milk',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
                 ),
                 Text(
                   '${stats['total_active_milk'] ?? 0} L',
@@ -264,9 +261,9 @@ class _DeliveryBoyStatsScreenState extends State<DeliveryBoyStatsScreen> {
               ],
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Bottle Stats Grid
           _buildBottleStatsGrid(stats),
         ],
@@ -286,7 +283,7 @@ class _DeliveryBoyStatsScreenState extends State<DeliveryBoyStatsScreen> {
           Icons.assignment_outlined,
         ),
         const SizedBox(height: 12),
-        
+
         // Dispatched
         _buildBottleStatRow(
           'Dispatched',
@@ -296,7 +293,7 @@ class _DeliveryBoyStatsScreenState extends State<DeliveryBoyStatsScreen> {
           Icons.local_shipping_outlined,
         ),
         const SizedBox(height: 12),
-        
+
         // Delivered
         _buildBottleStatRow(
           'Delivered',
@@ -306,7 +303,7 @@ class _DeliveryBoyStatsScreenState extends State<DeliveryBoyStatsScreen> {
           Icons.check_circle_outline,
         ),
         const SizedBox(height: 12),
-        
+
         // Left in Market
         _buildBottleStatRow(
           'Left in Market',
@@ -340,10 +337,7 @@ class _DeliveryBoyStatsScreenState extends State<DeliveryBoyStatsScreen> {
           Expanded(
             child: Text(
               label,
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                color: color,
-              ),
+              style: TextStyle(fontWeight: FontWeight.w600, color: color),
             ),
           ),
           Column(
@@ -353,10 +347,7 @@ class _DeliveryBoyStatsScreenState extends State<DeliveryBoyStatsScreen> {
                 children: [
                   Text(
                     '½L: ',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey.shade600,
-                    ),
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                   ),
                   Text(
                     '$halfLiter',
@@ -373,10 +364,7 @@ class _DeliveryBoyStatsScreenState extends State<DeliveryBoyStatsScreen> {
                 children: [
                   Text(
                     '1L: ',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey.shade600,
-                    ),
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                   ),
                   Text(
                     '$oneLiter',
@@ -430,15 +418,12 @@ class _DeliveryBoyStatsScreenState extends State<DeliveryBoyStatsScreen> {
               const SizedBox(width: 12),
               const Text(
                 'Money Collection',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          
+
           Row(
             children: [
               Expanded(
@@ -465,7 +450,12 @@ class _DeliveryBoyStatsScreenState extends State<DeliveryBoyStatsScreen> {
     );
   }
 
-  Widget _buildMoneyCard(String label, dynamic amount, Color color, IconData icon) {
+  Widget _buildMoneyCard(
+    String label,
+    dynamic amount,
+    Color color,
+    IconData icon,
+  ) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -535,15 +525,12 @@ class _DeliveryBoyStatsScreenState extends State<DeliveryBoyStatsScreen> {
               const SizedBox(width: 12),
               const Text(
                 'Daily Summary',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          
+
           Container(
             decoration: BoxDecoration(
               border: Border.all(color: Colors.grey.shade300),
@@ -553,7 +540,10 @@ class _DeliveryBoyStatsScreenState extends State<DeliveryBoyStatsScreen> {
               children: [
                 // Header
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.grey.shade100,
                     borderRadius: const BorderRadius.only(
@@ -620,11 +610,14 @@ class _DeliveryBoyStatsScreenState extends State<DeliveryBoyStatsScreen> {
                     ],
                   ),
                 ),
-                
+
                 // Data Rows
                 ...((stats['time_series'] ?? []) as List).map((ts) {
                   return Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
                     decoration: BoxDecoration(
                       border: Border(
                         top: BorderSide(color: Colors.grey.shade200),
@@ -642,7 +635,10 @@ class _DeliveryBoyStatsScreenState extends State<DeliveryBoyStatsScreen> {
                         Expanded(
                           child: Center(
                             child: Text(
-                              (ts['dispatched_one'] + (ts['dispatched_half'] * 0.5) ?? 0).toString(),
+                              (ts['dispatched_one'] +
+                                          (ts['dispatched_half'] * 0.5) ??
+                                      0)
+                                  .toString(),
                               style: const TextStyle(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 13,
@@ -653,7 +649,9 @@ class _DeliveryBoyStatsScreenState extends State<DeliveryBoyStatsScreen> {
                         Expanded(
                           child: Center(
                             child: Text(
-                              (ts['assign_one'] + (ts['assign_half'] * 0.5) ?? 0).toString(),
+                              (ts['assign_one'] + (ts['assign_half'] * 0.5) ??
+                                      0)
+                                  .toString(),
                               style: const TextStyle(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 13,
@@ -686,7 +684,7 @@ class _DeliveryBoyStatsScreenState extends State<DeliveryBoyStatsScreen> {
                       ],
                     ),
                   );
-                }).toList(),
+                }),
               ],
             ),
           ),

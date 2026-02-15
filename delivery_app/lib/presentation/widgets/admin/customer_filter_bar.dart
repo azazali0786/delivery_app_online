@@ -24,7 +24,7 @@ class CustomerFilterBar extends StatelessWidget {
   final VoidCallback onClearFilters;
 
   const CustomerFilterBar({
-    Key? key,
+    super.key,
     required this.searchController,
     required this.minPendingController,
     required this.onSearchChanged,
@@ -43,7 +43,7 @@ class CustomerFilterBar extends StatelessWidget {
     required this.onActiveChanged,
     required this.onDeliveryStatusChanged,
     required this.onClearFilters,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -388,7 +388,7 @@ class CustomerFilterBar extends StatelessWidget {
               },
               child: Text(area),
             );
-          }).toList(),
+          }),
         ],
       ),
     );
@@ -433,7 +433,7 @@ class CustomerFilterBar extends StatelessWidget {
                 },
                 child: Text(subArea),
               );
-            }).toList(),
+            }),
           ],
         );
       },

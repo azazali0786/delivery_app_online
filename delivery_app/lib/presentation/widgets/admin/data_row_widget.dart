@@ -7,11 +7,11 @@ class DataRowWidget extends StatelessWidget {
   final Color valueColor;
 
   const DataRowWidget({
-    Key? key,
+    super.key,
     required this.label,
     required this.value,
     required this.valueColor,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

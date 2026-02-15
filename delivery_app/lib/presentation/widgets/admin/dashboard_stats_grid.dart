@@ -7,10 +7,7 @@ import '../../../core/utils/helpers.dart';
 class DashboardStatsGrid extends StatelessWidget {
   final Map<String, dynamic> stats;
 
-  const DashboardStatsGrid({
-    Key? key,
-    required this.stats,
-  }) : super(key: key);
+  const DashboardStatsGrid({super.key, required this.stats});
 
   @override
   Widget build(BuildContext context) {
@@ -60,10 +57,7 @@ class DashboardStatsGrid extends StatelessWidget {
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [
-                    AppColors.error.withOpacity(0.8),
-                    AppColors.error,
-                  ],
+                  colors: [AppColors.error.withOpacity(0.8), AppColors.error],
                 ),
               ),
             ],
@@ -123,11 +117,7 @@ class _StatCard extends StatelessWidget {
                         color: Colors.white.withOpacity(0.25),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Icon(
-                        icon,
-                        color: Colors.white,
-                        size: 24,
-                      ),
+                      child: Icon(icon, color: Colors.white, size: 24),
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(

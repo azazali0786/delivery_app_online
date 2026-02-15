@@ -14,7 +14,7 @@ import '../../widgets/common/custom_textfield.dart';
 import 'delivery_boy_stats_screen.dart';
 
 class DeliveryBoyManagement extends StatelessWidget {
-  const DeliveryBoyManagement({Key? key}) : super(key: key);
+  const DeliveryBoyManagement({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +27,7 @@ class DeliveryBoyManagement extends StatelessWidget {
 }
 
 class DeliveryBoyManagementView extends StatefulWidget {
-  const DeliveryBoyManagementView({Key? key}) : super(key: key);
+  const DeliveryBoyManagementView({super.key});
 
   @override
   State<DeliveryBoyManagementView> createState() =>
@@ -316,14 +316,14 @@ class _DeliveryBoyCard extends StatelessWidget {
   final VoidCallback onViewStats;
 
   const _DeliveryBoyCard({
-    Key? key,
+    super.key,
     required this.deliveryBoy,
     required this.onEdit,
     required this.onAssignSubAreas,
     required this.onToggleActive,
     required this.onDelete,
     required this.onViewStats,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -629,8 +629,7 @@ class _AddDeliveryBoyDialogState extends State<_AddDeliveryBoyDialog> {
 class _EditDeliveryBoyDialog extends StatefulWidget {
   final DeliveryBoyModel deliveryBoy;
 
-  const _EditDeliveryBoyDialog({Key? key, required this.deliveryBoy})
-    : super(key: key);
+  const _EditDeliveryBoyDialog({super.key, required this.deliveryBoy});
 
   @override
   State<_EditDeliveryBoyDialog> createState() => _EditDeliveryBoyDialogState();
@@ -818,8 +817,7 @@ class _EditDeliveryBoyDialogState extends State<_EditDeliveryBoyDialog> {
 class _AssignSubAreasDialog extends StatefulWidget {
   final DeliveryBoyModel deliveryBoy;
 
-  const _AssignSubAreasDialog({Key? key, required this.deliveryBoy})
-    : super(key: key);
+  const _AssignSubAreasDialog({super.key, required this.deliveryBoy});
 
   @override
   State<_AssignSubAreasDialog> createState() => _AssignSubAreasDialogState();
@@ -828,7 +826,7 @@ class _AssignSubAreasDialog extends StatefulWidget {
 class _AssignSubAreasDialogState extends State<_AssignSubAreasDialog> {
   List<AreaModel> _areas = [];
   Set<int> _selectedSubAreaIds = {};
-  Set<int> _expandedAreaIds = {}; // Track expanded areas
+  final Set<int> _expandedAreaIds = {}; // Track expanded areas
   bool _isLoading = true;
 
   @override
@@ -873,7 +871,7 @@ class _AssignSubAreasDialogState extends State<_AssignSubAreasDialog> {
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Container(
+      child: SizedBox(
         width: screenWidth * 0.75, // smaller width
         height: screenHeight * 0.60, // smaller height
         child: Column(
@@ -983,7 +981,7 @@ class _AssignSubAreasDialogState extends State<_AssignSubAreasDialog> {
                                       activeColor: AppColors.primary,
                                       contentPadding: EdgeInsets.zero,
                                     );
-                                  }).toList(),
+                                  }),
                                 ],
 
                                 const SizedBox(height: 12),
@@ -1029,8 +1027,7 @@ class _AssignSubAreasDialogState extends State<_AssignSubAreasDialog> {
 class _DeliveryBoyStatsDialog extends StatefulWidget {
   final DeliveryBoyModel deliveryBoy;
 
-  const _DeliveryBoyStatsDialog({Key? key, required this.deliveryBoy})
-    : super(key: key);
+  const _DeliveryBoyStatsDialog({super.key, required this.deliveryBoy});
 
   @override
   State<_DeliveryBoyStatsDialog> createState() =>
@@ -1052,7 +1049,7 @@ class _DeliveryBoyStatsDialogState extends State<_DeliveryBoyStatsDialog> {
 
   @override
   Widget build(BuildContext context) {
-    String _formatNumber(dynamic value) {
+    String formatNumber(dynamic value) {
       if (value == null) return '0';
       final num number = num.tryParse(value.toString()) ?? 0;
       return number.toStringAsFixed(0); // removes .00
@@ -1292,19 +1289,19 @@ class _DeliveryBoyStatsDialogState extends State<_DeliveryBoyStatsDialog> {
                             Expanded(
                               child: Center(
                                 child: Text(
-                                  _formatNumber(stats["today_online"]),
+                                  formatNumber(stats["today_online"]),
                                 ),
                               ),
                             ),
                             Expanded(
                               child: Center(
-                                child: Text(_formatNumber(stats["today_cash"])),
+                                child: Text(formatNumber(stats["today_cash"])),
                               ),
                             ),
                             Expanded(
                               child: Center(
                                 child: Text(
-                                  _formatNumber(stats["today_pending"]),
+                                  formatNumber(stats["today_pending"]),
                                 ),
                               ),
                             ),
@@ -1335,7 +1332,7 @@ class _DeliveryBoyStatsDialogState extends State<_DeliveryBoyStatsDialog> {
                           ),
                         ),
                         Text(
-                          '₹${_formatNumber(stats["total_pending"])}',
+                          '₹${formatNumber(stats["total_pending"])}',
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,

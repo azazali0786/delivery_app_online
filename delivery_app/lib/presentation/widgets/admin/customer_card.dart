@@ -13,13 +13,13 @@ class CustomerCard extends StatelessWidget {
   final VoidCallback? onTap;
 
   const CustomerCard({
-    Key? key,
+    super.key,
     required this.customer,
     required this.onApprove,
     required this.onEdit,
     required this.onDelete,
     this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

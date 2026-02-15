@@ -12,7 +12,7 @@ import '../../widgets/common/custom_button.dart';
 import '../../widgets/common/custom_textfield.dart';
 
 class AddCustomerScreen extends StatelessWidget {
-  const AddCustomerScreen({Key? key}) : super(key: key);
+  const AddCustomerScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +21,7 @@ class AddCustomerScreen extends StatelessWidget {
 }
 
 class AddCustomerScreenView extends StatefulWidget {
-  const AddCustomerScreenView({Key? key}) : super(key: key);
+  const AddCustomerScreenView({super.key});
 
   @override
   State<AddCustomerScreenView> createState() => _AddCustomerScreenViewState();

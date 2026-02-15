@@ -359,7 +359,7 @@ class InvoicePdfHelper {
                       ),
                       pw.SizedBox(height: 5),
                       pw.Text(
-                        '${balance.abs().toStringAsFixed(2)}',
+                        balance.abs().toStringAsFixed(2),
                         style: pw.TextStyle(
                           fontSize: 20,
                           fontWeight: pw.FontWeight.bold,
@@ -446,7 +446,7 @@ class InvoicePdfHelper {
                         _buildInfoRow('Total Deliveries', '${entries.length}'),
                         _buildInfoRow(
                           'Opening Balance',
-                          '${openingBalance.toStringAsFixed(2)}',
+                          openingBalance.toStringAsFixed(2),
                         ),
                         _buildInfoRow(
                           'Permanent Qty',
@@ -537,108 +537,106 @@ class InvoicePdfHelper {
                       ),
                     ],
                   );
-                }).toList(),
+                }),
               ],
             ),
 
             pw.SizedBox(height: 20),
 
             // Total Summary
-           pw.Row(
-  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-  children: [
-    pw.Container(
-      width: 160,
-      padding: const pw.EdgeInsets.all(10),
-      decoration: pw.BoxDecoration(
-        color: PdfColors.white,
-        border: pw.Border.all(color: PdfColors.grey400),
-        borderRadius: pw.BorderRadius.circular(8),
-      ),
-      child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.center,
-        children: [
-          pw.Text(
-            'Pay Using QR',
-            style: pw.TextStyle(
-              fontSize: 11,
-              fontWeight: pw.FontWeight.bold,
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Container(
+                  width: 160,
+                  padding: const pw.EdgeInsets.all(10),
+                  decoration: pw.BoxDecoration(
+                    color: PdfColors.white,
+                    border: pw.Border.all(color: PdfColors.grey400),
+                    borderRadius: pw.BorderRadius.circular(8),
+                  ),
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.center,
+                    children: [
+                      pw.Text(
+                        'Pay Using QR',
+                        style: pw.TextStyle(
+                          fontSize: 11,
+                          fontWeight: pw.FontWeight.bold,
+                        ),
+                      ),
+                      pw.SizedBox(height: 8),
+
+                      // QR IMAGE
+                      pw.Container(
+                        width: 90,
+                        height: 90,
+                        padding: const pw.EdgeInsets.all(4),
+                        decoration: pw.BoxDecoration(
+                          border: pw.Border.all(color: PdfColors.grey400),
+                          borderRadius: pw.BorderRadius.circular(4),
+                        ),
+                        child: pw.Image(qrImage, fit: pw.BoxFit.contain),
+                      ),
+
+                      pw.SizedBox(height: 8),
+
+                      pw.Text(
+                        'Please scan to pay',
+                        style: const pw.TextStyle(fontSize: 9),
+                        textAlign: pw.TextAlign.center,
+                      ),
+                      pw.SizedBox(height: 2),
+                      pw.Text(
+                        'Share confirmation after payment',
+                        style: pw.TextStyle(
+                          fontSize: 8,
+                          color: PdfColors.grey700,
+                        ),
+                        textAlign: pw.TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+                pw.Container(
+                  width: 280,
+                  padding: const pw.EdgeInsets.all(15),
+                  decoration: pw.BoxDecoration(
+                    color: PdfColors.grey100,
+                    borderRadius: pw.BorderRadius.circular(8),
+                  ),
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+                    children: [
+                      // ===== SUMMARY =====
+                      _buildSummaryRow(
+                        'Total Milk',
+                        '${totalMilk.toStringAsFixed(1)} L',
+                      ),
+                      pw.Divider(color: PdfColors.grey400),
+                      _buildSummaryRow(
+                        'Total Amount',
+                        totalAmount.toStringAsFixed(2),
+                        isBold: true,
+                      ),
+                      _buildSummaryRow(
+                        'Total Paid',
+                        totalCollected.toStringAsFixed(2),
+                      ),
+                      pw.Divider(color: PdfColors.grey400),
+                      _buildSummaryRow(
+                        balance > 0 ? 'Balance Due' : 'Overpaid',
+                        balance.abs().toStringAsFixed(2),
+                        isBold: true,
+                        color: balance > 0 ? PdfColors.red : PdfColors.green,
+                      ),
+
+                      pw.SizedBox(height: 14),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ),
-          pw.SizedBox(height: 8),
-
-          // QR IMAGE
-          pw.Container(
-            width: 90,
-            height: 90,
-            padding: const pw.EdgeInsets.all(4),
-            decoration: pw.BoxDecoration(
-              border: pw.Border.all(color: PdfColors.grey400),
-              borderRadius: pw.BorderRadius.circular(4),
-            ),
-            child: pw.Image(qrImage, fit: pw.BoxFit.contain),
-          ),
-
-          pw.SizedBox(height: 8),
-
-          pw.Text(
-            'Please scan to pay',
-            style: const pw.TextStyle(fontSize: 9),
-            textAlign: pw.TextAlign.center,
-          ),
-          pw.SizedBox(height: 2),
-          pw.Text(
-            'Share confirmation after payment',
-            style: pw.TextStyle(
-              fontSize: 8,
-              color: PdfColors.grey700,
-            ),
-            textAlign: pw.TextAlign.center,
-          ),
-        ],
-      ),
-    ),
-    pw.Container(
-      width: 280,
-      padding: const pw.EdgeInsets.all(15),
-      decoration: pw.BoxDecoration(
-        color: PdfColors.grey100,
-        borderRadius: pw.BorderRadius.circular(8),
-      ),
-      child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.stretch,
-        children: [
-          // ===== SUMMARY =====
-          _buildSummaryRow(
-            'Total Milk',
-            '${totalMilk.toStringAsFixed(1)} L',
-          ),
-          pw.Divider(color: PdfColors.grey400),
-          _buildSummaryRow(
-            'Total Amount',
-            '${totalAmount.toStringAsFixed(2)}',
-            isBold: true,
-          ),
-          _buildSummaryRow(
-            'Total Paid',
-            '${totalCollected.toStringAsFixed(2)}',
-          ),
-          pw.Divider(color: PdfColors.grey400),
-          _buildSummaryRow(
-            balance > 0 ? 'Balance Due' : 'Overpaid',
-            '${balance.abs().toStringAsFixed(2)}',
-            isBold: true,
-            color: balance > 0 ? PdfColors.red : PdfColors.green,
-          ),
-
-          pw.SizedBox(height: 14),
-          
-        ],
-      ),
-    ),
-  ],
-),
-
 
             pw.SizedBox(height: 30),
 

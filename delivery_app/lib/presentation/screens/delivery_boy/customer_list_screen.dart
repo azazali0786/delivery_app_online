@@ -12,7 +12,7 @@ import '../../widgets/common/empty_state_widget.dart';
 import 'entry_screen.dart';
 
 class CustomerListScreen extends StatelessWidget {
-  const CustomerListScreen({Key? key}) : super(key: key);
+  const CustomerListScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +26,7 @@ class CustomerListScreen extends StatelessWidget {
 }
 
 class CustomerListView extends StatefulWidget {
-  const CustomerListView({Key? key}) : super(key: key);
+  const CustomerListView({super.key});
 
   @override
   State<CustomerListView> createState() => _CustomerListViewState();
@@ -71,8 +71,6 @@ class _CustomerListViewState extends State<CustomerListView> {
           final subs = (a.subAreas ?? []).map<String>((s) => s.name).toSet();
           if (subs.isNotEmpty) _areaToSubAreas[a.name] = subs;
         }
-    
-        
       });
     } catch (e) {
       // ignore errors for now
@@ -127,8 +125,9 @@ class _CustomerListViewState extends State<CustomerListView> {
       }
 
       // Shift filter
-      if (_shiftFilter != null && (customer.shift ?? '') != _shiftFilter)
+      if (_shiftFilter != null && (customer.shift ?? '') != _shiftFilter) {
         return false;
+      }
 
       return true;
     }).toList();
@@ -499,9 +498,7 @@ class _CustomerListViewState extends State<CustomerListView> {
                 // Active Filters Display
                 if (_areaFilter != null || _subAreaFilter != null)
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     color: Colors.white,
                     child: Row(
                       children: [

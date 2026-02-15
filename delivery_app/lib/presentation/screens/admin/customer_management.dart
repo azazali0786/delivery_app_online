@@ -17,8 +17,7 @@ import '../../screens/delivery_boy/entry_screen.dart';
 
 class CustomerManagement extends StatelessWidget {
   final bool unApproved;
-  const CustomerManagement({Key? key, required this.unApproved})
-    : super(key: key);
+  const CustomerManagement({super.key, required this.unApproved});
 
   @override
   Widget build(BuildContext context) {
@@ -41,8 +40,7 @@ class CustomerManagement extends StatelessWidget {
 class CustomerManagementView extends StatefulWidget {
   final bool unApproved;
 
-  const CustomerManagementView({Key? key, required this.unApproved})
-    : super(key: key);
+  const CustomerManagementView({super.key, required this.unApproved});
 
   @override
   State<CustomerManagementView> createState() => _CustomerManagementViewState();
@@ -64,7 +62,7 @@ class _CustomerManagementViewState extends State<CustomerManagementView> {
 
   Set<String> _allAreas = {};
   Set<String> _allSubAreas = {};
-  Map<String, Set<String>> _areaToSubAreas = {};
+  final Map<String, Set<String>> _areaToSubAreas = {};
 
   @override
   void initState() {
@@ -335,8 +333,9 @@ class _CustomerManagementViewState extends State<CustomerManagementView> {
                             final validSubAreas = value == null
                                 ? _allSubAreas
                                 : (_areaToSubAreas[value] ?? {});
-                            if (!validSubAreas.contains(_subAreaFilter))
+                            if (!validSubAreas.contains(_subAreaFilter)) {
                               _subAreaFilter = null;
+                            }
                           }
                         }),
                         onSubAreaChanged: (value) =>

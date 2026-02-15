@@ -39,7 +39,7 @@ class ExpenseItem {
 }
 
 class ExpenseScreen extends StatefulWidget {
-  const ExpenseScreen({Key? key}) : super(key: key);
+  const ExpenseScreen({super.key});
 
   @override
   State<ExpenseScreen> createState() => _ExpenseScreenState();
@@ -51,7 +51,9 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
 
   @override
   void dispose() {
-    for (var expense in _expenses) expense.dispose();
+    for (var expense in _expenses) {
+      expense.dispose();
+    }
     _scrollController.dispose();
     super.dispose();
   }
@@ -270,22 +272,22 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Cancel'),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       side: const BorderSide(color: Color(0xFFE2E8F0)),
                     ),
+                    child: const Text('Cancel'),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
                     onPressed: _submit,
-                    child: Text('Add All (${_expenses.length})'),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       backgroundColor: const Color(0xFF4299E1),
                     ),
+                    child: Text('Add All (${_expenses.length})'),
                   ),
                 ),
               ],

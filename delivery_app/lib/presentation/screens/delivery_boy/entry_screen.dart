@@ -17,8 +17,7 @@ class EntryScreen extends StatelessWidget {
   final CustomerModel customer;
   final bool isAdmin;
 
-  const EntryScreen({Key? key, required this.customer, this.isAdmin = false})
-    : super(key: key);
+  const EntryScreen({super.key, required this.customer, this.isAdmin = false});
 
   @override
   Widget build(BuildContext context) {
@@ -35,10 +34,10 @@ class EntryScreenView extends StatefulWidget {
   final bool isAdmin;
 
   const EntryScreenView({
-    Key? key,
+    super.key,
     required this.customer,
     this.isAdmin = false,
-  }) : super(key: key);
+  });
 
   @override
   State<EntryScreenView> createState() => _EntryScreenViewState();
@@ -114,7 +113,7 @@ class _EntryScreenViewState extends State<EntryScreenView> {
 
       // Sort entries so latest entry shows first (by created_at or entry_date)
       entries.sort((a, b) {
-        DateTime _parseCreated(dynamic e) {
+        DateTime parseCreated(dynamic e) {
           final created = (e is Map)
               ? (e['created_at'] ?? e['entry_date'] ?? '')
               : (e.createdAt ?? e.entryDate ?? '');
@@ -125,9 +124,9 @@ class _EntryScreenViewState extends State<EntryScreenView> {
           }
         }
 
-        return _parseCreated(
+        return parseCreated(
           b,
-        ).compareTo(_parseCreated(a)); // descending: latest first
+        ).compareTo(parseCreated(a)); // descending: latest first
       });
 
       // Use latest entry's pending bottles for display (if present)
@@ -655,10 +654,12 @@ class _EntryScreenViewState extends State<EntryScreenView> {
                                               '';
                                           if (s.isEmpty) return 'Required';
                                           final v = double.tryParse(s);
-                                          if (v == null)
+                                          if (v == null) {
                                             return 'Enter valid number';
-                                          if (v <= 0)
+                                          }
+                                          if (v <= 0) {
                                             return 'Must be greater than 0';
+                                          }
                                           return null;
                                         },
                                       ),
@@ -678,10 +679,12 @@ class _EntryScreenViewState extends State<EntryScreenView> {
                                               '';
                                           if (s.isEmpty) return 'Required';
                                           final v = double.tryParse(s);
-                                          if (v == null)
+                                          if (v == null) {
                                             return 'Enter valid number';
-                                          if (v <= 0)
+                                          }
+                                          if (v <= 0) {
                                             return 'Must be greater than 0';
+                                          }
                                           return null;
                                         },
                                       ),
@@ -705,10 +708,12 @@ class _EntryScreenViewState extends State<EntryScreenView> {
                                               '';
                                           if (s.isEmpty) return 'Required';
                                           final v = double.tryParse(s);
-                                          if (v == null)
+                                          if (v == null) {
                                             return 'Enter valid number';
-                                          if (v < 0)
+                                          }
+                                          if (v < 0) {
                                             return 'Cannot be negative';
+                                          }
                                           return null;
                                         },
                                       ),
@@ -723,10 +728,12 @@ class _EntryScreenViewState extends State<EntryScreenView> {
                                           final s = val?.trim() ?? '';
                                           if (s.isEmpty) return 'Required';
                                           final v = int.tryParse(s);
-                                          if (v == null)
+                                          if (v == null) {
                                             return 'Enter whole number';
-                                          if (v < 0)
+                                          }
+                                          if (v < 0) {
                                             return 'Cannot be negative';
+                                          }
                                           return null;
                                         },
                                       ),

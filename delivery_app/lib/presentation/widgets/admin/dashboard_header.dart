@@ -6,10 +6,7 @@ import '../../../core/constants/app_colors.dart';
 class DashboardHeader extends StatelessWidget {
   final Map<String, dynamic> stats;
 
-  const DashboardHeader({
-    Key? key,
-    required this.stats,
-  }) : super(key: key);
+  const DashboardHeader({super.key, required this.stats});
 
   @override
   Widget build(BuildContext context) {
@@ -19,10 +16,7 @@ class DashboardHeader extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            AppColors.primary,
-            AppColors.primary.withOpacity(0.8),
-          ],
+          colors: [AppColors.primary, AppColors.primary.withOpacity(0.8)],
         ),
         borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(32),
@@ -57,10 +51,7 @@ class DashboardHeader extends StatelessWidget {
                       children: [
                         const Text(
                           'Welcome back!',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 14,
-                          ),
+                          style: TextStyle(color: Colors.white70, fontSize: 14),
                         ),
                         const SizedBox(height: 4),
                         Text(
@@ -147,10 +138,7 @@ class _QuickStat extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 12,
-                  ),
+                  style: const TextStyle(color: Colors.white70, fontSize: 12),
                 ),
                 const SizedBox(height: 2),
                 Text(

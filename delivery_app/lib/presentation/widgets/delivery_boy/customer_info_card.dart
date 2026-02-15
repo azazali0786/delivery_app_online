@@ -8,10 +8,10 @@ class CustomerInfoCard extends StatelessWidget {
   final int? overrideLastTimePendingBottles;
 
   const CustomerInfoCard({
-    Key? key,
+    super.key,
     required this.customer,
     this.overrideLastTimePendingBottles,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -178,12 +178,12 @@ class _StatItem extends StatelessWidget {
   final bool isHighlight;
 
   const _StatItem({
-    Key? key,
+    super.key,
     required this.icon,
     required this.label,
     required this.value,
     this.isHighlight = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

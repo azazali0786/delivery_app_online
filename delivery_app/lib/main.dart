@@ -18,15 +18,12 @@ import 'presentation/screens/delivery_boy/delivery_dashboard.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   final prefs = await SharedPreferences.getInstance();
   final storageService = StorageService(prefs);
   final apiService = ApiService(storageService);
-  
-  runApp(MyApp(
-    storageService: storageService,
-    apiService: apiService,
-  ));
+
+  runApp(MyApp(storageService: storageService, apiService: apiService));
 }
 
 class MyApp extends StatelessWidget {
@@ -34,10 +31,10 @@ class MyApp extends StatelessWidget {
   final ApiService apiService;
 
   const MyApp({
-    Key? key,
+    super.key,
     required this.storageService,
     required this.apiService,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -46,20 +43,15 @@ class MyApp extends StatelessWidget {
         RepositoryProvider(
           create: (context) => AuthRepository(apiService, storageService),
         ),
-        RepositoryProvider(
-          create: (context) => AdminRepository(apiService),
-        ),
+        RepositoryProvider(create: (context) => AdminRepository(apiService)),
         RepositoryProvider(
           create: (context) => DeliveryBoyRepository(apiService),
         ),
-        RepositoryProvider(
-          create: (context) => CustomerRepository(apiService),
-        ),
+        RepositoryProvider(create: (context) => CustomerRepository(apiService)),
       ],
       child: BlocProvider(
-        create: (context) => AuthCubit(
-          context.read<AuthRepository>(),
-        )..checkAuthStatus(),
+        create: (context) =>
+            AuthCubit(context.read<AuthRepository>())..checkAuthStatus(),
         child: MaterialApp(
           title: 'Alive Delivery',
           debugShowCheckedModeBanner: false,

@@ -12,10 +12,10 @@ class EditCustomerDialog extends StatefulWidget {
   final AdminRepository repository;
 
   const EditCustomerDialog({
-    Key? key,
+    super.key,
     required this.customer,
     required this.repository,
-  }) : super(key: key);
+  });
 
   @override
   State<EditCustomerDialog> createState() => _EditCustomerDialogState();
@@ -86,7 +86,7 @@ class _EditCustomerDialogState extends State<EditCustomerDialog> {
       await widget.repository.updateCustomer(widget.customer.id, data);
       Navigator.pop(context);
       context.read<AdminCubit>().loadCustomers();
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Customer updated successfully'),
@@ -246,7 +246,7 @@ class _EditCustomerDialogState extends State<EditCustomerDialog> {
                     return null;
                   },
                 ),
-                
+
                 const SizedBox(height: 24),
 
                 // Action Buttons

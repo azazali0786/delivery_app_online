@@ -9,8 +9,7 @@ import '../../../data/repositories/customer_repository.dart';
 class InvoiceShareDialog extends StatefulWidget {
   final List<Map<String, dynamic>> customers;
 
-  const InvoiceShareDialog({Key? key, required this.customers})
-    : super(key: key);
+  const InvoiceShareDialog({super.key, required this.customers});
 
   @override
   State<InvoiceShareDialog> createState() => _InvoiceShareDialogState();
@@ -840,69 +839,72 @@ class _InvoiceShareDialogState extends State<InvoiceShareDialog> {
           ),
           const SizedBox(height: 8),
           Container(
-  padding: const EdgeInsets.all(8),
-  decoration: BoxDecoration(
-    border: Border.all(color: AppColors.border),
-    borderRadius: BorderRadius.circular(8),
-  ),
-  child: Column(
-    children: () {
-      // Sort entries by date in ASCENDING order
-      final sortedEntries = entries.toList()
-        ..sort((a, b) => DateTime.parse(a.entryDate)
-            .compareTo(DateTime.parse(b.entryDate)));
-      
-      double cumulative = invoiceData.openingBalance;
-      
-      return sortedEntries.map((e) {
-        final milkQty = e.milkQuantity;
-        final rate = e.rate;
-        final collected = e.collectedMoney;
-        final amount = milkQty * rate;
-        final pending = amount - collected;
-        cumulative += pending;
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              border: Border.all(color: AppColors.border),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              children: () {
+                // Sort entries by date in ASCENDING order
+                final sortedEntries = entries.toList()
+                  ..sort(
+                    (a, b) => DateTime.parse(
+                      a.entryDate,
+                    ).compareTo(DateTime.parse(b.entryDate)),
+                  );
 
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  '${DateFormat('dd MMM yyyy').format(DateTime.parse(e.entryDate).toLocal())} - ${milkQty.toStringAsFixed(1)}L @ ${rate.toStringAsFixed(0)}',
-                  style: TextStyle(fontSize: 12),
-                ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    Helpers.formatCurrency(amount),
-                    style: TextStyle(fontSize: 12),
-                  ),
-                  Text(
-                    'Paid: ${Helpers.formatCurrency(collected)}',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: AppColors.textSecondary,
+                double cumulative = invoiceData.openingBalance;
+
+                return sortedEntries.map((e) {
+                  final milkQty = e.milkQuantity;
+                  final rate = e.rate;
+                  final collected = e.collectedMoney;
+                  final amount = milkQty * rate;
+                  final pending = amount - collected;
+                  cumulative += pending;
+
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '${DateFormat('dd MMM yyyy').format(DateTime.parse(e.entryDate).toLocal())} - ${milkQty.toStringAsFixed(1)}L @ ${rate.toStringAsFixed(0)}',
+                            style: TextStyle(fontSize: 12),
+                          ),
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              Helpers.formatCurrency(amount),
+                              style: TextStyle(fontSize: 12),
+                            ),
+                            Text(
+                              'Paid: ${Helpers.formatCurrency(collected)}',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                            Text(
+                              'Balance: ${Helpers.formatCurrency(cumulative)}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                  ),
-                  Text(
-                    'Balance: ${Helpers.formatCurrency(cumulative)}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+                  );
+                }).toList();
+              }(),
+            ),
           ),
-        );
-      }).toList();
-    }(),
-  ),
-),
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(12),

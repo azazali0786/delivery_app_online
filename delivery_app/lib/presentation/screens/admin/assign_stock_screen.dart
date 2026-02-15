@@ -9,7 +9,7 @@ import '../../../data/repositories/admin_repository.dart';
 import '../../widgets/common/loading_widget.dart';
 
 class AssignStockScreen extends StatelessWidget {
-  const AssignStockScreen({Key? key}) : super(key: key);
+  const AssignStockScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +22,7 @@ class AssignStockScreen extends StatelessWidget {
 }
 
 class AssignStockView extends StatefulWidget {
-  const AssignStockView({Key? key}) : super(key: key);
+  const AssignStockView({super.key});
 
   @override
   State<AssignStockView> createState() => _AssignStockViewState();
@@ -32,7 +32,7 @@ class _AssignStockViewState extends State<AssignStockView> {
   final ScrollController _scrollController = ScrollController();
   List<dynamic> _stockEntries = [];
   bool _isLoadingMore = false;
-  bool _hasMoreData = true;
+  final bool _hasMoreData = true;
   int _currentPage = 0;
   final int _itemsPerPage = 30;
 
@@ -519,7 +519,7 @@ class _AssignStockViewState extends State<AssignStockView> {
 
 // Assign Stock Dialog Widget
 class _AssignStockDialog extends StatefulWidget {
-  const _AssignStockDialog({Key? key}) : super(key: key);
+  const _AssignStockDialog({super.key});
 
   @override
   State<_AssignStockDialog> createState() => _AssignStockDialogState();
@@ -753,7 +753,7 @@ class _AssignStockDialogState extends State<_AssignStockDialog> {
 class _EditStockDialog extends StatefulWidget {
   final dynamic stock;
 
-  const _EditStockDialog({Key? key, required this.stock}) : super(key: key);
+  const _EditStockDialog({super.key, required this.stock});
 
   @override
   State<_EditStockDialog> createState() => _EditStockDialogState();
