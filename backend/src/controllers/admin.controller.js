@@ -6,6 +6,7 @@ const ReasonModel = require('../models/reason.model');
 const StockModel = require('../models/stock.model');
 const EntryModel = require('../models/entry.model');
 const ExpenseModel = require('../models/expense.model');
+const { getTodayDateIST } = require('../utils/timezone');
 
 class AdminController {
   // Dashboard
@@ -451,7 +452,7 @@ class AdminController {
         total_milk: totalMilk,
         total_collected: totalCollected,
         total_pending: totalPending.toFixed(2),
-        generated_date: new Date().toISOString().split('T')[0]
+        generated_date: getTodayDateIST()
       };
 
       res.json(invoiceData);
@@ -471,7 +472,7 @@ class AdminController {
       const toInsert = expenses.map(e => ({
         name: e.name,
         amount: parseFloat(e.amount) || 0,
-        expense_date: e.expense_date || new Date().toISOString().split('T')[0]
+        expense_date: e.expense_date || getTodayDateIST()
       }));
       const inserted = await ExpenseModel.createMany(toInsert);
       res.status(201).json(inserted);
@@ -565,7 +566,7 @@ class AdminController {
         dateExpenses = await ExpenseModel.getTotalAmount(startDate, endDate);
       } else {
         // Single date (default to today if not provided)
-        const singleDate = date || new Date().toISOString().split('T')[0];
+        const singleDate = date || getTodayDateIST();
 
         const datePayments = await pool.query(
           `SELECT payment_method, COALESCE(SUM(collected_money),0) as total

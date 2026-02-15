@@ -1,4 +1,5 @@
 const { pool } = require('../config/database');
+const { getTodayDateIST, getNowISOStringIST } = require('../utils/timezone');
 
 class StockModel {
   static async create(data) {
@@ -13,7 +14,7 @@ class StockModel {
       data.half_ltr_bottles || 0,
       data.one_ltr_bottles || 0,
       data.collected_bottles || 0,
-      data.entry_date || new Date().toISOString()
+      data.entry_date || getNowISOStringIST()
     ]);
 
     return result.rows[0];
@@ -97,7 +98,7 @@ class StockModel {
   }
 
   static async getTodayStock(deliveryBoyId) {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getTodayDateIST();
     const result = await pool.query(
       'SELECT * FROM stock_entries WHERE delivery_boy_id = $1 AND DATE(entry_date) = $2',
       [deliveryBoyId, today]

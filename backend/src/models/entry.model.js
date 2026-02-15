@@ -1,4 +1,5 @@
 const { pool } = require('../config/database');
+const { getTodayDateIST } = require('../utils/timezone');
 
 class EntryModel {
   static async create(data) {
@@ -19,7 +20,7 @@ class EntryModel {
       data.payment_method || 'cash',
       data.is_delivered !== undefined ? data.is_delivered : true,
       data.not_delivered_reason || null,
-      data.entry_date || new Date().toISOString().split('T')[0]
+      data.entry_date || getTodayDateIST()
     ]);
 
     return result.rows[0];
@@ -93,7 +94,7 @@ class EntryModel {
   }
 
   static async getTodayEntry(customerId) {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getTodayDateIST();
     const result = await pool.query(
       'SELECT * FROM entries WHERE customer_id = $1 AND entry_date = $2',
       [customerId, today]

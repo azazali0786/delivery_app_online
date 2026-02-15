@@ -1,5 +1,6 @@
 const { pool } = require('../config/database');
 const bcrypt = require('bcryptjs');
+const { getTodayDateIST, isEveningIST } = require('../utils/timezone');
 
 class DeliveryBoyModel {
   static async create(data) {
@@ -132,19 +133,15 @@ class DeliveryBoyModel {
   }
 
   static async getDashboardStats(deliveryBoyId) {
-    // Determine current period using local date and hour cutoffs: morning = 00:00-13:59, evening = 14:00-23:59
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const todayDate = `${year}-${month}-${day}`; // YYYY-MM-DD in local timezone
-    const isEvening = now.getHours() >= 14; // hour >= 14 => evening, else morning (00:00-13:59)
+    // Determine current period using IST: morning = 00:00-13:59, evening = 14:00-23:59
+    const todayDate = getTodayDateIST();  // YYYY-MM-DD in IST
+    const isEvening = isEveningIST();     // hour >= 14 IST => evening
 
-    // Get stock entry for the appropriate period (latest before/after 2pm)
-    // Use hour extraction to avoid timezone mismatches with ISO strings
+    // Get stock entry for the appropriate period (latest before/after 2pm IST)
+    // Add 5h30m to convert stored UTC timestamps to IST before extracting the hour
     const stockQuery = isEvening
-      ? `SELECT half_ltr_bottles, one_ltr_bottles FROM stock_entries WHERE delivery_boy_id = $1 AND DATE(entry_date) = $2 AND EXTRACT(HOUR FROM entry_date) >= 14 ORDER BY entry_date DESC LIMIT 1`
-      : `SELECT half_ltr_bottles, one_ltr_bottles FROM stock_entries WHERE delivery_boy_id = $1 AND DATE(entry_date) = $2 AND EXTRACT(HOUR FROM entry_date) < 14 ORDER BY entry_date DESC LIMIT 1`;
+      ? `SELECT half_ltr_bottles, one_ltr_bottles FROM stock_entries WHERE delivery_boy_id = $1 AND DATE(entry_date + INTERVAL '5 hours 30 minutes') = $2 AND EXTRACT(HOUR FROM entry_date + INTERVAL '5 hours 30 minutes') >= 14 ORDER BY entry_date DESC LIMIT 1`
+      : `SELECT half_ltr_bottles, one_ltr_bottles FROM stock_entries WHERE delivery_boy_id = $1 AND DATE(entry_date + INTERVAL '5 hours 30 minutes') = $2 AND EXTRACT(HOUR FROM entry_date + INTERVAL '5 hours 30 minutes') < 14 ORDER BY entry_date DESC LIMIT 1`;
 
     const stockResult = await pool.query(stockQuery, [deliveryBoyId, todayDate]);
     const stock = stockResult.rows[0] || { half_ltr_bottles: 0, one_ltr_bottles: 0 };
@@ -196,12 +193,13 @@ class DeliveryBoyModel {
     }
 
     // Fetch entries for this delivery boy for today and limited to the chosen period
+    // Add 5h30m to convert stored UTC created_at to IST before extracting the hour
     const entriesQuery = `
       SELECT e.*
       FROM entries e
       WHERE e.delivery_boy_id = $1
         AND DATE(e.entry_date) = $2
-        AND (${isEvening ? "EXTRACT(HOUR FROM e.created_at) >= 14" : "EXTRACT(HOUR FROM e.created_at) < 14"})
+        AND (${isEvening ? "EXTRACT(HOUR FROM e.created_at + INTERVAL '5 hours 30 minutes') >= 14" : "EXTRACT(HOUR FROM e.created_at + INTERVAL '5 hours 30 minutes') < 14"})
       ORDER BY e.customer_id ASC, e.created_at ASC
     `;
 

@@ -1,10 +1,12 @@
+const { getTodayDateIST } = require('./timezone');
+
 class Helpers {
   static formatDate(date) {
     return new Date(date).toISOString().split('T')[0];
   }
 
   static getCurrentDate() {
-    return new Date().toISOString().split('T')[0];
+    return getTodayDateIST();
   }
 
   static validateEmail(email) {
