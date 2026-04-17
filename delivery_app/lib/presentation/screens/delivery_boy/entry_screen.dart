@@ -66,7 +66,7 @@ class _EntryScreenViewState extends State<EntryScreenView> {
         ? qty.toInt().toString()
         : qty.toString();
 
-    _rateController.text = "80"; // Default rate
+    _rateController.text = "85"; // Default rate
     _loadReasons();
     _loadEntries();
   }

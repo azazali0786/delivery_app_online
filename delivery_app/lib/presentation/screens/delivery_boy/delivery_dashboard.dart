@@ -9,6 +9,7 @@ import '../../../data/repositories/delivery_boy_repository.dart';
 import '../../widgets/common/loading_widget.dart';
 import 'customer_list_screen.dart';
 import 'add_customer_screen.dart';
+import '../admin/invoice_share_dialog.dart';
 
 class DeliveryDashboard extends StatelessWidget {
   const DeliveryDashboard({super.key});
@@ -168,6 +169,21 @@ class _DeliveryDashboardView extends StatelessWidget {
               label: const Text('View All Customers'),
             ),
 
+            const SizedBox(height: 12),
+
+            // Share Invoice Button
+            OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                side: BorderSide(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              onPressed: () => _showInvoiceDialog(context),
+              icon: const Icon(Icons.receipt_long_rounded),
+              label: const Text('Share Invoice'),
+            ),
+
             const SizedBox(height: 80), // Space for FAB
           ],
         ),
@@ -200,6 +216,56 @@ class _DeliveryDashboardView extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void _showInvoiceDialog(BuildContext context) async {
+    final deliveryBoyRepository = context.read<DeliveryBoyRepository>();
+
+    // Show loading indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final customers = await deliveryBoyRepository.getCustomers();
+
+      if (context.mounted) {
+        Navigator.pop(context); // dismiss loading
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => InvoiceShareDialog(
+              customers: customers
+                  .map(
+                    (c) => {
+                      'id': c.id,
+                      'name': c.name,
+                      'phone_number': c.phoneNumber,
+                      'address': c.address,
+                      'area_name': c.areaName,
+                      'sub_area_name': c.subAreaName,
+                      'permanent_quantity': c.permanentQuantity,
+                    },
+                  )
+                  .toList(),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.pop(context); // dismiss loading
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load customers: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    }
   }
 }
 

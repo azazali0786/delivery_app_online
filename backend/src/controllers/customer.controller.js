@@ -9,8 +9,16 @@ class CustomerController {
       }
 
       // Check authorization
-      if (req.user.role === 'delivery_boy' && customer.delivery_boy_id !== req.user.id) {
-        return res.status(403).json({ error: 'Access denied' });
+      if (req.user.role === 'delivery_boy') {
+        const { pool } = require('../config/database');
+        const assignmentCheck = await pool.query(
+          'SELECT 1 FROM delivery_boy_subareas WHERE delivery_boy_id = $1 AND sub_area_id = $2',
+          [req.user.id, customer.sub_area_id]
+        );
+
+        if (assignmentCheck.rows.length === 0) {
+          return res.status(403).json({ error: 'Access denied' });
+        }
       }
 
       res.json(customer);
@@ -29,8 +37,16 @@ class CustomerController {
         return res.status(404).json({ error: 'Customer not found' });
       }
 
-      if (req.user.role === 'delivery_boy' && customer.delivery_boy_id !== req.user.id) {
-        return res.status(403).json({ error: 'Access denied' });
+      if (req.user.role === 'delivery_boy') {
+        const { pool } = require('../config/database');
+        const assignmentCheck = await pool.query(
+          'SELECT 1 FROM delivery_boy_subareas WHERE delivery_boy_id = $1 AND sub_area_id = $2',
+          [req.user.id, customer.sub_area_id]
+        );
+
+        if (assignmentCheck.rows.length === 0) {
+          return res.status(403).json({ error: 'Access denied' });
+        }
       }
 
       const entries = await CustomerModel.getCustomerEntries(
